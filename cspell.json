@@ -8,8 +8,7 @@
     "*.lock",
     "package-lock.json"
   ],
-  "words": [
-  ],
+  "words": [],
   "dictionaries": ["typescript", "node", "softwareTerms", "html", "css"],
   "enableFiletypes": ["ts", "tsx", "js", "jsx", "json", "md", "css", "scss"]
 }
