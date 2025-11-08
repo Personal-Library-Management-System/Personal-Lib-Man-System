@@ -8,7 +8,24 @@
     "*.lock",
     "package-lock.json"
   ],
-  "words": [],
-  "dictionaries": ["typescript", "node", "softwareTerms", "html", "css"],
-  "enableFiletypes": ["ts", "tsx", "js", "jsx", "json", "md", "css", "scss"]
+  "words": [
+    "chakra"
+  ],
+  "dictionaries": [
+    "typescript",
+    "node",
+    "softwareTerms",
+    "html",
+    "css"
+  ],
+  "enableFiletypes": [
+    "ts",
+    "tsx",
+    "js",
+    "jsx",
+    "json",
+    "md",
+    "css",
+    "scss"
+  ]
 }
