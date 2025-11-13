@@ -1,0 +1,20 @@
+# Personal Library Management System - Code Owners
+#
+# Bu dosya GitHub'ın otomatik code review sistemi için kullanılır.
+# Pull Request açıldığında ilgili takım üyelerine otomatik olarak review atması yapılır.
+#
+# ÖNEMLİ NOTLAR:
+# - Bu dosyayı silmeyin veya .gitignore'a eklemeyin
+# - Dosya repository'nin kök dizininde (.github/ klasöründe) kalmalı
+# - Kullanıcı adları değiştiğinde bu dosyayı güncelleyin
+# - Her PR'da otomatik olarak ilgili ekip üyeleri reviewer olarak atanacak
+
+# Frontend team
+/frontend/ @agunduz42 @EnesK41 @veyselcmlgl
+
+# Backend team
+/backend/ @OnurhanTALAN @rkalay2021
+
+# README ve dokümantasyon - tüm ekip üyeleri
+README.md @agunduz42 @EnesK41 @veyselcmlgl @OnurhanTALAN @rkalay2021
+*.md @agunduz42 @EnesK41 @veyselcmlgl @OnurhanTALAN @rkalay2021
