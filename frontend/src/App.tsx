@@ -1,20 +1,17 @@
-import { Badge, Box, Heading } from '@chakra-ui/react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import AuthPage from './pages/AuthPage';
+import MainPage from './pages/MainPage';
 
 function App() {
   return (
-    <Box
-      display="flex"
-      alignItems="center"
-      justifyContent="center"
-      height="100vh"
-      bg="gray.50"
-    >
-      <Badge>
-        <Heading size="5xl">Personal Library Management System</Heading>
-      </Badge>
-    </Box>
+    <Router>
+      <Routes>
+        <Route path="/" element={<AuthPage />} />
+        <Route path="/auth" element={<AuthPage />} />
+        <Route path="/main" element={<MainPage />} />
+      </Routes>
+    </Router>
   );
 }
 
 export default App;
-
