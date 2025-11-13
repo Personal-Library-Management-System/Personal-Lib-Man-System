@@ -1,12 +1,16 @@
 {
   "version": "0.2",
   "language": "en",
+  "includePaths": [
+    "frontend/src",
+    "backend/src"
+  ],
   "ignorePaths": [
-    "node_modules",
-    "dist",
-    "public",
-    "*.lock",
-    "package-lock.json"
+    "**/node_modules",
+    "**/dist",
+    "**/public",
+    "**/*.lock",
+    "**/package-lock.json"
   ],
   "words": [
     "chakra"

@@ -1,0 +1,26 @@
+{
+  "name": "plms",
+  "version": "1.0.0",
+  "description": "## Course Information **Course:** CSE443 – Object Oriented Analysis & Design   **University:** Gebze Technical University (GTU)   **Semester:** Fall 2025   **Project Type:** Term Project   **Group Members:**   - Ahmet Mücahit Gündüz - Enes Korkmaz - Onurhan Talan  - Rümeysa Kalay - Veysel Cemaloğlu",
+  "main": "index.js",
+  "scripts": {
+    "spellcheck:frontend": "cspell lint \"frontend/src/**/*.{ts,tsx,js,jsx,css,json}\"",
+    "spellcheck:backend": "cspell lint \"backend/src/**/*.{ts,js,mts,mjs,cts,cjs,json}\"",
+    "spellcheck": "npm-run-all spellcheck:frontend spellcheck:backend"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OnurhanTALAN/Personal-Lib-Man-System-Frontend.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OnurhanTALAN/Personal-Lib-Man-System-Frontend/issues"
+  },
+  "homepage": "https://github.com/OnurhanTALAN/Personal-Lib-Man-System-Frontend#readme",
+  "devDependencies": {
+    "cspell": "^9.3.1",
+    "npm-run-all": "^4.1.5"
+  }
+}
