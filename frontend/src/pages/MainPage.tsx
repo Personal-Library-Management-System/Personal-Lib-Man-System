@@ -1,313 +1,168 @@
-import { useNavigate } from 'react-router-dom';
-import { FaBook, FaList, FaChartBar, FaCog, FaSignOutAlt, FaUser } from 'react-icons/fa';
+import React from 'react';
+import Layout from '../components/ui/layout';
+import { 
+  Box, 
+  Heading, 
+  Text, 
+  SimpleGrid,
+  useColorModeValue,
+  Icon
+} from '@chakra-ui/react';
+import { FaBook, FaList, FaChartBar } from 'react-icons/fa';
 
 const MainPage = () => {
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate('/auth');
-  };
+  const cardBg = useColorModeValue('white', 'gray.700');
+  const cardBorder = useColorModeValue('gray.200', 'gray.600');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const subtitleColor = useColorModeValue('gray.600', 'gray.300');
 
   return (
-    <div style={{
-      minHeight: '100vh',
-      background: 'linear-gradient(135deg, #1e293b 0%, #334155 100%)',
-      padding: '20px'
-    }}>
-      {/* Header */}
-      <header style={{
-        display: 'flex',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        padding: '20px 30px',
-        background: 'rgba(255, 255, 255, 0.1)',
-        backdropFilter: 'blur(10px)',
-        borderRadius: '16px',
-        marginBottom: '30px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        boxShadow: '0 8px 32px rgba(0, 0, 0, 0.3)'
-      }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
-          <div style={{
-            width: '48px',
-            height: '48px',
-            background: 'linear-gradient(135deg, #3b82f6, #8b5cf6)',
-            borderRadius: '12px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <FaBook color="white" size="20px" />
-          </div>
-          <div>
-            <h1 style={{ 
-              margin: 0, 
-              color: 'white',
-              fontSize: '24px',
-              fontWeight: 'bold'
-            }}>
-              PLMS Dashboard
-            </h1>
-            <p style={{ 
-              margin: 0, 
-              color: 'rgba(255, 255, 255, 0.7)',
-              fontSize: '14px'
-            }}>
-              Kişisel Kütüphane Yönetimi
-            </p>
-          </div>
-        </div>
+    <Layout activeItem="anasayfa">
+      <Box textAlign="center">
+        <Heading 
+          size="xl" 
+          mb={4} 
+          color={useColorModeValue('blue.600', 'blue.300')}
+        >
+          Hoş Geldiniz! 📚
+        </Heading>
         
-        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Kullanıcı Avatar */}
-          <div style={{
-            width: '40px',
-            height: '40px',
-            backgroundColor: 'rgba(255, 255, 255, 0.2)',
-            borderRadius: '50%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center'
-          }}>
-            <FaUser color="white" size="16px" />
-          </div>
-          
-          {/* Logout Button */}
-          <button
-            onClick={handleLogout}
-            style={{
-              padding: '10px 16px',
-              background: 'linear-gradient(135deg, #ef4444, #dc2626)',
-              color: 'white',
-              border: 'none',
-              borderRadius: '8px',
-              cursor: 'pointer',
-              fontSize: '14px',
-              fontWeight: '500',
-              display: 'flex',
-              alignItems: 'center',
-              gap: '8px',
-              transition: 'all 0.2s'
-            }}
-            onMouseOver={(e) => {
-              e.currentTarget.style.transform = 'translateY(-1px)';
-              e.currentTarget.style.boxShadow = '0 4px 12px rgba(239, 68, 68, 0.4)';
-            }}
-            onMouseOut={(e) => {
-              e.currentTarget.style.transform = 'translateY(0)';
-              e.currentTarget.style.boxShadow = 'none';
-            }}
-          >
-            <FaSignOutAlt size="14px" />
-            Çıkış
-          </button>
-        </div>
-      </header>
-
-      {/* Main Content */}
-      <div style={{
-        background: 'rgba(255, 255, 255, 0.05)',
-        backdropFilter: 'blur(10px)',
-        padding: '40px',
-        borderRadius: '16px',
-        border: '1px solid rgba(255, 255, 255, 0.1)',
-        textAlign: 'center'
-      }}>
-        <div style={{ marginBottom: '40px' }}>
-          <h2 style={{ 
-            color: 'white', 
-            marginBottom: '12px',
-            fontSize: '32px',
-            fontWeight: 'bold'
-          }}>
-            Hoş Geldiniz! 📚
-          </h2>
-          
-          <p style={{ 
-            color: 'rgba(255, 255, 255, 0.7)', 
-            fontSize: '18px',
-            margin: 0
-          }}>
-            Kütüphanenizi yönetmeye başlayabilirsiniz.
-          </p>
-        </div>
+        <Text fontSize="lg" color={subtitleColor} mb={8}>
+          Kütüphanenizi yönetmeye başlayabilirsiniz.
+        </Text>
 
         {/* Feature Cards */}
-        <div style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))',
-          gap: '24px',
-          marginTop: '40px'
-        }}>
+        <SimpleGrid columns={{ base: 1, md: 2, lg: 3 }} spacing={6}>
           {/* Kitaplarım Card */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            padding: '32px 24px',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            transition: 'all 0.3s',
-            cursor: 'pointer'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-4px)';
-            e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-          }}
+          <Box
+            bg={cardBg}
+            p={6}
+            borderRadius="lg"
+            shadow="md"
+            border="1px"
+            borderColor={cardBorder}
+            _hover={{
+              transform: 'translateY(-4px)',
+              shadow: 'xl',
+              borderColor: 'blue.300'
+            }}
+            transition="all 0.3s"
+            cursor="pointer"
           >
-            <div style={{
-              width: '64px',
-              height: '64px',
-              background: 'linear-gradient(135deg, #3b82f6, #1d4ed8)',
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}>
-              <FaBook color="white" size="28px" />
-            </div>
-            <h3 style={{ 
-              color: 'white', 
-              marginBottom: '12px',
-              fontSize: '20px',
-              fontWeight: '600'
-            }}>
+            <Box
+              w={16}
+              h={16}
+              bg="blue.500"
+              borderRadius="xl"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              mx="auto"
+              mb={4}
+            >
+              <Icon as={FaBook} color="white" boxSize={7} />
+            </Box>
+            <Heading size="md" mb={3} color={textColor}>
               Kitaplarım
-            </h3>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: '14px',
-              margin: 0
-            }}>
+            </Heading>
+            <Text fontSize="sm" color={subtitleColor}>
               Kişisel kitap koleksiyonunuzu yönetin
-            </p>
-          </div>
-          
+            </Text>
+          </Box>
+
           {/* Okuma Listesi Card */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            padding: '32px 24px',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            transition: 'all 0.3s',
-            cursor: 'pointer'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-4px)';
-            e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-          }}
+          <Box
+            bg={cardBg}
+            p={6}
+            borderRadius="lg"
+            shadow="md"
+            border="1px"
+            borderColor={cardBorder}
+            _hover={{
+              transform: 'translateY(-4px)',
+              shadow: 'xl',
+              borderColor: 'purple.300'
+            }}
+            transition="all 0.3s"
+            cursor="pointer"
           >
-            <div style={{
-              width: '64px',
-              height: '64px',
-              background: 'linear-gradient(135deg, #8b5cf6, #7c3aed)',
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}>
-              <FaList color="white" size="28px" />
-            </div>
-            <h3 style={{ 
-              color: 'white', 
-              marginBottom: '12px',
-              fontSize: '20px',
-              fontWeight: '600'
-            }}>
+            <Box
+              w={16}
+              h={16}
+              bg="purple.500"
+              borderRadius="xl"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              mx="auto"
+              mb={4}
+            >
+              <Icon as={FaList} color="white" boxSize={7} />
+            </Box>
+            <Heading size="md" mb={3} color={textColor}>
               Okuma Listesi
-            </h3>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: '14px',
-              margin: 0
-            }}>
+            </Heading>
+            <Text fontSize="sm" color={subtitleColor}>
               Okumak istediğiniz kitapları planlayın
-            </p>
-          </div>
+            </Text>
+          </Box>
 
           {/* İstatistikler Card */}
-          <div style={{
-            background: 'rgba(255, 255, 255, 0.1)',
-            backdropFilter: 'blur(10px)',
-            padding: '32px 24px',
-            borderRadius: '16px',
-            border: '1px solid rgba(255, 255, 255, 0.1)',
-            transition: 'all 0.3s',
-            cursor: 'pointer'
-          }}
-          onMouseOver={(e) => {
-            e.currentTarget.style.transform = 'translateY(-4px)';
-            e.currentTarget.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.3)';
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
-          }}
-          onMouseOut={(e) => {
-            e.currentTarget.style.transform = 'translateY(0)';
-            e.currentTarget.style.boxShadow = 'none';
-            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.1)';
-          }}
+          <Box
+            bg={cardBg}
+            p={6}
+            borderRadius="lg"
+            shadow="md"
+            border="1px"
+            borderColor={cardBorder}
+            _hover={{
+              transform: 'translateY(-4px)',
+              shadow: 'xl',
+              borderColor: 'green.300'
+            }}
+            transition="all 0.3s"
+            cursor="pointer"
           >
-            <div style={{
-              width: '64px',
-              height: '64px',
-              background: 'linear-gradient(135deg, #10b981, #059669)',
-              borderRadius: '16px',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              margin: '0 auto 20px'
-            }}>
-              <FaChartBar color="white" size="28px" />
-            </div>
-            <h3 style={{ 
-              color: 'white', 
-              marginBottom: '12px',
-              fontSize: '20px',
-              fontWeight: '600'
-            }}>
+            <Box
+              w={16}
+              h={16}
+              bg="green.500"
+              borderRadius="xl"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              mx="auto"
+              mb={4}
+            >
+              <Icon as={FaChartBar} color="white" boxSize={7} />
+            </Box>
+            <Heading size="md" mb={3} color={textColor}>
               İstatistikler
-            </h3>
-            <p style={{ 
-              color: 'rgba(255, 255, 255, 0.6)',
-              fontSize: '14px',
-              margin: 0
-            }}>
+            </Heading>
+            <Text fontSize="sm" color={subtitleColor}>
               Okuma alışkanlıklarınızı takip edin
-            </p>
-          </div>
-        </div>
+            </Text>
+          </Box>
+        </SimpleGrid>
 
         {/* Alt Bilgi */}
-        <div style={{
-          marginTop: '40px',
-          padding: '20px',
-          background: 'rgba(0, 0, 0, 0.2)',
-          borderRadius: '12px',
-          border: '1px solid rgba(255, 255, 255, 0.05)'
-        }}>
-          <p style={{ 
-            color: 'rgba(255, 255, 255, 0.5)',
-            fontSize: '12px',
-            margin: 0
-          }}>
+        <Box
+          mt={8}
+          p={4}
+          bg={useColorModeValue('blue.50', 'blue.900')}
+          borderRadius="md"
+          border="1px"
+          borderColor={useColorModeValue('blue.200', 'blue.600')}
+        >
+          <Text 
+            fontSize="xs" 
+            color={useColorModeValue('blue.600', 'blue.200')}
+          >
             🚀 Bu özellikler yakında aktif olacak. PLMS v1.0.0 - Demo Sürüm
-          </p>
-        </div>
-      </div>
-    </div>
+          </Text>
+        </Box>
+      </Box>
+    </Layout>
   );
 };
 
