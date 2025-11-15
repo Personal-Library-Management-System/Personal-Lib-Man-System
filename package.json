@@ -20,6 +20,7 @@
   },
   "homepage": "https://github.com/OnurhanTALAN/Personal-Lib-Man-System-Frontend#readme",
   "devDependencies": {
+    "@cspell/dict-tr-tr": "^3.0.6",
     "cspell": "^9.3.1",
     "npm-run-all": "^4.1.5"
   }
