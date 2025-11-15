@@ -1,7 +1,9 @@
 {
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
   "version": "0.2",
   "language": "en",
-  "includePaths": [
+  "import" : ["@cspell/dict-tr-tr/cspell-ext.json"],
+  "files": [
     "frontend/src",
     "backend/src"
   ],
@@ -13,14 +15,16 @@
     "**/package-lock.json"
   ],
   "words": [
-    "chakra"
+    "chakra",
+    "plms"
   ],
   "dictionaries": [
     "typescript",
     "node",
     "softwareTerms",
     "html",
-    "css"
+    "css",
+    "tr-tr"
   ],
   "enableFiletypes": [
     "ts",
