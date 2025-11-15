@@ -1,0 +1,150 @@
+import React from 'react';
+import {
+  SimpleGrid,
+  Card,
+  CardBody,
+  Box,
+  Image,
+  Heading,
+  Text,
+  HStack,
+  Skeleton,
+  SkeletonText,
+  useColorModeValue
+} from '@chakra-ui/react';
+
+interface CardItem {
+  id: number;
+  title: string;
+  imageUrl: string;
+  rating: number;
+  status: string;
+  // Kitap için
+  author?: string;
+  pageCount?: number;
+  // Film için
+  director?: string;
+  duration?: number;
+}
+
+interface CardViewProps {
+  items: CardItem[];
+  isLoading: boolean;
+  itemsPerPage: number;
+  getStatusBadge: (status: string) => React.ReactNode;
+  type: 'book' | 'movie';
+}
+
+const CardSkeleton = ({ type }: { type: 'book' | 'movie' }) => {
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const imageHeight = type === 'book' ? '360px' : '400px';
+
+  return (
+    <Card 
+      bg={cardBg}
+      overflow="hidden"
+      h="auto"
+      transition="all 0.3s ease"
+    >
+      <CardBody p={0}>
+        <Box position="relative">
+          <Skeleton height={imageHeight} borderRadius="0" />
+        </Box>
+        <Box p={4}>
+          <SkeletonText mt={0} noOfLines={2} spacing={2} skeletonHeight="16px" />
+          <Skeleton height="14px" mt={2} width="60%" />
+          <HStack justify="space-between" align="center" mt={3}>
+            <Skeleton height="14px" width="50px" />
+            <Skeleton height="20px" width="60px" borderRadius="full" />
+          </HStack>
+        </Box>
+      </CardBody>
+    </Card>
+  );
+};
+
+const CardView: React.FC<CardViewProps> = ({
+  items,
+  isLoading,
+  itemsPerPage,
+  getStatusBadge,
+  type
+}) => {
+  const cardBg = useColorModeValue('white', 'gray.800');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const subtextColor = useColorModeValue('gray.600', 'gray.400');
+  
+  const imageHeight = type === 'book' ? '360px' : '400px';
+  const fallbackIcon = type === 'book' ? '📚' : '🎬';
+
+  return (
+    <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
+      {isLoading
+        ? Array.from({ length: itemsPerPage }).map((_, index) => (
+            <CardSkeleton key={index} type={type} />
+          ))
+        : items.map(item => (
+            <Card
+              key={item.id}
+              bg={cardBg}
+              cursor="pointer"
+              transition="all 0.3s ease"
+              _hover={{
+                transform: 'translateY(-8px)',
+                shadow: 'xl'
+              }}
+              overflow="hidden"
+              h="auto"
+              maxW="280px"
+              mx="auto"
+            >
+              <CardBody p={0}>
+                <Box position="relative">
+                  <Image
+                    src={item.imageUrl}
+                    alt={item.title}
+                    w="full"
+                    h={imageHeight}
+                    objectFit="cover"
+                    objectPosition="center top"
+                    fallback={
+                      <Box 
+                        w="full" 
+                        h={imageHeight} 
+                        bg="gray.200" 
+                        display="flex" 
+                        alignItems="center" 
+                        justifyContent="center"
+                      >
+                        <Text color="gray.500" fontSize="xl">{fallbackIcon}</Text>
+                      </Box>
+                    }
+                  />
+                </Box>
+                <Box p={4}>
+                  <Heading size="sm" color={textColor} noOfLines={2} mb={2} minH="40px">
+                    {item.title}
+                  </Heading>
+                  <Text color={subtextColor} fontSize="sm" mb={2} noOfLines={1}>
+                    {type === 'book' ? item.author : item.director}
+                  </Text>
+                  <HStack justify="space-between" align="center">
+                    <HStack spacing={1}>
+                      <Text fontSize="sm">⭐</Text>
+                      <Text fontSize="sm" color={subtextColor}>{item.rating}</Text>
+                      <Text fontSize="xs" color={subtextColor}>
+                        • {type === 'book' ? `${item.pageCount}s` : `${item.duration}dk`}
+                      </Text>
+                    </HStack>
+                    {getStatusBadge(item.status)}
+                  </HStack>
+                </Box>
+              </CardBody>
+            </Card>
+          ))
+      }
+    </SimpleGrid>
+  );
+};
+
+export default CardView;
