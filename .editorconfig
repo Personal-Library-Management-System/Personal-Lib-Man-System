@@ -15,7 +15,7 @@ trim_trailing_whitespace = false
 indent_size = 2
 
 [*.{ts,tsx,js,jsx}]
-indent_size = 2
+indent_size = 4
 quote_type = single
 
 [*.{css,scss,html}]
