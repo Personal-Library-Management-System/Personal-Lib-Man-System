@@ -5,6 +5,6 @@ import { refreshTokenController } from '../controllers/auth.controller';
 const authRouter = Router();
 
 authRouter.post('/google', googleLoginController);
-authRouter.post('/auth/refresh', refreshTokenController);
+authRouter.post('/refresh', refreshTokenController);
 
 export default authRouter;
