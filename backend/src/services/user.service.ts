@@ -18,8 +18,15 @@ const getOrCreateUser = async (
     return user;
 };
 
+const getUserByEmail = async (email: string): Promise<IUser | null> => {
+    // MongoDB/Mongoose kullanarak e-posta adresine göre kullanıcıyı bulur
+    const user = await User.findOne({ email: email });
+    return user;
+};
+
 const userService ={
     getOrCreateUser,
+    getUserByEmail,
 };
 
 export default userService;
