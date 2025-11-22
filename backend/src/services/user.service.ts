@@ -18,8 +18,14 @@ const getOrCreateUser = async (
     return user;
 };
 
+const getUserByEmail = async (email: string): Promise<IUser | null> => {
+    const user = await User.findOne({ email: email });
+    return user;
+};
+
 const userService ={
     getOrCreateUser,
+    getUserByEmail,
 };
 
 export default userService;

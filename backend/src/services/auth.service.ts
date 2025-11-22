@@ -6,21 +6,27 @@ const client = new OAuth2Client();
 const verifyGoogleIdToken = async (
     idToken: string
 ): Promise<IGoogleUserPayload | null> => {
-    const ticket = await client.verifyIdToken({
-        idToken: idToken,
-        audience: process.env.GOOGLE_CLIENT_ID,
-    });
+    try {
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience: process.env.GOOGLE_CLIENT_ID,
+        });
 
-    const payload = ticket.getPayload();
-    if (!payload) {
+        const payload = ticket.getPayload();
+        if (!payload) {
+            return null;
+        }
+
+        return {
+            sub: payload.sub,
+            email: payload.email,
+            name: payload.name,
+            picture: payload.picture ?? null,
+        } as IGoogleUserPayload;
+    } catch (err) {
+        console.error('Failed to verify Google ID token:', err);
         return null;
     }
-    return {
-        sub: payload.sub,
-        email: payload.email,
-        name: payload.name,
-        picture: payload.picture ?? null,
-    } as IGoogleUserPayload;
 };
 
 const authService = {

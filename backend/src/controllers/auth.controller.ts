@@ -2,7 +2,12 @@ import { Request, Response } from 'express';
 import authService from '../services/auth.service';
 import userService from '../services/user.service';
 import tokenService from '../services/token.service';
-import { JwtUserPayload } from '../types/auth.types';
+import { StatusCodes } from 'http-status-codes';
+import {
+    buildJwtPayload,
+    generateTokens,
+    setAuthCookies,
+} from '../utils/auth.utils';
 
 const googleLoginController = async (
     req: Request,
@@ -10,31 +15,61 @@ const googleLoginController = async (
 ): Promise<Response> => {
     const { idToken } = req.body;
     if (!idToken) {
-        return res.status(400).json({ error: 'ID Token is required' });
+        return res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: 'ID Token is required' });
     }
 
     const googleUserPayload = await authService.verifyGoogleIdToken(idToken);
     if (!googleUserPayload) {
-        return res.status(400).json({ error: 'Invalid ID token' });
+        return res
+            .status(StatusCodes.BAD_REQUEST)
+            .json({ error: 'Invalid ID token' });
     }
 
     const user = await userService.getOrCreateUser(googleUserPayload);
-    const jwtPayload: JwtUserPayload = {
-        email: user.email,
-        name: user.name,
-        picture: user.picture,
-    };
-    const accessToken = tokenService.generateJwtToken(jwtPayload, '15Minutes');
-    const refreshToken = tokenService.generateJwtToken(jwtPayload, '7Days');
+    const jwtPayload = buildJwtPayload(user);
+    const jwtTokens = generateTokens(jwtPayload);
+    setAuthCookies(res, jwtTokens);
 
-    return res.status(200).json({
-        accessToken,
-        refreshToken,
-    });
+    return res
+        .status(StatusCodes.OK)
+        .json({ message: 'Authentication successful' });
 };
 
-export { googleLoginController };
+const refreshTokenController = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    const refreshToken = req.cookies.refreshToken;
+    if (!refreshToken) {
+        return res
+            .status(StatusCodes.UNAUTHORIZED)
+            .json({ error: 'Refresh token not provided' });
+    }
 
+    const decoded = tokenService.verifyJwtToken(refreshToken);
+    if (!decoded) {
+        return res
+            .status(StatusCodes.UNAUTHORIZED)
+            .json({ error: 'Invalid or expired refresh token' });
+    }
 
+    const user = await userService.getUserByEmail(decoded.email);
+    if (!user) {
+        return res
+            .status(StatusCodes.NOT_FOUND)
+            .json({ error: 'User not found' });
+    }
 
+    const jwtPayload = buildJwtPayload(user);
 
+    const jwtTokens = generateTokens(jwtPayload);
+    setAuthCookies(res, jwtTokens);
+
+    return res
+        .status(StatusCodes.OK)
+        .json({ message: 'Tokens refreshed successfully' });
+};
+
+export { googleLoginController, refreshTokenController };
