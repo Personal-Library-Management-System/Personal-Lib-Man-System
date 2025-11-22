@@ -1,13 +1,7 @@
-// backend/src/services/health.service.ts
+import mongoose, { ConnectionStates } from 'mongoose';
 
-import mongoose from 'mongoose';
-
-const checkDatabaseConnection = async (): Promise<boolean> => {
-    // 1 = Bağlı, 2 = Bağlanıyor, 3 = Bağlantı kesiliyor, 0 = Bağlantı kesildi
-    if (mongoose.connection.readyState === 1) {
-        return true;
-    }
-    return false;
+const checkDatabaseConnection = (): boolean => {
+    return mongoose.connection.readyState === ConnectionStates.connected;
 };
 
 const healthService = {
