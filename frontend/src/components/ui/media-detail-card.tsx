@@ -136,9 +136,6 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
           </Grid>
 
           <Box>
-            <Heading size="md" mt={6} mb={2} color={textColor}>
-              Açıklama
-            </Heading>
             <Text color={textColor} lineHeight="tall">
               {description}
             </Text>
