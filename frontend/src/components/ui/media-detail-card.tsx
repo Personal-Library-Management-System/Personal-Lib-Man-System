@@ -7,6 +7,7 @@ import {
   Text,
   Button,
   Icon,
+  IconButton,
   HStack,
   Stack,
   Divider,
@@ -14,9 +15,12 @@ import {
   FormControl,
   FormLabel,
   useColorModeValue,
+  Grid,
+  GridItem,
+  Tooltip,
 } from '@chakra-ui/react';
+import { FiEdit, FiTrash2, FiTag, FiPlus } from 'react-icons/fi'; // Yeni ikonlar için eklemeler
 import { type IconType } from 'react-icons';
-import { FiClock } from 'react-icons/fi';
 
 export interface InfoBlock {
   label: string;
@@ -41,6 +45,8 @@ export interface BookDetailCardProps {
   onEdit?: () => void;
   onRemove?: () => void;
   onStatusChange?: (value: string) => void;
+  onAddTag?: () => void; // Yeni prop: Tag Ekle
+  onAddToList?: () => void; // Yeni prop: Listeye Ekle
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -55,6 +61,8 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   onEdit,
   onRemove,
   onStatusChange,
+  onAddTag,
+  onAddToList,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const blockBg = useColorModeValue('gray.50', 'whiteAlpha.100');
@@ -102,11 +110,11 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
             )}
           </Stack>
 
-          <HStack wrap="wrap" spacing={3}>
+          {/* 2x2 Tablo Görünümü */}
+          <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
             {infoBlocks.map((block) => (
-              <Box
+              <GridItem
                 key={block.label}
-                minW="150px"
                 borderRadius="lg"
                 border="1px solid"
                 borderColor={borderColor}
@@ -123,13 +131,18 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
                 <Text fontWeight="bold" fontSize="md" color={textColor}>
                   {block.value}
                 </Text>
-              </Box>
+              </GridItem>
             ))}
-          </HStack>
+          </Grid>
 
-          <Text color={textColor} lineHeight="tall">
-            {description}
-          </Text>
+          <Box>
+            <Heading size="md" mt={6} mb={2} color={textColor}>
+              Açıklama
+            </Heading>
+            <Text color={textColor} lineHeight="tall">
+              {description}
+            </Text>
+          </Box>
         </Flex>
       </Flex>
 
@@ -141,15 +154,41 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
         justify="space-between"
         gap={4}
       >
+        {/* Aksiyon Butonları */}
         <HStack spacing={3}>
+          {/* Mevcut Aksiyonlar */}
           <Button colorScheme="blue" onClick={onEdit}>
             Düzenle
           </Button>
           <Button colorScheme="red" variant="outline" onClick={onRemove}>
             Kaldır
           </Button>
+
+          {/* Ayrım için Divider */}
+          <Divider orientation="vertical" h="24px" borderColor={borderColor} />
+
+          {/* Yeni Aksiyonlar */}
+          <Tooltip label="Tag Ekle" aria-label="Tag Ekle">
+            <IconButton
+              aria-label="Tag Ekle"
+              icon={<FiTag />}
+              colorScheme="teal"
+              variant="outline"
+              onClick={onAddTag}
+            />
+          </Tooltip>
+          <Tooltip label="Listeye Ekle" aria-label="Listeye Ekle">
+            <IconButton
+              aria-label="Listeye Ekle"
+              icon={<FiPlus />}
+              colorScheme="teal"
+              variant="outline"
+              onClick={onAddToList}
+            />
+          </Tooltip>
         </HStack>
 
+        {/* Durum Değiştir */}
         <FormControl maxW="220px">
           <FormLabel fontSize="sm" color="gray.500" mb={1}>
             Durum Değiştir
