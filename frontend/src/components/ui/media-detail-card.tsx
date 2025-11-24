@@ -43,7 +43,7 @@ export interface BookDetailCardProps {
   onStatusChange?: (value: string) => void;
 }
 
-const BookDetailCard: React.FC<BookDetailCardProps> = ({
+const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   imageUrl,
   title,
   subtitle,
@@ -130,13 +130,6 @@ const BookDetailCard: React.FC<BookDetailCardProps> = ({
           <Text color={textColor} lineHeight="tall">
             {description}
           </Text>
-
-          <Flex align="center" gap={2} color="gray.500">
-            <Icon as={FiClock} boxSize={4} />
-            <Text fontSize="sm">
-              Eklenme Tarihi: {addedDate ?? 'Bilinmiyor'}
-            </Text>
-          </Flex>
         </Flex>
       </Flex>
 
@@ -181,4 +174,4 @@ const BookDetailCard: React.FC<BookDetailCardProps> = ({
   );
 };
 
-export default BookDetailCard;
+export default MediaDetailCard;

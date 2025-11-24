@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { FiCalendar, FiTag, FiBookOpen, FiStar } from 'react-icons/fi';
 import Modal from './modal';
-import BookDetailCard, { type InfoBlock, type StatusOption } from './book-detail-card';
+import BookDetailCard, { type InfoBlock, type StatusOption } from './media-detail-card';
 import { type Book } from '../../types';
 
 const bookStatusOptions: StatusOption[] = [
