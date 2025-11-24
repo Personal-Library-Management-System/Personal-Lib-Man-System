@@ -24,19 +24,20 @@ const ITEMS_PER_PAGE = 12;
 
 type Item = Book | Movie;
 
-interface ResourcePageLayoutProps {
+interface ResourcePageLayoutProps<T extends Item> {
   pageTitle: string;
   activeItem: 'kitaplik' | 'filmarsivi';
-  mockData: Item[];
+  mockData: T[];
   filters: { key: string; label: string }[];
   getStatusBadge: (status: string) => React.ReactNode;
   itemType: 'book' | 'movie';
   addItemButtonText: string;
   emptyStateIcon: string;
   emptyStateText: string;
+  onItemClick?: (item: T) => void; // Generic tür kullanımı
 }
 
-const ResourcePageLayout: React.FC<ResourcePageLayoutProps> = ({
+const ResourcePageLayout = <T extends Item>({
   pageTitle,
   activeItem,
   mockData,
@@ -46,7 +47,8 @@ const ResourcePageLayout: React.FC<ResourcePageLayoutProps> = ({
   addItemButtonText,
   emptyStateIcon,
   emptyStateText,
-}) => {
+  onItemClick,
+}: ResourcePageLayoutProps<T>) => {
   const [items, setItems] = useState<Item[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
@@ -88,6 +90,13 @@ const ResourcePageLayout: React.FC<ResourcePageLayoutProps> = ({
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }, [currentPage]);
+
+  const handleItemClick = (item: Item) => {
+    console.log("Item clicked:", item);
+    if (onItemClick) {
+      onItemClick(item as T); // Tıklama olayını üst bileşene ilet
+    }
+  };
 
   return (
     <Layout activeItem={activeItem}>
@@ -161,6 +170,7 @@ const ResourcePageLayout: React.FC<ResourcePageLayoutProps> = ({
               itemsPerPage={ITEMS_PER_PAGE}
               getStatusBadge={getStatusBadge}
               type={itemType}
+              onItemClick={handleItemClick} // Prop olarak aktar
             />
           ) : (
             <ListView
@@ -169,6 +179,7 @@ const ResourcePageLayout: React.FC<ResourcePageLayoutProps> = ({
               itemsPerPage={ITEMS_PER_PAGE}
               getStatusBadge={getStatusBadge}
               type={itemType}
+              onItemClick={handleItemClick} // Prop olarak aktar
             />
           )
         )}

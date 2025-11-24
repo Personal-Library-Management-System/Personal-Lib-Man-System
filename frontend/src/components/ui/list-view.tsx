@@ -13,23 +13,9 @@ import {
   SkeletonText,
   useColorModeValue
 } from '@chakra-ui/react';
+import { type Book, type Movie } from '../../types';
 
-interface ListItem {
-  id: number;
-  title: string;
-  imageUrl: string;
-  description: string;
-  rating: number;
-  status: string;
-  // Kitap için
-  author?: string;
-  pageCount?: number;
-  publishedDate?: string;
-  // Film için
-  director?: string;
-  duration?: number;
-  releaseDate?: string;
-}
+type ListItem = Book | Movie;
 
 interface ListViewProps {
   items: ListItem[];
@@ -37,6 +23,7 @@ interface ListViewProps {
   itemsPerPage: number;
   getStatusBadge: (status: string) => React.ReactNode;
   type: 'book' | 'movie';
+  onItemClick?: (item: ListItem) => void; // Yeni prop
 }
 
 const ListSkeleton = ({ type }: { type: 'book' | 'movie' }) => {
@@ -73,7 +60,8 @@ const ListView: React.FC<ListViewProps> = ({
   isLoading,
   itemsPerPage,
   getStatusBadge,
-  type
+  type,
+  onItemClick,
 }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.800', 'white');
@@ -96,6 +84,7 @@ const ListView: React.FC<ListViewProps> = ({
               cursor="pointer"
               transition="all 0.2s ease"
               _hover={{ shadow: 'md' }}
+              onClick={() => onItemClick && onItemClick(item)} // Tıklama olayını bağla
             >
               <CardBody>
                 <Flex gap={4} align="center">
@@ -130,19 +119,19 @@ const ListView: React.FC<ListViewProps> = ({
                       {getStatusBadge(item.status)}
                     </HStack>
                     <Text color={subtextColor} fontSize="md" mb={2}>
-                      {type === 'book' ? item.author : item.director}
+                      {type === 'book' ? (item as Book).author : (item as Movie).director}
                     </Text>
                     <Text color={subtextColor} fontSize="sm" noOfLines={2} mb={2}>
                       {item.description}
                     </Text>
                     <HStack spacing={4} flexWrap="wrap">
                       <Text fontSize="sm" color={subtextColor}>
-                        📅 {type === 'book' ? item.publishedDate : item.releaseDate}
+                        📅 {type === 'book' ? (item as Book).publishedDate : (item as Movie).releaseDate}
                       </Text>
                       <Text fontSize="sm" color={subtextColor}>
                         {type === 'book' 
-                          ? `📄 ${item.pageCount} sayfa` 
-                          : `⏱️ ${item.duration} dakika`
+                          ? `📄 ${(item as Book).pageCount} sayfa` 
+                          : `⏱️ ${(item as Movie).duration} dakika`
                         }
                       </Text>
                       <HStack spacing={1}>
