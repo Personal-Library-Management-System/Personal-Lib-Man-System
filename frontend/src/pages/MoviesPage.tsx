@@ -1,8 +1,9 @@
-import React from 'react';
-import { Badge } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Movie } from '../types';
 import mockMoviesData from '../mock-data/movie-data.json';
 import ResourcePageLayout from '../components/ui/resource-page-layout';
+import MovieModal from '../components/ui/movie-modal';
 
 const getStatusBadge = (status: string) => {
   const statusConfig: Record<Movie['status'], { text: string; colorScheme: string }> = {
@@ -23,18 +24,41 @@ const filters = [
 ];
 
 const MoviesPage = () => {
+  const { isOpen, onOpen, onClose } = useDisclosure();
+  const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+
+  const handleMovieClick = (movie: Movie) => {
+    setSelectedMovie(movie);
+    onOpen();
+  };
+
+  const handleCloseModal = () => {
+    onClose();
+    setSelectedMovie(null);
+  };
+
   return (
-    <ResourcePageLayout
-      pageTitle="🎬 Film Arşivim"
-      activeItem="filmarsivi"
-      mockData={mockMoviesData as Movie[]}
-      filters={filters}
-      getStatusBadge={getStatusBadge}
-      itemType="movie"
-      addItemButtonText="+ Film Ekle"
-      emptyStateIcon="🎬"
-      emptyStateText="Bu kategoride film bulunamadı."
-    />
+    <>
+      <ResourcePageLayout
+        pageTitle="🎬 Film Arşivim"
+        activeItem="filmarsivi"
+        mockData={mockMoviesData as Movie[]}
+        filters={filters}
+        getStatusBadge={getStatusBadge}
+        itemType="movie"
+        addItemButtonText="+ Film Ekle"
+        emptyStateIcon="🎬"
+        emptyStateText="Bu kategoride film bulunamadı."
+        onItemClick={handleMovieClick}
+      />
+      {selectedMovie && (
+        <MovieModal
+          isOpen={isOpen}
+          onClose={handleCloseModal}
+          movie={selectedMovie}
+        />
+      )}
+    </>
   );
 };
 

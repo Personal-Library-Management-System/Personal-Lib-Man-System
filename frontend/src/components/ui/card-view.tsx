@@ -12,20 +12,9 @@ import {
   SkeletonText,
   useColorModeValue
 } from '@chakra-ui/react';
+import { type Book, type Movie } from '../../types';
 
-interface CardItem {
-  id: number;
-  title: string;
-  imageUrl: string;
-  rating: number;
-  status: string;
-  // Kitap için
-  author?: string;
-  pageCount?: number;
-  // Film için
-  director?: string;
-  duration?: number;
-}
+type CardItem = Book | Movie;
 
 interface CardViewProps {
   items: CardItem[];
@@ -33,6 +22,7 @@ interface CardViewProps {
   itemsPerPage: number;
   getStatusBadge: (status: string) => React.ReactNode;
   type: 'book' | 'movie';
+  onItemClick?: (item: CardItem) => void; // Yeni prop
 }
 
 const CardSkeleton = ({ type }: { type: 'book' | 'movie' }) => {
@@ -68,7 +58,8 @@ const CardView: React.FC<CardViewProps> = ({
   isLoading,
   itemsPerPage,
   getStatusBadge,
-  type
+  type,
+  onItemClick,
 }) => {
   const cardBg = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.800', 'white');
@@ -97,6 +88,7 @@ const CardView: React.FC<CardViewProps> = ({
               h="auto"
               maxW="280px"
               mx="auto"
+              onClick={() => onItemClick && onItemClick(item)} // Tıklama olayını bağla
             >
               <CardBody p={0}>
                 <Box position="relative">
@@ -126,14 +118,14 @@ const CardView: React.FC<CardViewProps> = ({
                     {item.title}
                   </Heading>
                   <Text color={subtextColor} fontSize="sm" mb={2} noOfLines={1}>
-                    {type === 'book' ? item.author : item.director}
+                    {type === 'book' ? (item as Book).author : (item as Movie).director}
                   </Text>
                   <HStack justify="space-between" align="center">
                     <HStack spacing={1}>
                       <Text fontSize="sm">⭐</Text>
                       <Text fontSize="sm" color={subtextColor}>{item.rating}</Text>
                       <Text fontSize="xs" color={subtextColor}>
-                        • {type === 'book' ? `${item.pageCount}s` : `${item.duration}dk`}
+                        • {type === 'book' ? `${(item as Book).pageCount}s` : `${(item as Movie).duration}dk`}
                       </Text>
                     </HStack>
                     {getStatusBadge(item.status)}
