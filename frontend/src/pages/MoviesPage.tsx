@@ -4,6 +4,7 @@ import { type Movie } from '../types';
 import mockMoviesData from '../mock-data/movie-data.json';
 import ResourcePageLayout from '../components/ui/resource-page-layout';
 import MovieModal from '../components/ui/movie-modal';
+import AddMedia from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {
   const statusConfig: Record<Movie['status'], { text: string; colorScheme: string }> = {
@@ -24,16 +25,25 @@ const filters = [
 ];
 
 const MoviesPage = () => {
-  const { isOpen, onOpen, onClose } = useDisclosure();
+  const {
+    isOpen: isMovieModalOpen,
+    onOpen: openMovieModal,
+    onClose: closeMovieModal
+  } = useDisclosure();
+  const {
+    isOpen: isAddOpen,
+    onOpen: openAddModal,
+    onClose: closeAddModal
+  } = useDisclosure();
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
 
   const handleMovieClick = (movie: Movie) => {
     setSelectedMovie(movie);
-    onOpen();
+    openMovieModal();
   };
 
   const handleCloseModal = () => {
-    onClose();
+    closeMovieModal();
     setSelectedMovie(null);
   };
 
@@ -47,17 +57,33 @@ const MoviesPage = () => {
         getStatusBadge={getStatusBadge}
         itemType="movie"
         addItemButtonText="+ Film Ekle"
+        onAddItem={openAddModal}
         emptyStateIcon="🎬"
         emptyStateText="Bu kategoride film bulunamadı."
         onItemClick={handleMovieClick}
       />
       {selectedMovie && (
         <MovieModal
-          isOpen={isOpen}
+          isOpen={isMovieModalOpen}
           onClose={handleCloseModal}
           movie={selectedMovie}
         />
       )}
+
+      <AddMedia
+        mediaType="movie"
+        isOpen={isAddOpen}
+        onClose={closeAddModal}
+        onSearch={payload => {
+          console.log('Film araması:', payload);
+        }}
+        title="Film arama paneli"
+        description="İsme ek olarak yönetmen ve çıkış yılı ile filtre uygulayabilirsin."
+        optionalFields={[
+          { name: 'director', label: 'Yönetmen', placeholder: 'Örn. Christopher Nolan' },
+          { name: 'year', label: 'Çıkış Yılı', placeholder: 'Örn. 2021' }
+        ]}
+      />
     </>
   );
 };

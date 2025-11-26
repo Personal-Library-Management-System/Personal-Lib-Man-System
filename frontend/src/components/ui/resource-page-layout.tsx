@@ -32,6 +32,7 @@ interface ResourcePageLayoutProps<T extends Item> {
   getStatusBadge: (status: string) => React.ReactNode;
   itemType: 'book' | 'movie';
   addItemButtonText: string;
+  onAddItem?: () => void;
   emptyStateIcon: string;
   emptyStateText: string;
   onItemClick?: (item: T) => void; // Generic tür kullanımı
@@ -48,6 +49,7 @@ const ResourcePageLayout = <T extends Item>({
   emptyStateIcon,
   emptyStateText,
   onItemClick,
+  onAddItem,
 }: ResourcePageLayoutProps<T>) => {
   const [items, setItems] = useState<Item[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
@@ -128,7 +130,12 @@ const ResourcePageLayout = <T extends Item>({
                 />
               </Tooltip>
             </HStack>
-            <Button colorScheme="blue" size="md">
+            <Button
+              colorScheme="blue"
+              size="md"
+              onClick={onAddItem}
+              disabled={!onAddItem}
+            >
               {addItemButtonText}
             </Button>
           </HStack>
@@ -157,7 +164,12 @@ const ResourcePageLayout = <T extends Item>({
               <Text color={subtextColor} fontSize="lg" textAlign="center">
                 {emptyStateText}
               </Text>
-              <Button colorScheme="blue" variant="outline">
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                onClick={onAddItem}
+                disabled={!onAddItem}
+              >
                 İlk {itemType === 'book' ? 'kitabını' : 'filmini'} ekle
               </Button>
             </VStack>

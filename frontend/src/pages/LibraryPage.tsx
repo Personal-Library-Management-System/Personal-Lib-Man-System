@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
-import { Badge, Button, VStack } from '@chakra-ui/react';
+import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Book } from '../types';
 import mockBooksData from '../mock-data/book-data.json';
 import ResourcePageLayout from '../components/ui/resource-page-layout';
 import BookModal from '../components/ui/book-modal';
+import AddMedia from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {
   const statusConfig: Record<Book['status'], { text: string; colorScheme: string }> = {
@@ -28,6 +29,7 @@ const filters = [
 const LibraryPage = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
   const handleBookClick = (book: Book) => {
     setSelectedBook(book);
@@ -37,6 +39,10 @@ const LibraryPage = () => {
   const handleCloseModal = () => {
     setModalOpen(false);
     setSelectedBook(null);
+  };
+
+  const handleAddSearch = (payload: { mediaType: 'book' | 'movie'; query: string; extras: Record<string, string> }) => {
+    console.log('Kitap araması:', payload);
   };
 
   return (
@@ -49,12 +55,13 @@ const LibraryPage = () => {
         getStatusBadge={getStatusBadge}
         itemType="book"
         addItemButtonText="+ Kitap Ekle"
+        onAddItem={onOpen}
         emptyStateIcon="📚"
         emptyStateText="Bu kategoride kitap bulunamadı."
         onItemClick={handleBookClick} // Artık uyumlu
       />
 
-      {/* Modal */}
+      {/* Book Details Modal */}
       {selectedBook && (
         <BookModal
           book={selectedBook}
@@ -62,6 +69,19 @@ const LibraryPage = () => {
           onClose={() => setModalOpen(false)}
         />
       )}
+
+      <AddMedia
+        mediaType="book"
+        isOpen={isOpen}
+        onClose={onClose}
+        onSearch={handleAddSearch}
+        title="Kitapları detaylı ara"
+        description="Başlığa ek olarak yazar ve yayın yılı ile aramayı daraltabilirsin."
+        optionalFields={[
+          { name: 'author', label: 'Yazar', placeholder: 'Örn. Orhan Pamuk' },
+          { name: 'year', label: 'Yayın Yılı', placeholder: 'Örn. 2023' }
+        ]}
+      />
     </>
   );
 };
