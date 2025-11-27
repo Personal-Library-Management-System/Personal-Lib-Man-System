@@ -64,13 +64,11 @@ const SearchResultItem = ({ item, onSelect }: { item: BookSearchResult, onSelect
   const cardBg = useColorModeValue('gray.50', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
-  const [imageStatus, setImageStatus] = useState<'loading' | 'failed' | 'loaded'>('loading');
 
   const fallbackIcon = item.authors ? '📚' : '🎬';
-
-  useEffect(() => {
-    setImageStatus('loading');
-  }, [item.imageLinks?.thumbnail]);
+  const thumbnailUrl = item.imageLinks?.thumbnail;
+  // Eğer thumbnail URL'i yoksa veya "N/A" ise, resmi gösterme.
+  const hasImage = thumbnailUrl && thumbnailUrl !== 'N/A';
 
   return (
     <HStack
@@ -87,22 +85,20 @@ const SearchResultItem = ({ item, onSelect }: { item: BookSearchResult, onSelect
       onClick={onSelect}
     >
       <Box w="100px" h="100px" bg="gray.200" borderRadius="md" flexShrink={0} display="flex" alignItems="center" justifyContent="center">
-        {imageStatus === 'failed' && (
-          <Text color="gray.500" fontSize="2xl">{fallbackIcon}</Text>
+        {hasImage ? (
+          <Image
+            referrerPolicy="no-referrer"
+            src={thumbnailUrl}
+            alt={item.title}
+            boxSize="100px"
+            objectFit="contain"
+            borderRadius="md"
+            shadow="sm"
+            bg="white"
+          />
+        ) : (
+          <Text fontSize="4xl">{fallbackIcon}</Text>
         )}
-        <Image
-          referrerPolicy="no-referrer"
-          src={item.imageLinks?.thumbnail}
-          alt={item.title}
-          boxSize="100px"
-          objectFit="contain"
-          borderRadius="md"
-          shadow="sm"
-          bg="white"
-          onLoad={() => setImageStatus('loaded')}
-          onError={() => setImageStatus('failed')}
-          display={imageStatus === 'loaded' ? 'block' : 'none'}
-        />
       </Box>
       <VStack align="start" spacing={1} flex={1}>
         <Text fontWeight="bold" fontSize="md" color={textColor} noOfLines={2}>

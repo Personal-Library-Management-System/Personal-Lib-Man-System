@@ -68,6 +68,9 @@ const LibraryPage = () => {
     if (payload.extras.author) {
       apiQuery += `+inauthor:${payload.extras.author}`;
     }
+    if (payload.extras.publisher) {
+      apiQuery += `+inpublisher:${payload.extras.publisher}`;
+    }
     if (payload.extras.year) {
       // Google Books API'de yıl aralığı daha iyi çalışabilir, ama şimdilik direkt yıl alalım
       // apiQuery += `&as_publication_year=${payload.extras.year}`; // Bu parametre desteklenmiyor
@@ -83,10 +86,17 @@ const LibraryPage = () => {
         throw new Error('API isteği başarısız oldu');
       }
       const data = await response.json();
-      const items = data.items?.map((item: any) => ({ id: item.id, ...item.volumeInfo })) || [];
-
-      setSearchResults(items);
-      setSearchState(items.length > 0 ? 'success' : 'no-results');
+      const rawItems = data.items || [];
+      const uniqueItems = rawItems
+        .map((item: any) => ({ id: item.id, ...item.volumeInfo }))
+        .reduce((acc: any[], current: any) => {
+          if (!acc.find(item => item.id === current.id)) {
+            acc.push(current);
+          }
+          return acc;
+        }, []);
+      setSearchResults(uniqueItems);
+      setSearchState(uniqueItems.length > 0 ? 'success' : 'no-results');
     } catch (error) {
       console.error('Arama hatası:', error);
       setSearchState('error');
@@ -131,6 +141,7 @@ const LibraryPage = () => {
         }}
         optionalFields={[
           { name: 'author', label: 'Yazar', placeholder: 'Örn. Orhan Pamuk' },
+          { name: 'publisher', label: 'Yayınevi', placeholder: 'Örn. Can Yayınları' },
         ]}
       />
     </>
