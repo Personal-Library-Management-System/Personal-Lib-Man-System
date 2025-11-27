@@ -3,8 +3,8 @@ import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Movie } from '../types';
 import mockMoviesData from '../mock-data/movie-data.json';
 import ResourcePageLayout from '../components/ui/resource-page-layout';
-import MovieModal from '../components/ui/movie-modal';
-import AddMedia from '../components/ui/add-media';
+import MovieModal from '../components/ui/movie-modal'; 
+import AddMedia, { type SearchState } from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {
   const statusConfig: Record<Movie['status'], { text: string; colorScheme: string }> = {
@@ -23,6 +23,8 @@ const filters = [
   { key: 'watched', label: 'İzlendi' },
   { key: 'want-to-watch', label: 'İzlenecek' }
 ];
+
+const OMDb_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 const MoviesPage = () => {
   const {
@@ -45,6 +47,48 @@ const MoviesPage = () => {
   const handleCloseModal = () => {
     closeMovieModal();
     setSelectedMovie(null);
+  };
+
+  // AddMedia için state yönetimi
+  const [searchState, setSearchState] = useState<SearchState>('idle');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
+    setSearchState('loading');
+    setSearchResults([]);
+
+    // OMDb API'si için sorgu oluşturma
+    let apiUrl = `https://www.omdbapi.com/?apikey=${OMDb_API_KEY}&s=${encodeURIComponent(payload.query)}`;
+    if (payload.extras.year) {
+      apiUrl += `&y=${payload.extras.year}`;
+    }
+
+    try {
+      const response = await fetch(apiUrl);
+      if (!response.ok) throw new Error('OMDb API isteği başarısız oldu');
+
+      const data = await response.json();
+      if (data.Response === 'True') {
+        // OMDb'den gelen veriyi BookSearchResult formatına dönüştürelim
+        const formattedResults = data.Search.map((movie: any) => ({
+          id: movie.imdbID,
+          title: movie.Title,
+          publishedDate: movie.Year, // Ortak alan adı
+          // Poster "N/A" ise null ata, aksi halde poster URL'ini kullan.
+          // Bu, fallback mekanizmasının devreye girmesini sağlar.
+          imageLinks: { thumbnail: movie.Poster === 'N/A' ? null : movie.Poster },
+        }));
+
+        setSearchResults(formattedResults);
+        setSearchState('success');
+      } else {
+        setSearchResults([]);
+        setSearchState('no-results');
+      }
+    } catch (error) {
+      console.error('OMDb Arama Hatası:', error);
+      setSearchState('error');
+    }
   };
 
   return (
@@ -74,11 +118,13 @@ const MoviesPage = () => {
         mediaType="movie"
         isOpen={isAddOpen}
         onClose={closeAddModal}
-        onSearch={payload => {
-          console.log('Film araması:', payload);
+        onSearch={handleAddSearch}
+        searchState={searchState}
+        searchResults={searchResults}
+        onItemSelect={item => {
+          console.log('Seçilen Film:', item);
+          // Burada seçilen filmi ekleme formu açılabilir veya direkt arşive eklenebilir.
         }}
-        title="Film arama paneli"
-        description="İsme ek olarak yönetmen ve çıkış yılı ile filtre uygulayabilirsin."
         optionalFields={[
           { name: 'director', label: 'Yönetmen', placeholder: 'Örn. Christopher Nolan' },
           { name: 'year', label: 'Çıkış Yılı', placeholder: 'Örn. 2021' }

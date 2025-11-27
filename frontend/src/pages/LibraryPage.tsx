@@ -3,8 +3,8 @@ import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Book } from '../types';
 import mockBooksData from '../mock-data/book-data.json';
 import ResourcePageLayout from '../components/ui/resource-page-layout';
-import BookModal from '../components/ui/book-modal';
-import AddMedia from '../components/ui/add-media';
+import BookModal from '../components/ui/book-modal'; 
+import AddMedia, { type SearchState } from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {
   const statusConfig: Record<Book['status'], { text: string; colorScheme: string }> = {
@@ -26,11 +26,18 @@ const filters = [
   { key: 'want-to-read', label: 'Okunacak' }
 ];
 
+const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
+
 const LibraryPage = () => {
   const [isModalOpen, setModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
+  if (!GOOGLE_BOOKS_API_KEY) {
+    console.error(
+      'Google Books API anahtarı bulunamadı. Lütfen .env dosyanıza VITE_GOOGLE_BOOKS_API_KEY ekleyin.'
+    );
+  }
   const handleBookClick = (book: Book) => {
     setSelectedBook(book);
     setModalOpen(true);
@@ -41,8 +48,49 @@ const LibraryPage = () => {
     setSelectedBook(null);
   };
 
-  const handleAddSearch = (payload: { mediaType: 'book' | 'movie'; query: string; extras: Record<string, string> }) => {
-    console.log('Kitap araması:', payload);
+  // AddMedia için state yönetimi
+  const [searchState, setSearchState] = useState<SearchState>('idle');
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+
+  const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
+    if (!GOOGLE_BOOKS_API_KEY) {
+      console.error(
+        'Google Books API anahtarı bulunamadı. Lütfen .env dosyanıza VITE_GOOGLE_BOOKS_API_KEY ekleyin.'
+      );
+      setSearchState('error');
+      return;
+    }
+
+    setSearchState('loading');
+    setSearchResults([]);
+
+    let apiQuery = `intitle:${payload.query}`;
+    if (payload.extras.author) {
+      apiQuery += `+inauthor:${payload.extras.author}`;
+    }
+    if (payload.extras.year) {
+      // Google Books API'de yıl aralığı daha iyi çalışabilir, ama şimdilik direkt yıl alalım
+      // apiQuery += `&as_publication_year=${payload.extras.year}`; // Bu parametre desteklenmiyor
+    }
+
+    try {
+      const response = await fetch(
+        `https://www.googleapis.com/books/v1/volumes?q=${encodeURIComponent(
+          apiQuery
+        )}&key=${GOOGLE_BOOKS_API_KEY}&maxResults=20`
+      );
+      if (!response.ok) {
+        throw new Error('API isteği başarısız oldu');
+      }
+      const data = await response.json();
+      const items = data.items?.map((item: any) => ({ id: item.id, ...item.volumeInfo })) || [];
+
+      setSearchResults(items);
+      setSearchState(items.length > 0 ? 'success' : 'no-results');
+    } catch (error) {
+      console.error('Arama hatası:', error);
+      setSearchState('error');
+    }
   };
 
   return (
@@ -75,11 +123,14 @@ const LibraryPage = () => {
         isOpen={isOpen}
         onClose={onClose}
         onSearch={handleAddSearch}
-        title="Kitapları detaylı ara"
-        description="Başlığa ek olarak yazar ve yayın yılı ile aramayı daraltabilirsin."
+        searchState={searchState}
+        searchResults={searchResults}
+        onItemSelect={item => {
+          console.log('Seçilen Kitap:', item);
+          // Burada seçilen kitabı ekleme formu açılabilir veya direkt kütüphaneye eklenebilir.
+        }}
         optionalFields={[
           { name: 'author', label: 'Yazar', placeholder: 'Örn. Orhan Pamuk' },
-          { name: 'year', label: 'Yayın Yılı', placeholder: 'Örn. 2023' }
         ]}
       />
     </>

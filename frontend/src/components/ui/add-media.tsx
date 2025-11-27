@@ -1,13 +1,15 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import {
   Box,
-  Button,
+  Image,
+  Center,
   FormControl,
   HStack,
   Icon,
   Input,
   InputGroup,
   InputLeftElement,
+  InputRightElement,
   Modal,
   ModalBody,
   ModalCloseButton,
@@ -15,10 +17,13 @@ import {
   ModalOverlay,
   SimpleGrid,
   Text,
+  Spinner,
   VStack,
   useColorModeValue,
-  Collapse,
   IconButton,
+  Alert,
+  AlertIcon,
+  AlertTitle,
 } from '@chakra-ui/react';
 import { SearchIcon, ArrowForwardIcon } from '@chakra-ui/icons';
 
@@ -30,25 +35,103 @@ interface OptionalField {
   helperText?: string;
 }
 
+interface BookSearchResult {
+  id: string;
+  title: string;
+  authors?: string[];
+  publishedDate?: string;
+  imageLinks?: { thumbnail?: string };
+}
+
+export type SearchState = 'idle' | 'loading' | 'success' | 'no-results' | 'error';
+
 interface AddMediaProps {
   mediaType: 'book' | 'movie';
   isOpen: boolean;
   onClose: () => void;
-  onSearch?: (payload: {
-    mediaType: 'book' | 'movie';
-    query: string;
-    extras: Record<string, string>;
-  }) => void;
+  // Arama işlemini yürütecek olan asenkron fonksiyon.
+  onSearch: (payload: { query: string; extras: Record<string, string> }) => Promise<void>;
+  // Dışarıdan yönetilen state'ler
+  searchState: SearchState;
+  searchResults: BookSearchResult[]; // Şimdilik ortak bir tip kullanıyoruz, genişletilebilir.
+  // Bir sonuç seçildiğinde tetiklenir.
+  onItemSelect: (item: BookSearchResult) => void;
   optionalFields: OptionalField[];
   searchPlaceholder?: string;
-  // title ve description proplarını sildik çünkü artık kullanmıyoruz
 }
+
+const SearchResultItem = ({ item, onSelect }: { item: BookSearchResult, onSelect: () => void }) => {
+  const cardBg = useColorModeValue('gray.50', 'gray.700');
+  const textColor = useColorModeValue('gray.800', 'white');
+  const subtextColor = useColorModeValue('gray.600', 'gray.400');
+  const [imageStatus, setImageStatus] = useState<'loading' | 'failed' | 'loaded'>('loading');
+
+  const fallbackIcon = item.authors ? '📚' : '🎬';
+
+  useEffect(() => {
+    setImageStatus('loading');
+  }, [item.imageLinks?.thumbnail]);
+
+  return (
+    <HStack
+      p={4}
+      bg={cardBg}
+      borderRadius="lg"
+      spacing={4}
+      transition="all 0.2s"
+      _hover={{
+        transform: 'translateY(-2px)',
+        shadow: 'md',
+        cursor: 'pointer',
+      }}
+      onClick={onSelect}
+    >
+      <Box w="100px" h="100px" bg="gray.200" borderRadius="md" flexShrink={0} display="flex" alignItems="center" justifyContent="center">
+        {imageStatus === 'failed' && (
+          <Text color="gray.500" fontSize="2xl">{fallbackIcon}</Text>
+        )}
+        <Image
+          referrerPolicy="no-referrer"
+          src={item.imageLinks?.thumbnail}
+          alt={item.title}
+          boxSize="100px"
+          objectFit="contain"
+          borderRadius="md"
+          shadow="sm"
+          bg="white"
+          onLoad={() => setImageStatus('loaded')}
+          onError={() => setImageStatus('failed')}
+          display={imageStatus === 'loaded' ? 'block' : 'none'}
+        />
+      </Box>
+      <VStack align="start" spacing={1} flex={1}>
+        <Text fontWeight="bold" fontSize="md" color={textColor} noOfLines={2}>
+          {item.title}
+        </Text>
+        {item.authors && item.authors.length > 0 && (
+          <Text fontSize="sm" color={subtextColor}>
+            {item.authors.join(', ')}
+          </Text>
+        )}
+        {item.publishedDate && (
+          <Text fontSize="xs" color={subtextColor}>
+            {new Date(item.publishedDate).getFullYear()}
+          </Text>
+        )}
+      </VStack>
+    </HStack>
+  );
+};
+
 
 const AddMedia = ({
   mediaType,
   isOpen,
   onClose,
   onSearch,
+  searchState,
+  searchResults,
+  onItemSelect,
   optionalFields,
   searchPlaceholder
 }: AddMediaProps) => {
@@ -73,7 +156,6 @@ const AddMedia = ({
     if (!isOpen) {
       setSearchTerm('');
       setExtraValues(defaultValues);
-      // Filtreler artık her zaman açık olduğu için kapatma işlemine gerek yok
     }
   }, [isOpen, defaultValues]);
 
@@ -81,15 +163,10 @@ const AddMedia = ({
     setExtraValues(prev => ({ ...prev, [field]: value }));
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     const trimmedQuery = searchTerm.trim();
     if (!trimmedQuery) return;
-
-    onSearch?.({
-      mediaType,
-      query: trimmedQuery,
-      extras: extraValues
-    });
+    onSearch({ query: trimmedQuery, extras: extraValues });
   };
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
@@ -184,9 +261,14 @@ const AddMedia = ({
               <SimpleGrid columns={[1, 2, 3]} spacing={6}>
                 {optionalFields.map(field => (
                   <FormControl key={field.name}>
-                    <Text fontSize="xs" fontWeight="bold" color="gray.500" mb={2} textTransform="uppercase">
-                      {field.label}
-                    </Text>
+                    <HStack as="label" spacing={2} mb={2} htmlFor={field.name}>
+                      <Text fontSize="xs" fontWeight="bold" color="gray.500" textTransform="uppercase">
+                        {field.label}
+                      </Text>
+                      <Text fontSize="xs" color="gray.400" fontWeight="normal">
+                        (Opsiyonel)
+                      </Text>
+                    </HStack>
                     <Input
                       variant="filled"
                       placeholder={field.placeholder || '...'}
@@ -206,20 +288,46 @@ const AddMedia = ({
         {/* -- Alt Kısım: Sonuç Alanı -- */}
         <ModalBody p={0}>
           <Box p={10} minH="400px">
-            {!searchTerm ? (
-              // Empty State
-              <VStack spacing={4} justify="center" h="100%" pt={10} opacity={0.6}>
-                <Icon as={SearchIcon} boxSize={16} color="gray.400" strokeWidth={1} />
-                <Text fontSize="lg" fontWeight="medium" color="gray.500">
-                   Sonuçları görmek için aramaya başlayın
-                </Text>
-              </VStack>
-            ) : (
-              <Box>
-                {/* BURAYA SearchResults Componenti Gelecek */}
-                <Text color="gray.500">Sonuçlar burada listelenecek...</Text>
-              </Box>
-            )}
+            {searchState === 'idle' && (
+                <VStack spacing={4} justify="center" h="100%" pt={10} opacity={0.6}>
+                  <Icon as={SearchIcon} boxSize={16} color="gray.400" strokeWidth={1} />
+                  <Text fontSize="lg" fontWeight="medium" color="gray.500">
+                    Sonuçları görmek için aramaya başlayın
+                  </Text>
+                </VStack>
+              )}
+  
+              {searchState === 'loading' && (
+                <Center h="100%" pt={10}>
+                  <Spinner size="xl" color="blue.500" thickness="4px" />
+                </Center>
+              )}
+  
+              {searchState === 'no-results' && (
+                <VStack spacing={4} justify="center" h="100%" pt={10} opacity={0.8}>
+                  <Icon as={SearchIcon} boxSize={16} color="yellow.400" strokeWidth={1} />
+                  <Text fontSize="lg" fontWeight="medium" color="gray.500">
+                    Aramanızla eşleşen sonuç bulunamadı.
+                  </Text>
+                </VStack>
+              )}
+  
+              {searchState === 'error' && (
+                 <Alert status="error" borderRadius="lg" flexDirection="column" alignItems="center" justifyContent="center" textAlign="center" height="200px">
+                  <AlertIcon boxSize="40px" mr={0} />
+                  <AlertTitle mt={4} mb={1} fontSize="lg">
+                    Arama sırasında bir hata oluştu!
+                  </AlertTitle>
+                </Alert>
+              )}
+  
+              {searchState === 'success' && (
+                <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
+                  {searchResults.map(item => (
+                    <SearchResultItem key={item.id} item={item} onSelect={() => onItemSelect(item)} />
+                  ))}
+                </SimpleGrid>
+              )}
           </Box>
         </ModalBody>
 
