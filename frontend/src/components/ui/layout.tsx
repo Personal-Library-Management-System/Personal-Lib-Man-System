@@ -179,7 +179,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
         {/* Desktop Sidebar */}
         <Box
           as="nav"
-          w="280px"
+          w="200px"
           bg={bgColor}
           borderRight="1px"
           borderColor={borderColor}
@@ -215,7 +215,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
           size="xs"
         >
           <DrawerOverlay />
-          <DrawerContent>
+          <DrawerContent maxW="200px">
             <DrawerHeader borderBottomWidth="1px">
               <Flex justify="space-between" align="center">
                 <Text fontSize="lg" fontWeight="bold" color="blue.600">
@@ -247,7 +247,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
         <Box
           as="main"
           flex={1}
-          ml={{ base: 0, lg: "280px" }}
+          ml={{ base: 0, lg: "200px" }}
           p={6}
           minH="calc(100vh - 60px)"
         >

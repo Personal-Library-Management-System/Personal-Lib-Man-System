@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Book } from '../types';
 import mockBooksData from '../mock-data/book-data.json';
-import ResourcePageLayout from '../components/ui/resource-page-layout';
-import BookModal from '../components/ui/book-modal'; 
+import ResourcePageLayout from '../components/ui/views/resource-page-layout';
+import BookModal from '../components/ui/modals/book-modal'; 
 import AddMedia, { type SearchState } from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {

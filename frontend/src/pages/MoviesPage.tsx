@@ -2,8 +2,8 @@ import React, { useState } from 'react';
 import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Movie } from '../types';
 import mockMoviesData from '../mock-data/movie-data.json';
-import ResourcePageLayout from '../components/ui/resource-page-layout';
-import MovieModal from '../components/ui/movie-modal'; 
+import ResourcePageLayout from '../components/ui/views/resource-page-layout';
+import MovieModal from '../components/ui/modals/movie-modal'; 
 import AddMedia, { type SearchState } from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {

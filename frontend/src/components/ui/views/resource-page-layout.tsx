@@ -14,11 +14,11 @@ import {
   Icon
 } from '@chakra-ui/react';
 import { BsGrid3X3Gap, BsList } from 'react-icons/bs';
-import Layout from './layout';
+import Layout from '../layout';
 import CardView from './card-view';
 import ListView from './list-view';
 import Pagination from './pagination';
-import { type Book, type Movie } from '../../types';
+import { type Book, type Movie } from '../../../types';
 
 const ITEMS_PER_PAGE = 12;
 

@@ -13,7 +13,7 @@ import {
   SkeletonText,
   useColorModeValue
 } from '@chakra-ui/react';
-import { type Book, type Movie } from '../../types';
+import { type Book, type Movie } from '../../../types';
 
 type ListItem = Book | Movie;
 
