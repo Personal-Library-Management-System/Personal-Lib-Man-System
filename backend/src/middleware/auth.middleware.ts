@@ -1,6 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
 import tokenService from '../services/token.service';
-import { JwtUserPayload } from '../types/auth.types';
 import { StatusCodes } from 'http-status-codes';
 import { generateTokens, setAuthCookies } from '../utils/auth.utils';
 
