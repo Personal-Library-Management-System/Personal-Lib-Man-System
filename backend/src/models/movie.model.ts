@@ -1,5 +1,5 @@
-import { Schema, Model, HydratedDocument } from "mongoose";
-import { MediaItem, MediaItemModel } from "./mediaItem.model";
+import { Schema, Model, HydratedDocument } from 'mongoose';
+import { MediaItem, MediaItemModel } from './mediaItem.model';
 
 export interface Movie extends MediaItem {
     actors?: string[] | null;
@@ -24,6 +24,6 @@ const movieSchema = new Schema<Movie, MovieModelType>(
 );
 
 export const MovieModel = MediaItemModel.discriminator<Movie, MovieModelType>(
-    "Movie",
+    'Movie',
     movieSchema
 );

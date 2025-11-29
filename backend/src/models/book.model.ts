@@ -1,6 +1,5 @@
-import { HydratedDocument, InferSchemaType, Model, Schema } from "mongoose";
-import { MediaItem, MediaItemModel } from "./mediaItem.model";
-
+import { HydratedDocument, InferSchemaType, Model, Schema } from 'mongoose';
+import { MediaItem, MediaItemModel } from './mediaItem.model';
 
 const bookSchema = new Schema(
     {
