@@ -1,6 +1,7 @@
 import { Schema, model, Model, HydratedDocument } from 'mongoose';
 
-export type MediaType = 'Book' | 'Movie';
+export const MEDIA_TYPES = ['Book', 'Movie'] as const;
+export type MediaType = typeof MEDIA_TYPES[number];
 
 export interface MediaItem {
     title: string;
@@ -36,7 +37,7 @@ const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
         mediaType: {
             type: String,
             required: true,
-            enum: ['Book', 'Movie'],
+            enum: MEDIA_TYPES,
         },
     },
     { discriminatorKey: 'mediaType' }

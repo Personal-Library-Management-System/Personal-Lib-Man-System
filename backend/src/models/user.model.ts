@@ -1,10 +1,11 @@
-import { Schema, model, Document } from 'mongoose';
+import { Schema, model, Document, Types } from 'mongoose';
 
 export interface IUser extends Document {
     googleId: string;
     name: string;
     email: string;
     picture?: string | null;
+    mediaItems: Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -13,6 +14,12 @@ const UserSchema = new Schema<IUser>(
         name: { type: String, required: true },
         email: { type: String, required: true },
         picture: { type: String, default: null },
+        mediaItems: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'MediaItem',
+            },
+        ],
     },
     { timestamps: true }
 );
