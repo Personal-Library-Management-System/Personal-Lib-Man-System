@@ -1,4 +1,4 @@
-import { Response } from 'express';
+import { NextFunction, Response } from 'express';
 import { AuthenticatedRequest } from '../types/express';
 import { MEDIA_TYPES, MediaItemModel } from '../models/mediaItem.model';
 import User from '../models/user.model';
@@ -7,7 +7,10 @@ import {
     createMediaItemForUser,
     deleteMediaItemForUser,
     deleteMultipleMediaItemsForUser,
+    getAllMediaItemsForUser,
+    getMediaItemForUser,
 } from '../services/mediaItem.service';
+import { handleControllerError } from '../utils/appError';
 
 const createMediaItem = async (
     req: AuthenticatedRequest,
@@ -108,4 +111,37 @@ const deleteMultipleMediaItems = async (
         });
     }
 };
-export { createMediaItem, deleteMediaItem, deleteMultipleMediaItems };
+
+const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const googleId = req.user.id;
+        const mediaItemId = req.params.id;
+        const item = await getMediaItemForUser(googleId, mediaItemId);
+
+        return res.status(StatusCodes.OK).json({ item });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const googleId = req.user.id;
+        const items = await getAllMediaItemsForUser(googleId);
+
+        return res.status(StatusCodes.OK).json({
+            count: items.length,
+            items,
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export {
+    createMediaItem,
+    deleteMediaItem,
+    deleteMultipleMediaItems,
+    getMediaItem,
+    getAllMediaItems,
+};
