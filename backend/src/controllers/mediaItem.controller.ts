@@ -3,7 +3,11 @@ import { AuthenticatedRequest } from '../types/express';
 import { MEDIA_TYPES, MediaItemModel } from '../models/mediaItem.model';
 import User from '../models/user.model';
 import { StatusCodes } from 'http-status-codes';
-import { createMediaItemForUser, deleteMediaItemForUser } from '../services/mediaItem.service';
+import {
+    createMediaItemForUser,
+    deleteMediaItemForUser,
+    deleteMultipleMediaItemsForUser,
+} from '../services/mediaItem.service';
 
 const createMediaItem = async (
     req: AuthenticatedRequest,
@@ -69,4 +73,39 @@ const deleteMediaItem = async (
     }
 };
 
-export { createMediaItem, deleteMediaItem };
+const deleteMultipleMediaItems = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const googleId = req.user.id;
+        const mediaItemIds = req.body.mediaItemIds as string[];
+
+        if (!Array.isArray(mediaItemIds) || mediaItemIds.length === 0) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                error: 'mediaItemIds must be a non-empty array of ids.',
+            });
+        }
+
+        const { deletedIds, notDeletedIds } =
+            await deleteMultipleMediaItemsForUser(googleId, mediaItemIds);
+
+        return deletedIds.length === 0
+            ? res.status(StatusCodes.NOT_FOUND).json({
+                  error: 'No media items were deleted for this user.',
+                  deletedIds,
+                  notDeletedIds,
+              })
+            : res.status(StatusCodes.OK).json({
+                  message: 'Media items deleted successfully',
+                  deletedIds,
+                  notDeletedIds,
+              });
+    } catch (error) {
+        console.error('Error in deleteMultipleMediaItems:', error);
+        return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({
+            error: 'An internal server error occurred while deleting media items.',
+        });
+    }
+};
+export { createMediaItem, deleteMediaItem, deleteMultipleMediaItems };

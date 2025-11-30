@@ -40,3 +40,29 @@ export const deleteMediaItemForUser = async (
     const deletedItem = await MediaItemModel.findByIdAndDelete(mediaItemId);
     return deletedItem ?? null;
 };
+
+export const deleteMultipleMediaItemsForUser = async (
+    googleId: string,
+    mediaItemIds: string[]
+) => {
+    const validIds = mediaItemIds.filter((id) => Types.ObjectId.isValid(id));
+    if (!validIds.length) return { deletedIds: [], notDeletedIds: mediaItemIds };
+
+    const user = await User.findOne({ googleId }, { mediaItems: 1 }).lean();
+    if (!user?.mediaItems?.length) return { deletedIds: [], notDeletedIds: mediaItemIds };
+
+    const userMediaSet = new Set(user.mediaItems.map((id) => id.toString()));
+    const confirmedIds = validIds.filter((id) => userMediaSet.has(id));
+
+    if (!confirmedIds.length) return { deletedIds: [], notDeletedIds: mediaItemIds };
+
+    await Promise.all([
+        MediaItemModel.deleteMany({ _id: { $in: confirmedIds } }),
+        User.updateOne({ googleId }, { $pull: { mediaItems: { $in: confirmedIds } } })
+    ]);
+
+    return {
+        deletedIds: confirmedIds,
+        notDeletedIds: mediaItemIds.filter((id) => !confirmedIds.includes(id)),
+    };
+};
