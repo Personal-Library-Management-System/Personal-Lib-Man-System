@@ -23,7 +23,7 @@ const getUserByEmail = async (email: string): Promise<IUser | null> => {
     return user;
 };
 
-const userService ={
+const userService = {
     getOrCreateUser,
     getUserByEmail,
 };

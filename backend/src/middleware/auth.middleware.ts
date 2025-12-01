@@ -1,34 +1,31 @@
-// backend/src/middleware/auth.middleware.ts
-
 import { Request, Response, NextFunction } from 'express';
 import tokenService from '../services/token.service';
-import { JwtUserPayload } from '../types/auth.types'; 
-interface AuthenticatedRequest extends Request {
-    user?: JwtUserPayload; 
-}
+import { StatusCodes } from 'http-status-codes';
+import { generateTokens, setAuthCookies } from '../utils/auth.utils';
 
-const authMiddleware = (
-    req: AuthenticatedRequest, 
-    res: Response, 
-    next: NextFunction
-) => {
-    const accessToken = req.cookies.accessToken;
+const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
+    const { accessToken, refreshToken } = req.cookies;
 
-    if (!accessToken) {
-        return res.status(401).json({ error: 'Unauthorized: Access Token missing' });
+    const user = accessToken ? tokenService.verifyJwtToken(accessToken) : null;
+    if (user) {
+        req.user = user;
+        return next();
     }
 
-    try {
-        const decoded = tokenService.verifyJwtToken(accessToken) as JwtUserPayload;
-        req.user = decoded; 
-        next(); 
+    const refreshUser = refreshToken
+        ? tokenService.verifyJwtToken(refreshToken)
+        : null;
 
-    } catch (error) {
-        // Token süresi dolduysa (ExpiredSignatureError) veya hatalıysa
-        // Burada token yenileme mekanizması devreye girmelidir.
-        // Şimdilik sadece yetkisiz yanıtı dönelim.
-        return res.status(403).json({ error: 'Forbidden: Invalid or expired Access Token' });
+    if (!refreshUser) {
+        return res.status(StatusCodes.UNAUTHORIZED).json({
+            error: 'Unauthorized: Both access and refresh tokens are invalid or expired',
+        });
     }
+
+    const jwtTokens = generateTokens(refreshUser);
+    setAuthCookies(res, jwtTokens);
+    req.user = refreshUser;
+    return next();
 };
 
 export default authMiddleware;

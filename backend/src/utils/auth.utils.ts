@@ -3,6 +3,7 @@ import { JwtUserPayload } from '../types/auth.types';
 import tokenService from '../services/token.service';
 
 export const buildJwtPayload = (user: any): JwtUserPayload => ({
+    id: user.googleId,
     email: user.email,
     name: user.name,
     picture: user.picture,
