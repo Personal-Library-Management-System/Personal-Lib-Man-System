@@ -19,7 +19,10 @@ const swaggerOptions: swaggerJSDoc.Options = {
             },
         ],
     },
-    apis: [path.join(__dirname, '..', 'routes', '*.routes.ts')],
+    apis: [
+        path.join(__dirname, '..', 'routes', '*.routes.ts'),
+        path.join(__dirname, '..', 'docs', '*.ts'),
+    ],
     encoding: 'utf-8',
     failOnErrors: true,
     verbose: false,
