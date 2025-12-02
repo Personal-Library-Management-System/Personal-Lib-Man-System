@@ -1,266 +1,578 @@
 [
   {
-    "id": 1,
+    "id": "1",
     "title": "1984",
-    "author": "George Orwell",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1657781256i/61439040.jpg",
+    "authors": [
+      "George Orwell"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1657781256i/61439040.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1657781256i/61439040.jpg"
+    },
     "publishedDate": "1949",
+    "publisher": "Secker & Warburg",
     "pageCount": 328,
-    "rating": 4.7,
+    "averageRating": 4.7,
+    "ratingsCount": 3500000,
+    "categories": [
+      "Dystopian",
+      "Science Fiction"
+    ],
     "status": "read",
-    "description": "Totaliter bir toplumda yaşayan Winston Smith'in hikayesi"
+    "description": "Totaliter bir toplumda yaşayan Winston Smith'in hikayesi",
+    "language": "en",
+    "ISBN": "9780451524935"
   },
   {
-    "id": 2,
+    "id": "2",
     "title": "To Kill a Mockingbird",
-    "author": "Harper Lee",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1553383690i/2657.jpg",
+    "authors": [
+      "Harper Lee"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1553383690i/2657.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1553383690i/2657.jpg"
+    },
     "publishedDate": "1960",
+    "publisher": "J. B. Lippincott & Co.",
     "pageCount": 376,
-    "rating": 4.5,
+    "averageRating": 4.5,
+    "ratingsCount": 5000000,
+    "categories": [
+      "Classic",
+      "Fiction"
+    ],
     "status": "reading",
-    "description": "Irkçılık ve adaletsizlik karşısında cesaret hikayesi"
+    "description": "Irkçılık ve adaletsizlik karşısında cesaret hikayesi",
+    "language": "en",
+    "ISBN": "9780061120084"
   },
   {
-    "id": 3,
+    "id": "3",
     "title": "Pride and Prejudice",
-    "author": "Jane Austen",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1320399351i/1885.jpg",
+    "authors": [
+      "Jane Austen"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1320399351i/1885.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1320399351i/1885.jpg"
+    },
     "publishedDate": "1813",
+    "publisher": "T. Egerton, Whitehall",
     "pageCount": 432,
-    "rating": 4.3,
+    "averageRating": 4.3,
+    "ratingsCount": 3000000,
+    "categories": [
+      "Romance",
+      "Classic"
+    ],
     "status": "want-to-read",
-    "description": "Elizabeth Bennet ve Mr. Darcy'nin aşk hikayesi"
+    "description": "Elizabeth Bennet ve Mr. Darcy'nin aşk hikayesi",
+    "language": "en",
+    "ISBN": "9780141439518"
   },
   {
-    "id": 4,
+    "id": "4",
     "title": "The Great Gatsby",
-    "author": "F. Scott Fitzgerald",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1490528560i/4671.jpg",
+    "authors": [
+      "F. Scott Fitzgerald"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1490528560i/4671.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1490528560i/4671.jpg"
+    },
     "publishedDate": "1925",
+    "publisher": "Charles Scribner's Sons",
     "pageCount": 180,
-    "rating": 4.2,
+    "averageRating": 4.2,
+    "ratingsCount": 3800000,
+    "categories": [
+      "Classic",
+      "Fiction"
+    ],
     "status": "read",
-    "description": "1920'lerin Amerika'sında aşk ve hayal kırıklığı"
+    "description": "1920'lerin Amerika'sında aşk ve hayal kırıklığı",
+    "language": "en",
+    "ISBN": "9780743273565"
   },
   {
-    "id": 5,
+    "id": "5",
     "title": "One Hundred Years of Solitude",
-    "author": "Gabriel García Márquez",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1327881361i/320.jpg",
+    "authors": [
+      "Gabriel García Márquez"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1327881361i/320.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1327881361i/320.jpg"
+    },
     "publishedDate": "1967",
+    "publisher": "Harper & Row",
     "pageCount": 417,
-    "rating": 4.6,
+    "averageRating": 4.6,
+    "ratingsCount": 900000,
+    "categories": [
+      "Magical Realism",
+      "Fiction"
+    ],
     "status": "reading",
-    "description": "Buendía ailesinin yedi neslik hikayesi"
+    "description": "Buendía ailesinin yedi neslik hikayesi",
+    "language": "es",
+    "ISBN": "9780060883287"
   },
   {
-    "id": 6,
+    "id": "6",
     "title": "The Catcher in the Rye",
-    "author": "J.D. Salinger",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1398034300i/5107.jpg",
+    "authors": [
+      "J.D. Salinger"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1398034300i/5107.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1398034300i/5107.jpg"
+    },
     "publishedDate": "1951",
+    "publisher": "Little, Brown and Company",
     "pageCount": 277,
-    "rating": 4.0,
+    "averageRating": 4.0,
+    "ratingsCount": 2800000,
+    "categories": [
+      "Classic",
+      "Fiction"
+    ],
     "status": "want-to-read",
-    "description": "Holden Caulfield'in New York'taki maceraları"
+    "description": "Holden Caulfield'in New York'taki maceraları",
+    "language": "en",
+    "ISBN": "9780316769488"
   },
   {
-    "id": 7,
+    "id": "7",
     "title": "The Lord of the Rings",
-    "author": "J.R.R. Tolkien",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1566425108i/33.jpg",
+    "authors": [
+      "J.R.R. Tolkien"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1566425108i/33.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1566425108i/33.jpg"
+    },
     "publishedDate": "1954",
+    "publisher": "Allen & Unwin",
     "pageCount": 1216,
-    "rating": 4.8,
+    "averageRating": 4.8,
+    "ratingsCount": 2500000,
+    "categories": [
+      "Fantasy",
+      "Adventure"
+    ],
     "status": "read",
-    "description": "Orta Dünya'da büyük bir macera"
+    "description": "Orta Dünya'da büyük bir macera",
+    "language": "en",
+    "ISBN": "9780618640157"
   },
   {
-    "id": 8,
+    "id": "8",
     "title": "Crime and Punishment",
-    "author": "Fyodor Dostoevsky",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1382846449i/7144.jpg",
+    "authors": [
+      "Fyodor Dostoevsky"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1382846449i/7144.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1382846449i/7144.jpg"
+    },
     "publishedDate": "1866",
+    "publisher": "The Russian Messenger",
     "pageCount": 671,
-    "rating": 4.4,
+    "averageRating": 4.4,
+    "ratingsCount": 800000,
+    "categories": [
+      "Classic",
+      "Psychological Fiction"
+    ],
     "status": "reading",
-    "description": "Raskolnikov'un suç ve ceza hikayesi"
+    "description": "Raskolnikov'un suç ve ceza hikayesi",
+    "language": "ru",
+    "ISBN": "9780486415871"
   },
   {
-    "id": 9,
+    "id": "9",
     "title": "The Hobbit",
-    "author": "J.R.R. Tolkien",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546071216i/5907.jpg",
+    "authors": [
+      "J.R.R. Tolkien"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546071216i/5907.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546071216i/5907.jpg"
+    },
     "publishedDate": "1937",
+    "publisher": "Allen & Unwin",
     "pageCount": 366,
-    "rating": 4.6,
+    "averageRating": 4.6,
+    "ratingsCount": 3000000,
+    "categories": [
+      "Fantasy",
+      "Adventure"
+    ],
     "status": "want-to-read",
-    "description": "Bilbo Baggins'in beklenmedik yolculuğu"
+    "description": "Bilbo Baggins'in beklenmedik yolculuğu",
+    "language": "en",
+    "ISBN": "9780345339683"
   },
   {
-    "id": 10,
+    "id": "10",
     "title": "War and Peace",
-    "author": "Leo Tolstoy",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1413215930i/656.jpg",
+    "authors": [
+      "Leo Tolstoy"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1413215930i/656.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1413215930i/656.jpg"
+    },
     "publishedDate": "1869",
+    "publisher": "The Russian Messenger",
     "pageCount": 1296,
-    "rating": 4.5,
+    "averageRating": 4.5,
+    "ratingsCount": 300000,
+    "categories": [
+      "Historical Fiction",
+      "Classic"
+    ],
     "status": "read",
-    "description": "Napolyon döneminde Rus aristokrasisi"
+    "description": "Napolyon döneminde Rus aristokrasisi",
+    "language": "ru",
+    "ISBN": "9781400079988"
   },
   {
-    "id": 11,
+    "id": "11",
     "title": "The Picture of Dorian Gray",
-    "author": "Oscar Wilde",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546103428i/5297.jpg",
+    "authors": [
+      "Oscar Wilde"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546103428i/5297.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546103428i/5297.jpg"
+    },
     "publishedDate": "1890",
+    "publisher": "Lippincott's Monthly Magazine",
     "pageCount": 254,
-    "rating": 4.3,
+    "averageRating": 4.3,
+    "ratingsCount": 1200000,
+    "categories": [
+      "Gothic Fiction",
+      "Classic"
+    ],
     "status": "reading",
-    "description": "Güzellik ve ahlaki çöküş hikayesi"
+    "description": "Güzellik ve ahlaki çöküş hikayesi",
+    "language": "en",
+    "ISBN": "9780486278070"
   },
   {
-    "id": 12,
+    "id": "12",
     "title": "Brave New World",
-    "author": "Aldous Huxley",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1575509280i/5129.jpg",
+    "authors": [
+      "Aldous Huxley"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1575509280i/5129.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1575509280i/5129.jpg"
+    },
     "publishedDate": "1932",
+    "publisher": "Chatto & Windus",
     "pageCount": 268,
-    "rating": 4.1,
+    "averageRating": 4.1,
+    "ratingsCount": 1500000,
+    "categories": [
+      "Dystopian",
+      "Science Fiction"
+    ],
     "status": "want-to-read",
-    "description": "Distopik bir gelecekte teknoloji ve kontrol"
+    "description": "Distopik bir gelecekte teknoloji ve kontrol",
+    "language": "en",
+    "ISBN": "9780060850524"
   },
   {
-    "id": 13,
+    "id": "13",
     "title": "Jane Eyre",
-    "author": "Charlotte Brontë",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1557343311i/10210.jpg",
+    "authors": [
+      "Charlotte Brontë"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1557343311i/10210.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1557343311i/10210.jpg"
+    },
     "publishedDate": "1847",
+    "publisher": "Smith, Elder & Co.",
     "pageCount": 507,
-    "rating": 4.4,
+    "averageRating": 4.4,
+    "ratingsCount": 1800000,
+    "categories": [
+      "Gothic Fiction",
+      "Romance"
+    ],
     "status": "read",
-    "description": "Yetim bir kızın aşk ve bağımsızlık mücadelesi"
+    "description": "Yetim bir kızın aşk ve bağımsızlık mücadelesi",
+    "language": "en",
+    "ISBN": "9780141441146"
   },
   {
-    "id": 14,
+    "id": "14",
     "title": "Moby Dick",
-    "author": "Herman Melville",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1327940656i/153747.jpg",
+    "authors": [
+      "Herman Melville"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1327940656i/153747.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1327940656i/153747.jpg"
+    },
     "publishedDate": "1851",
+    "publisher": "Richard Bentley",
     "pageCount": 720,
-    "rating": 3.9,
+    "averageRating": 3.9,
+    "ratingsCount": 600000,
+    "categories": [
+      "Adventure",
+      "Classic"
+    ],
     "status": "want-to-read",
-    "description": "Kaptan Ahab'ın beyaz balinayla mücadelesi"
+    "description": "Kaptan Ahab'ın beyaz balinayla mücadelesi",
+    "language": "en",
+    "ISBN": "9781503280786"
   },
   {
-    "id": 15,
+    "id": "15",
     "title": "The Adventures of Huckleberry Finn",
-    "author": "Mark Twain",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546096879i/2956.jpg",
+    "authors": [
+      "Mark Twain"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546096879i/2956.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546096879i/2956.jpg"
+    },
     "publishedDate": "1884",
+    "publisher": "Chatto & Windus",
     "pageCount": 366,
-    "rating": 4.2,
+    "averageRating": 4.2,
+    "ratingsCount": 1200000,
+    "categories": [
+      "Adventure",
+      "Classic"
+    ],
     "status": "reading",
-    "description": "Mississippi Nehri'nde macera dolu yolculuk"
+    "description": "Mississippi Nehri'nde macera dolu yolculuk",
+    "language": "en",
+    "ISBN": "9780486280616"
   },
   {
-    "id": 16,
+    "id": "16",
     "title": "Wuthering Heights",
-    "author": "Emily Brontë",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1388212715i/6185.jpg",
+    "authors": [
+      "Emily Brontë"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1388212715i/6185.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1388212715i/6185.jpg"
+    },
     "publishedDate": "1847",
+    "publisher": "Thomas Cautley Newby",
     "pageCount": 416,
-    "rating": 4.0,
+    "averageRating": 4.0,
+    "ratingsCount": 1300000,
+    "categories": [
+      "Gothic Fiction",
+      "Romance"
+    ],
     "status": "read",
-    "description": "Tutkulu ve yıkıcı bir aşk hikayesi"
+    "description": "Tutkulu ve yıkıcı bir aşk hikayesi",
+    "language": "en",
+    "ISBN": "9780141439556"
   },
   {
-    "id": 17,
+    "id": "17",
     "title": "Les Misérables",
-    "author": "Victor Hugo",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1411852091i/24280.jpg",
+    "authors": [
+      "Victor Hugo"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1411852091i/24280.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1411852091i/24280.jpg"
+    },
     "publishedDate": "1862",
+    "publisher": "A. Lacroix, Verboeckhoven & Cie.",
     "pageCount": 1488,
-    "rating": 4.7,
+    "averageRating": 4.7,
+    "ratingsCount": 700000,
+    "categories": [
+      "Historical Fiction",
+      "Classic"
+    ],
     "status": "want-to-read",
-    "description": "19. yüzyıl Fransa'sında adalet ve merhamet"
+    "description": "19. yüzyıl Fransa'sında adalet ve merhamet",
+    "language": "fr",
+    "ISBN": "9780451419439"
   },
   {
-    "id": 18,
+    "id": "18",
     "title": "The Count of Monte Cristo",
-    "author": "Alexandre Dumas",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1611834134i/7126.jpg",
+    "authors": [
+      "Alexandre Dumas"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1611834134i/7126.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1611834134i/7126.jpg"
+    },
     "publishedDate": "1844",
+    "publisher": "Le Journal des Débats",
     "pageCount": 1276,
-    "rating": 4.6,
+    "averageRating": 4.6,
+    "ratingsCount": 900000,
+    "categories": [
+      "Adventure",
+      "Historical Fiction"
+    ],
     "status": "reading",
-    "description": "İhanet ve intikam hikayesi"
+    "description": "İhanet ve intikam hikayesi",
+    "language": "fr",
+    "ISBN": "9780140449266"
   },
   {
-    "id": 19,
+    "id": "19",
     "title": "Anna Karenina",
-    "author": "Leo Tolstoy",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1601352433i/15823480.jpg",
+    "authors": [
+      "Leo Tolstoy"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1601352433i/15823480.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1601352433i/15823480.jpg"
+    },
     "publishedDate": "1877",
+    "publisher": "The Russian Messenger",
     "pageCount": 964,
-    "rating": 4.3,
+    "averageRating": 4.3,
+    "ratingsCount": 700000,
+    "categories": [
+      "Romance",
+      "Classic"
+    ],
     "status": "read",
-    "description": "Aşk, ihanet ve toplumsal baskılar"
+    "description": "Aşk, ihanet ve toplumsal baskılar",
+    "language": "ru",
+    "ISBN": "9780143035008"
   },
   {
-    "id": 20,
+    "id": "20",
     "title": "The Brothers Karamazov",
-    "author": "Fyodor Dostoevsky",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1427728126i/4934.jpg",
+    "authors": [
+      "Fyodor Dostoevsky"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1427728126i/4934.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1427728126i/4934.jpg"
+    },
     "publishedDate": "1880",
+    "publisher": "The Russian Messenger",
     "pageCount": 824,
-    "rating": 4.5,
+    "averageRating": 4.5,
+    "ratingsCount": 500000,
+    "categories": [
+      "Philosophical Fiction",
+      "Classic"
+    ],
     "status": "want-to-read",
-    "description": "Dört kardeşin aile trajedisi"
+    "description": "Dört kardeşin aile trajedisi",
+    "language": "ru",
+    "ISBN": "9780374528379"
   },
   {
-    "id": 21,
+    "id": "21",
     "title": "Don Quixote",
-    "author": "Miguel de Cervantes",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546112331i/3836.jpg",
+    "authors": [
+      "Miguel de Cervantes"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546112331i/3836.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1546112331i/3836.jpg"
+    },
     "publishedDate": "1605",
+    "publisher": "Francisco de Robles",
     "pageCount": 1023,
-    "rating": 4.1,
+    "averageRating": 4.1,
+    "ratingsCount": 400000,
+    "categories": [
+      "Satire",
+      "Classic"
+    ],
     "status": "reading",
-    "description": "Şövalyelik hayalleri kuran idealist bir adamın maceraları"
+    "description": "Şövalyelik hayalleri kuran idealist bir adamın maceraları",
+    "language": "es",
+    "ISBN": "9780060934347"
   },
   {
-    "id": 22,
+    "id": "22",
     "title": "Great Expectations",
-    "author": "Charles Dickens",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1631687432i/2623.jpg",
+    "authors": [
+      "Charles Dickens"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1631687432i/2623.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1631687432i/2623.jpg"
+    },
     "publishedDate": "1861",
+    "publisher": "Chapman & Hall",
     "pageCount": 505,
-    "rating": 4.2,
+    "averageRating": 4.2,
+    "ratingsCount": 800000,
+    "categories": [
+      "Bildungsroman",
+      "Classic"
+    ],
     "status": "read",
-    "description": "Pip'in büyük beklentileri ve hayal kırıklıkları"
+    "description": "Pip'in büyük beklentileri ve hayal kırıklıkları",
+    "language": "en",
+    "ISBN": "9780141439563"
   },
   {
-    "id": 23,
+    "id": "23",
     "title": "Frankenstein",
-    "author": "Mary Shelley",
-    "imageUrl": "https://cdn.kobo.com/book-images/7edc63b3-95a4-42ad-ab61-96135edda145/1200/1200/False/frankenstein-83.jpg",
+    "authors": [
+      "Mary Shelley"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://cdn.kobo.com/book-images/7edc63b3-95a4-42ad-ab61-96135edda145/1200/1200/False/frankenstein-83.jpg",
+      "thumbnail": "https://cdn.kobo.com/book-images/7edc63b3-95a4-42ad-ab61-96135edda145/1200/1200/False/frankenstein-83.jpg"
+    },
     "publishedDate": "1818",
+    "publisher": "Lackington, Hughes, Harding, Mavor, & Jones",
     "pageCount": 280,
-    "rating": 4.0,
+    "averageRating": 4.0,
+    "ratingsCount": 1500000,
+    "categories": [
+      "Gothic Fiction",
+      "Science Fiction"
+    ],
     "status": "want-to-read",
-    "description": "Bilim ve yaratılış üzerine gotik bir hikaye"
+    "description": "Bilim ve yaratılış üzerine gotik bir hikaye",
+    "language": "en",
+    "ISBN": "9780486282115"
   },
   {
-    "id": 24,
+    "id": "24",
     "title": "The Odyssey",
-    "author": "Homer",
-    "imageUrl": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1390173285i/1381.jpg",
+    "authors": [
+      "Homer"
+    ],
+    "imageLinks": {
+      "smallThumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1390173285i/1381.jpg",
+      "thumbnail": "https://images-na.ssl-images-amazon.com/images/S/compressed.photo.goodreads.com/books/1390173285i/1381.jpg"
+    },
     "publishedDate": "-800",
+    "publisher": "Ancient Greece",
     "pageCount": 541,
-    "rating": 4.4,
+    "averageRating": 4.4,
+    "ratingsCount": 1000000,
+    "categories": [
+      "Epic Poetry",
+      "Classic"
+    ],
     "status": "reading",
-    "description": "Odysseus'un efsanevi yolculuğu"
+    "description": "Odysseus'un efsanevi yolculuğu",
+    "language": "grc",
+    "ISBN": "9780140268867"
   }
 ]

@@ -23,7 +23,7 @@ interface ListViewProps {
   itemsPerPage: number;
   getStatusBadge: (status: string) => React.ReactNode;
   type: 'book' | 'movie';
-  onItemClick?: (item: ListItem) => void; // Yeni prop
+  onItemClick?: (item: ListItem) => void;
 }
 
 const ListSkeleton = ({ type }: { type: 'book' | 'movie' }) => {
@@ -77,73 +77,94 @@ const ListView: React.FC<ListViewProps> = ({
         ? Array.from({ length: itemsPerPage }).map((_, index) => (
             <ListSkeleton key={index} type={type} />
           ))
-        : items.map(item => (
-            <Card
-              key={item.id}
-              bg={cardBg}
-              cursor="pointer"
-              transition="all 0.2s ease"
-              _hover={{ shadow: 'md' }}
-              onClick={() => onItemClick && onItemClick(item)} // Tıklama olayını bağla
-            >
-              <CardBody>
-                <Flex gap={4} align="center">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title}
-                    w={imageWidth}
-                    h={imageHeight}
-                    objectFit="cover"
-                    objectPosition="center top"
-                    borderRadius="md"
-                    flexShrink={0}
-                    fallback={
-                      <Box 
-                        w={imageWidth} 
-                        h={imageHeight} 
-                        bg="gray.200" 
-                        borderRadius="md"
-                        display="flex" 
-                        alignItems="center" 
-                        justifyContent="center"
-                      >
-                        <Text color="gray.500" fontSize="sm">{fallbackIcon}</Text>
-                      </Box>
-                    }
-                  />
-                  <Box flex="1" minW="0">
-                    <HStack mb={1} spacing={2} align="center">
-                      <Heading size="md" color={textColor} noOfLines={1}>
-                        {item.title}
-                      </Heading>
-                      {getStatusBadge(item.status)}
-                    </HStack>
-                    <Text color={subtextColor} fontSize="md" mb={2}>
-                      {type === 'book' ? (item as Book).author : (item as Movie).director}
-                    </Text>
-                    <Text color={subtextColor} fontSize="sm" noOfLines={2} mb={2}>
-                      {item.description}
-                    </Text>
-                    <HStack spacing={4} flexWrap="wrap">
-                      <Text fontSize="sm" color={subtextColor}>
-                        📅 {type === 'book' ? (item as Book).publishedDate : (item as Movie).releaseDate}
-                      </Text>
-                      <Text fontSize="sm" color={subtextColor}>
-                        {type === 'book' 
-                          ? `📄 ${(item as Book).pageCount} sayfa` 
-                          : `⏱️ ${(item as Movie).duration} dakika`
-                        }
-                      </Text>
-                      <HStack spacing={1}>
-                        <Text fontSize="sm">⭐</Text>
-                        <Text fontSize="sm" color={subtextColor}>{item.rating}</Text>
+        : items.map(item => {
+            const imageUrl = type === 'book' 
+              ? (item as Book).imageLinks?.thumbnail || '' 
+              : (item as Movie).imageUrl;
+            
+            const subtitle = type === 'book' 
+              ? (item as Book).authors?.join(', ') || 'Yazar bilinmiyor'
+              : (item as Movie).director;
+            
+            const rating = type === 'book'
+              ? (item as Book).averageRating || 0
+              : (item as Movie).rating;
+            
+            const date = type === 'book'
+              ? (item as Book).publishedDate || 'Bilinmiyor'
+              : (item as Movie).releaseDate;
+            
+            const pageOrDuration = type === 'book'
+              ? `📄 ${(item as Book).pageCount || 0} sayfa`
+              : `⏱️ ${(item as Movie).duration} dakika`;
+            
+            const description = (item as Book).description || (item as Movie).description || 'Açıklama bulunmuyor';
+
+            return (
+              <Card
+                key={item.id}
+                bg={cardBg}
+                cursor="pointer"
+                transition="all 0.2s ease"
+                _hover={{ shadow: 'md' }}
+                onClick={() => onItemClick && onItemClick(item)}
+              >
+                <CardBody>
+                  <Flex gap={4} align="center">
+                    <Image
+                      src={imageUrl}
+                      alt={item.title}
+                      w={imageWidth}
+                      h={imageHeight}
+                      objectFit="cover"
+                      objectPosition="center top"
+                      borderRadius="md"
+                      flexShrink={0}
+                      fallback={
+                        <Box 
+                          w={imageWidth} 
+                          h={imageHeight} 
+                          bg="gray.200" 
+                          borderRadius="md"
+                          display="flex" 
+                          alignItems="center" 
+                          justifyContent="center"
+                        >
+                          <Text color="gray.500" fontSize="sm">{fallbackIcon}</Text>
+                        </Box>
+                      }
+                    />
+                    <Box flex="1" minW="0">
+                      <HStack mb={1} spacing={2} align="center">
+                        <Heading size="md" color={textColor} noOfLines={1}>
+                          {item.title}
+                        </Heading>
+                        {getStatusBadge(item.status)}
                       </HStack>
-                    </HStack>
-                  </Box>
-                </Flex>
-              </CardBody>
-            </Card>
-          ))
+                      <Text color={subtextColor} fontSize="md" mb={2}>
+                        {subtitle}
+                      </Text>
+                      <Text color={subtextColor} fontSize="sm" noOfLines={2} mb={2}>
+                        {description}
+                      </Text>
+                      <HStack spacing={4} flexWrap="wrap">
+                        <Text fontSize="sm" color={subtextColor}>
+                          📅 {date}
+                        </Text>
+                        <Text fontSize="sm" color={subtextColor}>
+                          {pageOrDuration}
+                        </Text>
+                        <HStack spacing={1}>
+                          <Text fontSize="sm">⭐</Text>
+                          <Text fontSize="sm" color={subtextColor}>{rating.toFixed(1)}</Text>
+                        </HStack>
+                      </HStack>
+                    </Box>
+                  </Flex>
+                </CardBody>
+              </Card>
+            );
+          })
       }
     </VStack>
   );

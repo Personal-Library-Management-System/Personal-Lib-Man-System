@@ -26,6 +26,7 @@ import {
   AlertTitle,
 } from '@chakra-ui/react';
 import { SearchIcon, ArrowForwardIcon } from '@chakra-ui/icons';
+import { type Book } from '../../types'; // Book tipini import et
 
 // -- Tipler --
 interface OptionalField {
@@ -35,39 +36,27 @@ interface OptionalField {
   helperText?: string;
 }
 
-interface BookSearchResult {
-  id: string;
-  title: string;
-  authors?: string[];
-  publishedDate?: string;
-  imageLinks?: { thumbnail?: string };
-}
-
 export type SearchState = 'idle' | 'loading' | 'success' | 'no-results' | 'error';
 
 interface AddMediaProps {
   mediaType: 'book' | 'movie';
   isOpen: boolean;
   onClose: () => void;
-  // Arama işlemini yürütecek olan asenkron fonksiyon.
   onSearch: (payload: { query: string; extras: Record<string, string> }) => Promise<void>;
-  // Dışarıdan yönetilen state'ler
   searchState: SearchState;
-  searchResults: BookSearchResult[]; // Şimdilik ortak bir tip kullanıyoruz, genişletilebilir.
-  // Bir sonuç seçildiğinde tetiklenir.
-  onItemSelect: (item: BookSearchResult) => void;
+  searchResults: Book[]; // Artık doğrudan Book tipi
+  onItemSelect: (item: Book) => void;
   optionalFields: OptionalField[];
   searchPlaceholder?: string;
 }
 
-const SearchResultItem = ({ item, onSelect }: { item: BookSearchResult, onSelect: () => void }) => {
+const SearchResultItem = ({ item, onSelect }: { item: Book, onSelect: () => void }) => {
   const cardBg = useColorModeValue('gray.50', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
 
   const fallbackIcon = item.authors ? '📚' : '🎬';
   const thumbnailUrl = item.imageLinks?.thumbnail;
-  // Eğer thumbnail URL'i yoksa veya "N/A" ise, resmi gösterme.
   const hasImage = thumbnailUrl && thumbnailUrl !== 'N/A';
 
   return (
@@ -118,7 +107,6 @@ const SearchResultItem = ({ item, onSelect }: { item: BookSearchResult, onSelect
     </HStack>
   );
 };
-
 
 const AddMedia = ({
   mediaType,

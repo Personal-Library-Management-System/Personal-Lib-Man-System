@@ -43,20 +43,13 @@ const LibraryPage = () => {
     setModalOpen(true);
   };
 
-  const handleCloseModal = () => {
-    setModalOpen(false);
-    setSelectedBook(null);
-  };
-
   // AddMedia için state yönetimi
   const [searchState, setSearchState] = useState<SearchState>('idle');
   const [searchResults, setSearchResults] = useState<any[]>([]);
 
   const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
     if (!GOOGLE_BOOKS_API_KEY) {
-      console.error(
-        'Google Books API anahtarı bulunamadı. Lütfen .env dosyanıza VITE_GOOGLE_BOOKS_API_KEY ekleyin.'
-      );
+      console.error('Google Books API anahtarı bulunamadı.');
       setSearchState('error');
       return;
     }
@@ -71,10 +64,6 @@ const LibraryPage = () => {
     if (payload.extras.publisher) {
       apiQuery += `+inpublisher:${payload.extras.publisher}`;
     }
-    if (payload.extras.year) {
-      // Google Books API'de yıl aralığı daha iyi çalışabilir, ama şimdilik direkt yıl alalım
-      // apiQuery += `&as_publication_year=${payload.extras.year}`; // Bu parametre desteklenmiyor
-    }
 
     try {
       const response = await fetch(
@@ -87,20 +76,39 @@ const LibraryPage = () => {
       }
       const data = await response.json();
       const rawItems = data.items || [];
-      const uniqueItems = rawItems
-        .map((item: any) => ({ id: item.id, ...item.volumeInfo }))
-        .reduce((acc: any[], current: any) => {
-          if (!acc.find(item => item.id === current.id)) {
-            acc.push(current);
-          }
-          return acc;
-        }, []);
-      setSearchResults(uniqueItems);
-      setSearchState(uniqueItems.length > 0 ? 'success' : 'no-results');
-    } catch (error) {
-      console.error('Arama hatası:', error);
-      setSearchState('error');
-    }
+      
+      // API response'unu doğrudan Book tipine map et
+      const books: Book[] = rawItems.map((item: any) => ({
+        id: item.id,
+        title: item.volumeInfo.title,
+        authors: item.volumeInfo.authors,
+        imageLinks: item.volumeInfo.imageLinks,
+        publishedDate: item.volumeInfo.publishedDate,
+        publisher: item.volumeInfo.publisher,
+        pageCount: item.volumeInfo.pageCount,
+        averageRating: item.volumeInfo.averageRating,
+        ratingsCount: item.volumeInfo.ratingsCount,
+        categories: item.volumeInfo.categories,
+        description: item.volumeInfo.description,
+        language: item.volumeInfo.language,
+        ISBN: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
+        status: 'want-to-read' // Varsayılan status
+    }));
+
+    // Duplicate kontrolü
+    const uniqueBooks = books.reduce((acc: Book[], current: Book) => {
+      if (!acc.find(book => book.id === current.id)) {
+        acc.push(current);
+      }
+      return acc;
+    }, []);
+
+    setSearchResults(uniqueBooks);
+    setSearchState(uniqueBooks.length > 0 ? 'success' : 'no-results');
+  } catch (error) {
+    console.error('Arama hatası:', error);
+    setSearchState('error');
+  }
   };
 
   return (
@@ -136,8 +144,10 @@ const LibraryPage = () => {
         searchState={searchState}
         searchResults={searchResults}
         onItemSelect={item => {
-          console.log('Seçilen Kitap:', item);
-          // Burada seçilen kitabı ekleme formu açılabilir veya direkt kütüphaneye eklenebilir.
+          // Artık tip dönüşümüne gerek yok, doğrudan Book
+          setSelectedBook(item);
+          onClose();
+          setModalOpen(true);
         }}
         optionalFields={[
           { name: 'author', label: 'Yazar', placeholder: 'Örn. Orhan Pamuk' },

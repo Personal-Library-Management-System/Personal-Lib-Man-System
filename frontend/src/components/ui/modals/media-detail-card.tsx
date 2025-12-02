@@ -19,7 +19,7 @@ import {
   GridItem,
   Tooltip,
 } from '@chakra-ui/react';
-import { FiEdit, FiTrash2, FiTag, FiPlus } from 'react-icons/fi'; // Yeni ikonlar için eklemeler
+import { FiTag, FiPlus } from 'react-icons/fi'; // Yeni ikonlar için eklemeler
 import { type IconType } from 'react-icons';
 
 export interface InfoBlock {
@@ -55,7 +55,6 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   subtitle,
   description,
   infoBlocks,
-  addedDate,
   status,
   statusOptions,
   onEdit,

@@ -22,7 +22,7 @@ interface CardViewProps {
   itemsPerPage: number;
   getStatusBadge: (status: string) => React.ReactNode;
   type: 'book' | 'movie';
-  onItemClick?: (item: CardItem) => void; // Yeni prop
+  onItemClick?: (item: CardItem) => void;
 }
 
 const CardSkeleton = ({ type }: { type: 'book' | 'movie' }) => {
@@ -74,66 +74,84 @@ const CardView: React.FC<CardViewProps> = ({
         ? Array.from({ length: itemsPerPage }).map((_, index) => (
             <CardSkeleton key={index} type={type} />
           ))
-        : items.map(item => (
-            <Card
-              key={item.id}
-              bg={cardBg}
-              cursor="pointer"
-              transition="all 0.3s ease"
-              _hover={{
-                transform: 'translateY(-8px)',
-                shadow: 'xl'
-              }}
-              overflow="hidden"
-              h="auto"
-              maxW="280px"
-              mx="auto"
-              onClick={() => onItemClick && onItemClick(item)} // Tıklama olayını bağla
-            >
-              <CardBody p={0}>
-                <Box position="relative">
-                  <Image
-                    src={item.imageUrl}
-                    alt={item.title}
-                    w="full"
-                    h={imageHeight}
-                    objectFit="cover"
-                    objectPosition="center top"
-                    fallback={
-                      <Box 
-                        w="full" 
-                        h={imageHeight} 
-                        bg="gray.200" 
-                        display="flex" 
-                        alignItems="center" 
-                        justifyContent="center"
-                      >
-                        <Text color="gray.500" fontSize="xl">{fallbackIcon}</Text>
-                      </Box>
-                    }
-                  />
-                </Box>
-                <Box p={4}>
-                  <Heading size="sm" color={textColor} noOfLines={2} mb={2} minH="40px">
-                    {item.title}
-                  </Heading>
-                  <Text color={subtextColor} fontSize="sm" mb={2} noOfLines={1}>
-                    {type === 'book' ? (item as Book).author : (item as Movie).director}
-                  </Text>
-                  <HStack justify="space-between" align="center">
-                    <HStack spacing={1}>
-                      <Text fontSize="sm">⭐</Text>
-                      <Text fontSize="sm" color={subtextColor}>{item.rating}</Text>
-                      <Text fontSize="xs" color={subtextColor}>
-                        • {type === 'book' ? `${(item as Book).pageCount}s` : `${(item as Movie).duration}dk`}
-                      </Text>
+        : items.map(item => {
+            const imageUrl = type === 'book' 
+              ? (item as Book).imageLinks?.thumbnail || '' 
+              : (item as Movie).imageUrl;
+            
+            const subtitle = type === 'book' 
+              ? (item as Book).authors?.join(', ') || 'Yazar bilinmiyor'
+              : (item as Movie).director;
+            
+            const rating = type === 'book'
+              ? (item as Book).averageRating || 0
+              : (item as Movie).rating;
+            
+            const additionalInfo = type === 'book'
+              ? `${(item as Book).pageCount || 0}s`
+              : `${(item as Movie).duration}dk`;
+
+            return (
+              <Card
+                key={item.id}
+                bg={cardBg}
+                cursor="pointer"
+                transition="all 0.3s ease"
+                _hover={{
+                  transform: 'translateY(-8px)',
+                  shadow: 'xl'
+                }}
+                overflow="hidden"
+                h="auto"
+                maxW="280px"
+                mx="auto"
+                onClick={() => onItemClick && onItemClick(item)}
+              >
+                <CardBody p={0}>
+                  <Box position="relative">
+                    <Image
+                      src={imageUrl}
+                      alt={item.title}
+                      w="full"
+                      h={imageHeight}
+                      objectFit="cover"
+                      objectPosition="center top"
+                      fallback={
+                        <Box 
+                          w="full" 
+                          h={imageHeight} 
+                          bg="gray.200" 
+                          display="flex" 
+                          alignItems="center" 
+                          justifyContent="center"
+                        >
+                          <Text color="gray.500" fontSize="xl">{fallbackIcon}</Text>
+                        </Box>
+                      }
+                    />
+                  </Box>
+                  <Box p={4}>
+                    <Heading size="sm" color={textColor} noOfLines={2} mb={2} minH="40px">
+                      {item.title}
+                    </Heading>
+                    <Text color={subtextColor} fontSize="sm" mb={2} noOfLines={1}>
+                      {subtitle}
+                    </Text>
+                    <HStack justify="space-between" align="center">
+                      <HStack spacing={1}>
+                        <Text fontSize="sm">⭐</Text>
+                        <Text fontSize="sm" color={subtextColor}>{rating.toFixed(1)}</Text>
+                        <Text fontSize="xs" color={subtextColor}>
+                          • {additionalInfo}
+                        </Text>
+                      </HStack>
+                      {getStatusBadge(item.status)}
                     </HStack>
-                    {getStatusBadge(item.status)}
-                  </HStack>
-                </Box>
-              </CardBody>
-            </Card>
-          ))
+                  </Box>
+                </CardBody>
+              </Card>
+            );
+          })
       }
     </SimpleGrid>
   );

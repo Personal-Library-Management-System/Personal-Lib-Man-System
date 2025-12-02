@@ -24,10 +24,10 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   }, [book.status]);
 
   const infoBlocks: InfoBlock[] = [
-    { label: 'Yayın Tarihi', value: book.publishedDate, icon: FiCalendar },
-    { label: 'Tür', value: 'Kurgu', icon: FiTag },
-    { label: 'Sayfa Sayısı', value: `${book.pageCount} sayfa`, icon: FiBookOpen },
-    { label: 'Değerlendirme', value: `${book.rating.toFixed(1)} / 5`, icon: FiStar },
+    { label: 'Yayın Tarihi', value: book.publishedDate || 'Bilinmiyor', icon: FiCalendar },
+    { label: 'Kategori', value: book.categories?.join(', ') || 'Bilinmiyor', icon: FiTag },
+    { label: 'Sayfa Sayısı', value: book.pageCount ? `${book.pageCount} sayfa` : 'Bilinmiyor', icon: FiBookOpen },
+    { label: 'Değerlendirme', value: book.averageRating ? `${book.averageRating.toFixed(1)} / 5` : 'Değerlendirilmemiş', icon: FiStar },
   ];
 
   const handleEdit = () => {
@@ -41,12 +41,12 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={book.title}>
       <BookDetailCard
-        imageUrl={book.imageUrl}
+        imageUrl={book.imageLinks?.thumbnail || ''}
         title={book.title}
-        subtitle={`Yazar: ${book.author}`}
-        description={book.description}
+        subtitle={book.authors ? `Yazar: ${book.authors.join(', ')}` : 'Yazar: Bilinmiyor'}
+        description={book.description || 'Açıklama bulunmamaktadır.'}
         infoBlocks={infoBlocks}
-        addedDate={book.publishedDate}
+        addedDate={book.publishedDate || ''}
         status={currentStatus}
         statusOptions={bookStatusOptions}
         onStatusChange={(value) => setCurrentStatus(value as Book['status'])}
