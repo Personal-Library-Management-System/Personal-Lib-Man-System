@@ -127,15 +127,6 @@ const LibraryPage = () => {
         onItemClick={handleBookClick} // Artık uyumlu
       />
 
-      {/* Book Details Modal */}
-      {selectedBook && (
-        <BookModal
-          book={selectedBook}
-          isOpen={isModalOpen}
-          onClose={() => setModalOpen(false)}
-        />
-      )}
-
       <AddMedia
         mediaType="book"
         isOpen={isOpen}
@@ -144,16 +135,29 @@ const LibraryPage = () => {
         searchState={searchState}
         searchResults={searchResults}
         onItemSelect={item => {
-          // Artık tip dönüşümüne gerek yok, doğrudan Book
+          // AddMedia modalını KAPATMA, sadece kitap detay modalını aç
           setSelectedBook(item);
-          onClose();
           setModalOpen(true);
+          // onClose() çağrısını KALDIRDIK
         }}
         optionalFields={[
           { name: 'author', label: 'Yazar', placeholder: 'Örn. Orhan Pamuk' },
           { name: 'publisher', label: 'Yayınevi', placeholder: 'Örn. Can Yayınları' },
         ]}
       />
+
+      {/* Book Details Modal */}
+      {selectedBook && (
+        <BookModal
+          book={selectedBook}
+          isOpen={isModalOpen}
+          onClose={() => {
+            setModalOpen(false);
+            setSelectedBook(null);
+            // BookModal kapatıldığında AddMedia hala açık kalacak
+          }}
+        />
+      )}
     </>
   );
 };
