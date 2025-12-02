@@ -308,7 +308,13 @@ const AddMedia = ({
               {searchState === 'success' && (
                 <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
                   {searchResults.map(item => (
-                    <SearchResultItem key={item.id} item={item} onSelect={() => onItemSelect(item)} />
+                    <SearchResultItem
+                      key={item.id}
+                      item={item}
+                      onSelect={() => {
+                        console.log('Seçilen medya bilgileri:', item);
+                        onItemSelect(item);
+                      }} />
                   ))}
                 </SimpleGrid>
               )}
