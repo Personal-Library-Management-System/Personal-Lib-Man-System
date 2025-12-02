@@ -27,33 +27,30 @@ const filters = [
 const OMDb_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
 
 const MoviesPage = () => {
-  const {
-    isOpen: isMovieModalOpen,
-    onOpen: openMovieModal,
-    onClose: closeMovieModal
-  } = useDisclosure();
-  const {
-    isOpen: isAddOpen,
-    onOpen: openAddModal,
-    onClose: closeAddModal
-  } = useDisclosure();
+  const [isMovieModalOpen, setMovieModalOpen] = useState(false);
   const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
+  const { isOpen, onOpen, onClose } = useDisclosure();
+
+  if (!OMDb_API_KEY) {
+    console.error('OMDb API anahtarı bulunamadı. Lütfen .env dosyanıza VITE_OMDB_API_KEY ekleyin.');
+  }
 
   const handleMovieClick = (movie: Movie) => {
     setSelectedMovie(movie);
-    openMovieModal();
-  };
-
-  const handleCloseModal = () => {
-    closeMovieModal();
-    setSelectedMovie(null);
+    setMovieModalOpen(true);
   };
 
   // AddMedia için state yönetimi
   const [searchState, setSearchState] = useState<SearchState>('idle');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Movie[]>([]);
 
   const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
+    if (!OMDb_API_KEY) {
+      console.error('OMDb API anahtarı bulunamadı.');
+      setSearchState('error');
+      return;
+    }
+
     setSearchState('loading');
     setSearchResults([]);
 
@@ -69,18 +66,31 @@ const MoviesPage = () => {
 
       const data = await response.json();
       if (data.Response === 'True') {
-        // OMDb'den gelen veriyi BookSearchResult formatına dönüştürelim
-        const formattedResults = data.Search.map((movie: any) => ({
-          id: movie.imdbID,
-          title: movie.Title,
-          publishedDate: movie.Year, // Ortak alan adı
-          // Poster "N/A" ise null ata, aksi halde poster URL'ini kullan.
-          // Bu, fallback mekanizmasının devreye girmesini sağlar.
-          imageLinks: { thumbnail: movie.Poster === 'N/A' ? null : movie.Poster },
-        }));
+        // OMDb'den gelen veriyi Movie formatına dönüştür
+        const movies: Movie[] = await Promise.all(
+          data.Search.map(async (movie: any) => {
+            // Her film için detaylı bilgi al
+            const detailResponse = await fetch(
+              `https://www.omdbapi.com/?apikey=${OMDb_API_KEY}&i=${movie.imdbID}`
+            );
+            const detailData = await detailResponse.json();
 
-        setSearchResults(formattedResults);
-        setSearchState('success');
+            return {
+              id: parseInt(movie.imdbID.replace(/\D/g, '')) || Date.now(),
+              title: movie.Title,
+              director: detailData.Director || 'Bilinmiyor',
+              imageUrl: movie.Poster !== 'N/A' ? movie.Poster : '',
+              releaseDate: movie.Year,
+              duration: parseInt(detailData.Runtime) || 0,
+              rating: parseFloat(detailData.imdbRating) || 0,
+              status: 'want-to-watch' as const,
+              description: detailData.Plot || 'Açıklama bulunmuyor'
+            };
+          })
+        );
+
+        setSearchResults(movies);
+        setSearchState(movies.length > 0 ? 'success' : 'no-results');
       } else {
         setSearchResults([]);
         setSearchState('no-results');
@@ -101,35 +111,43 @@ const MoviesPage = () => {
         getStatusBadge={getStatusBadge}
         itemType="movie"
         addItemButtonText="+ Film Ekle"
-        onAddItem={openAddModal}
+        onAddItem={onOpen}
         emptyStateIcon="🎬"
         emptyStateText="Bu kategoride film bulunamadı."
         onItemClick={handleMovieClick}
       />
-      {selectedMovie && (
-        <MovieModal
-          isOpen={isMovieModalOpen}
-          onClose={handleCloseModal}
-          movie={selectedMovie}
-        />
-      )}
 
       <AddMedia
         mediaType="movie"
-        isOpen={isAddOpen}
-        onClose={closeAddModal}
+        isOpen={isOpen}
+        onClose={onClose}
         onSearch={handleAddSearch}
         searchState={searchState}
         searchResults={searchResults}
         onItemSelect={item => {
-          console.log('Seçilen Film:', item);
-          // Burada seçilen filmi ekleme formu açılabilir veya direkt arşive eklenebilir.
+          // AddMedia modalını KAPATMA, sadece film detay modalını aç
+          setSelectedMovie(item);
+          setMovieModalOpen(true);
+          // onClose() çağrısını KALDIRDIK
         }}
         optionalFields={[
           { name: 'director', label: 'Yönetmen', placeholder: 'Örn. Christopher Nolan' },
           { name: 'year', label: 'Çıkış Yılı', placeholder: 'Örn. 2021' }
         ]}
       />
+
+      {/* Movie Details Modal */}
+      {selectedMovie && (
+        <MovieModal
+          isOpen={isMovieModalOpen}
+          onClose={() => {
+            setMovieModalOpen(false);
+            setSelectedMovie(null);
+            // MovieModal kapatıldığında AddMedia hala açık kalacak
+          }}
+          movie={selectedMovie}
+        />
+      )}
     </>
   );
 };
