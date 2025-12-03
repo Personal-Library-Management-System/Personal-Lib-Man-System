@@ -14,7 +14,11 @@
     "writer": "Stephen King, Frank Darabont",
     "actors": ["Tim Robbins", "Morgan Freeman", "Bob Gunton"],
     "awards": "Nominated for 7 Oscars. 21 wins & 43 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "9.3/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "9.3/10" },
+      { "Source": "Rotten Tomatoes", "Value": "91%" },
+      { "Source": "Metacritic", "Value": "80/100" }
+    ],
     "status": "watched",
     "description": "İki hükümlü yıllar boyunca bağ kurar ve nihayetinde dostluk ve kefaret yoluyla teselli bulur",
     "tags": ["Dram", "Klasik"]
@@ -34,7 +38,11 @@
     "writer": "Mario Puzo, Francis Ford Coppola",
     "actors": ["Marlon Brando", "Al Pacino", "James Caan"],
     "awards": "Won 3 Oscars. 32 wins & 31 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "9.2/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "9.2/10" },
+      { "Source": "Rotten Tomatoes", "Value": "98%" },
+      { "Source": "Metacritic", "Value": "100/100" }
+    ],
     "status": "watched",
     "description": "Güçlü bir Amerikan suç ailesinin yaşlı patriğinin kontrolünü en küçük oğluna devretmesi",
     "tags": ["Suç", "Klasik"]
@@ -54,7 +62,11 @@
     "writer": "Jonathan Nolan, Christopher Nolan, David S. Goyer",
     "actors": ["Christian Bale", "Heath Ledger", "Aaron Eckhart"],
     "awards": "Won 2 Oscars. 165 wins & 164 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "9.0/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "9.0/10" },
+      { "Source": "Rotten Tomatoes", "Value": "94%" },
+      { "Source": "Metacritic", "Value": "84/100" }
+    ],
     "status": "want-to-watch",
     "description": "Batman, Joker adlı anarşist suçluyla karşı karşıya gelir"
   },
@@ -73,7 +85,11 @@
     "writer": "Reginald Rose",
     "actors": ["Henry Fonda", "Lee J. Cobb", "Martin Balsam"],
     "awards": "Nominated for 3 Oscars. 17 wins & 13 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "9.0/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "9.0/10" },
+      { "Source": "Rotten Tomatoes", "Value": "100%" },
+      { "Source": "Metacritic", "Value": "96/100" }
+    ],
     "status": "want-to-watch",
     "description": "Jüri üyelerinin bir cinayet davasındaki müzakereleri",
     "tags": ["Klasik"]
@@ -93,7 +109,11 @@
     "writer": "Thomas Keneally, Steven Zaillian",
     "actors": ["Liam Neeson", "Ralph Fiennes", "Ben Kingsley"],
     "awards": "Won 7 Oscars. 91 wins & 49 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "9.0/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "9.0/10" },
+      { "Source": "Rotten Tomatoes", "Value": "97%" },
+      { "Source": "Metacritic", "Value": "94/100" }
+    ],
     "status": "watched",
     "description": "Holocaust sırasında Yahudileri kurtaran Oskar Schindler'in hikayesi",
     "tags": ["Tarih", "Dram"]
@@ -113,7 +133,11 @@
     "writer": "Quentin Tarantino, Roger Avary",
     "actors": ["John Travolta", "Uma Thurman", "Samuel L. Jackson"],
     "awards": "Won 1 Oscar. 70 wins & 75 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.9/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.9/10" },
+      { "Source": "Rotten Tomatoes", "Value": "92%" },
+      { "Source": "Metacritic", "Value": "94/100" }
+    ],
     "status": "want-to-watch",
     "description": "Los Angeles'ta birbirine bağlı suçlu hikayelerinin koleksiyonu",
     "tags": ["Suç", "Klasik"]
@@ -133,7 +157,11 @@
     "writer": "J.R.R. Tolkien, Fran Walsh, Philippa Boyens",
     "actors": ["Elijah Wood", "Viggo Mortensen", "Ian McKellen"],
     "awards": "Won 11 Oscars. 215 wins & 124 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "9.0/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "9.0/10" },
+      { "Source": "Rotten Tomatoes", "Value": "94%" },
+      { "Source": "Metacritic", "Value": "94/100" }
+    ],
     "status": "want-to-watch",
     "description": "Gandalf ve Aragorn, Frodo ve Sam'in Mordor'a yolculuğunda Gondor'un orduları",
     "tags": ["Fantastik", "Macera"]
@@ -153,7 +181,11 @@
     "writer": "Winston Groom, Eric Roth",
     "actors": ["Tom Hanks", "Robin Wright", "Gary Sinise"],
     "awards": "Won 6 Oscars. 50 wins & 75 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.8/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.8/10" },
+      { "Source": "Rotten Tomatoes", "Value": "72%" },
+      { "Source": "Metacritic", "Value": "82/100" }
+    ],
     "status": "watched",
     "description": "Düşük IQ'lu ama iyi kalpli bir adamın yaşamının anlatıldığı dram",
     "tags": ["Dram", "Romantik"]
@@ -173,7 +205,11 @@
     "writer": "Christopher Nolan",
     "actors": ["Leonardo DiCaprio", "Joseph Gordon-Levitt", "Elliot Page"],
     "awards": "Won 4 Oscars. 159 wins & 220 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.8/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.8/10" },
+      { "Source": "Rotten Tomatoes", "Value": "87%" },
+      { "Source": "Metacritic", "Value": "74/100" }
+    ],
     "status": "want-to-watch",
     "description": "Rüya paylaşımı teknolojisi ile bilinçaltına girme hikayesi",
     "tags": ["Bilim Kurgu", "Aksiyon"]
@@ -193,7 +229,11 @@
     "writer": "Chuck Palahniuk, Jim Uhls",
     "actors": ["Brad Pitt", "Edward Norton", "Meat Loaf"],
     "awards": "Nominated for 1 Oscar. 12 wins & 38 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.8/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.8/10" },
+      { "Source": "Rotten Tomatoes", "Value": "79%" },
+      { "Source": "Metacritic", "Value": "66/100" }
+    ],
     "status": "want-to-watch",
     "description": "Uykusuzluk hastası bir adam ve sabun satıcısının kurduğu yeraltı dövüş kulübü",
     "tags": ["Dram", "Aksiyon"]
@@ -213,7 +253,11 @@
     "writer": "Lilly Wachowski, Lana Wachowski",
     "actors": ["Keanu Reeves", "Laurence Fishburne", "Carrie-Anne Moss"],
     "awards": "Won 4 Oscars. 42 wins & 52 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.7/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.7/10" },
+      { "Source": "Rotten Tomatoes", "Value": "88%" },
+      { "Source": "Metacritic", "Value": "73/100" }
+    ],
     "status": "watched",
     "description": "Bilgisayar hackerı Neo, gerçekliğin doğasını sorgulamaya başlar",
     "tags": ["Bilim Kurgu", "Aksiyon"]
@@ -233,7 +277,11 @@
     "writer": "Nicholas Pileggi, Martin Scorsese",
     "actors": ["Robert De Niro", "Ray Liotta", "Joe Pesci"],
     "awards": "Won 1 Oscar. 44 wins & 38 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.7/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.7/10" },
+      { "Source": "Rotten Tomatoes", "Value": "96%" },
+      { "Source": "Metacritic", "Value": "90/100" }
+    ],
     "status": "want-to-watch",
     "description": "Henry Hill'in mafya dünyasındaki yükselişi ve düşüşü",
     "tags": ["Suç", "Klasik"]
@@ -253,7 +301,11 @@
     "writer": "Leigh Brackett, Lawrence Kasdan, George Lucas",
     "actors": ["Mark Hamill", "Harrison Ford", "Carrie Fisher"],
     "awards": "Won 1 Oscar. 26 wins & 20 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.7/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.7/10" },
+      { "Source": "Rotten Tomatoes", "Value": "94%" },
+      { "Source": "Metacritic", "Value": "82/100" }
+    ],
     "status": "want-to-watch",
     "description": "Luke Skywalker Jedi eğitimini alırken, arkadaşları İmparatorluktan kaçmaya çalışır",
     "tags": ["Fantastik", "Macera"]
@@ -273,7 +325,11 @@
     "writer": "Lawrence Hauben, Bo Goldman, Ken Kesey",
     "actors": ["Jack Nicholson", "Louise Fletcher", "Michael Berryman"],
     "awards": "Won 5 Oscars. 38 wins & 16 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.7/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.7/10" },
+      { "Source": "Rotten Tomatoes", "Value": "92%" },
+      { "Source": "Metacritic", "Value": "79/100" }
+    ],
     "status": "watched",
     "description": "Akıl hastanesinde geçen isyan hikayesi",
     "tags": ["Dram", "Klasik"]
@@ -293,7 +349,11 @@
     "writer": "Thomas Harris, Ted Tally",
     "actors": ["Jodie Foster", "Anthony Hopkins", "Lawrence A. Bonney"],
     "awards": "Won 5 Oscars. 69 wins & 52 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.6/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.6/10" },
+      { "Source": "Rotten Tomatoes", "Value": "96%" },
+      { "Source": "Metacritic", "Value": "85/100" }
+    ],
     "status": "want-to-watch",
     "description": "FBI ajanı Clarice Starling, seri katil Hannibal Lecter'dan yardım ister",
     "tags": ["Gerilim", "Suç"]
@@ -313,7 +373,11 @@
     "writer": "Robert Rodat",
     "actors": ["Tom Hanks", "Matt Damon", "Tom Sizemore"],
     "awards": "Won 5 Oscars. 81 wins & 75 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.6/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.6/10" },
+      { "Source": "Rotten Tomatoes", "Value": "93%" },
+      { "Source": "Metacritic", "Value": "91/100" }
+    ],
     "status": "want-to-watch",
     "description": "D-Day çıkarması sonrası kayıp bir askerin aranması",
     "tags": ["Savaş", "Dram"]
@@ -333,7 +397,11 @@
     "writer": "Paulo Lins, Bráulio Mantovani",
     "actors": ["Alexandre Rodrigues", "Leandro Firmino", "Phellipe Haagensen"],
     "awards": "Nominated for 4 Oscars. 76 wins & 42 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.6/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.6/10" },
+      { "Source": "Rotten Tomatoes", "Value": "91%" },
+      { "Source": "Metacritic", "Value": "79/100" }
+    ],
     "status": "watched",
     "description": "Rio de Janeiro'nun tehlikeli mahallelerindeki yaşam",
     "tags": ["Suç", "Dram"]
@@ -353,7 +421,11 @@
     "writer": "Jonathan Nolan, Christopher Nolan",
     "actors": ["Matthew McConaughey", "Anne Hathaway", "Jessica Chastain"],
     "awards": "Won 1 Oscar. 44 wins & 149 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.7/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.7/10" },
+      { "Source": "Rotten Tomatoes", "Value": "72%" },
+      { "Source": "Metacritic", "Value": "74/100" }
+    ],
     "status": "want-to-watch",
     "description": "Astronotların insanlığı kurtarmak için uzay yolculuğu",
     "tags": ["Bilim Kurgu", "Dram"]
@@ -373,7 +445,11 @@
     "writer": "Vincenzo Cerami, Roberto Benigni",
     "actors": ["Roberto Benigni", "Nicoletta Braschi", "Giorgio Cantarini"],
     "awards": "Won 3 Oscars. 72 wins & 52 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.6/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.6/10" },
+      { "Source": "Rotten Tomatoes", "Value": "80%" },
+      { "Source": "Metacritic", "Value": "59/100" }
+    ],
     "status": "want-to-watch",
     "description": "Holocaust sırasında bir babanın oğlunu koruma çabası",
     "tags": ["Dram", "Komedi"]
@@ -393,7 +469,11 @@
     "writer": "Jonathan Nolan, Christopher Nolan, Christopher Priest",
     "actors": ["Christian Bale", "Hugh Jackman", "Scarlett Johansson"],
     "awards": "Nominated for 2 Oscars. 6 wins & 45 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.5/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.5/10" },
+      { "Source": "Rotten Tomatoes", "Value": "92%" },
+      { "Source": "Metacritic", "Value": "68/100" }
+    ],
     "status": "watched",
     "description": "İki sihirbazın arasındaki rekabet ve intikam hikayesi",
     "tags": ["Dram", "Gizem"]
@@ -413,7 +493,11 @@
     "writer": "William Monahan, Alan Mak, Felix Chong",
     "actors": ["Leonardo DiCaprio", "Matt Damon", "Jack Nicholson"],
     "awards": "Won 4 Oscars. 97 wins & 81 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.5/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.5/10" },
+      { "Source": "Rotten Tomatoes", "Value": "91%" },
+      { "Source": "Metacritic", "Value": "85/100" }
+    ],
     "status": "want-to-watch",
     "description": "Boston'da mafya ve polis arasındaki çifte ajan hikayesi",
     "tags": ["Suç", "Gerilim"]
@@ -433,7 +517,11 @@
     "writer": "Damien Chazelle",
     "actors": ["Miles Teller", "J.K. Simmons", "Melissa Benoist"],
     "awards": "Won 3 Oscars. 95 wins & 140 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.5/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.5/10" },
+      { "Source": "Rotten Tomatoes", "Value": "94%" },
+      { "Source": "Metacritic", "Value": "88/100" }
+    ],
     "status": "want-to-watch",
     "description": "Genç davulcu ile acımasız müzik öğretmeni arasındaki ilişki",
     "tags": ["Dram", "Müzik"]
@@ -453,7 +541,11 @@
     "writer": "David Franzoni, John Logan, William Nicholson",
     "actors": ["Russell Crowe", "Joaquin Phoenix", "Connie Nielsen"],
     "awards": "Won 5 Oscars. 60 wins & 104 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.5/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.5/10" },
+      { "Source": "Rotten Tomatoes", "Value": "78%" },
+      { "Source": "Metacritic", "Value": "67/100" }
+    ],
     "status": "watched",
     "description": "Roma generali Maximus'un gladyatör olarak intikam yolculuğu",
     "tags": ["Aksiyon", "Dram"]
@@ -473,7 +565,11 @@
     "writer": "Irene Mecchi, Jonathan Roberts, Linda Woolverton",
     "actors": ["Matthew Broderick", "Jeremy Irons", "James Earl Jones"],
     "awards": "Won 2 Oscars. 36 wins & 35 nominations total",
-    "ratings": [{"Source": "Internet Movie Database", "Value": "8.5/10"}],
+    "ratings": [
+      { "Source": "Internet Movie Database", "Value": "8.5/10" },
+      { "Source": "Rotten Tomatoes", "Value": "93%" },
+      { "Source": "Metacritic", "Value": "88/100" }
+    ],
     "status": "want-to-watch",
     "description": "Genç aslan Simba'nın kral olma yolculuğu",
     "tags": ["Animasyon", "Macera"]

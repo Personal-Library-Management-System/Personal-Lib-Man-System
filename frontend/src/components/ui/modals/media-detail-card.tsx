@@ -19,14 +19,16 @@ import {
   GridItem,
   Tooltip,
 } from '@chakra-ui/react';
-import { FiPlus } from 'react-icons/fi'; // Yeni ikonlar için eklemeler
+import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
 import TagSelector from '../tag-selector';
 
 export interface InfoBlock {
   label: string;
-  value: string;
+  value: React.ReactNode; // allow JSX/Element
   icon: IconType;
+  hideLabel?: boolean;     // if true, don't render the small label/header
+  fullWidth?: boolean;     // if true, span both columns
 }
 
 export interface StatusOption {
@@ -123,23 +125,34 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
           <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
             {infoBlocks.map((block) => (
               <GridItem
-                key={block.label}
+                key={block.label + (block.fullWidth ? '-full' : '')}
                 borderRadius="lg"
                 border="1px solid"
                 borderColor={borderColor}
                 bg={blockBg}
                 px={3}
                 py={2}
+                // if fullWidth, span both columns on md+
+                gridColumn={block.fullWidth ? { base: '1 / -1', md: '1 / -1' } : undefined}
               >
-                <HStack spacing={2} mb={1}>
-                  <Icon as={block.icon} boxSize={4} color="teal.400" />
-                  <Text fontSize="xs" letterSpacing="wider" textTransform="uppercase" color="gray.500">
-                    {block.label}
+                {!block.hideLabel && (
+                  <HStack spacing={2} mb={1}>
+                    <Icon as={block.icon} boxSize={4} color="teal.400" />
+                    <Text fontSize="xs" letterSpacing="wider" textTransform="uppercase" color="gray.500">
+                      {block.label}
+                    </Text>
+                  </HStack>
+                )}
+
+                {typeof block.value === 'string' ? (
+                  <Text fontWeight="bold" fontSize="md" color={textColor}>
+                    {block.value}
                   </Text>
-                </HStack>
-                <Text fontWeight="bold" fontSize="md" color={textColor}>
-                  {block.value}
-                </Text>
+                ) : (
+                  <Box>
+                    {block.value}
+                  </Box>
+                )}
               </GridItem>
             ))}
           </Grid>
