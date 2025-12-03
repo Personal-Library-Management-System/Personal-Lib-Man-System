@@ -19,13 +19,16 @@ import {
   GridItem,
   Tooltip,
 } from '@chakra-ui/react';
-import { FiTag, FiPlus } from 'react-icons/fi'; // Yeni ikonlar için eklemeler
+import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
+import TagSelector from '../tag-selector';
 
 export interface InfoBlock {
   label: string;
-  value: string;
+  value: React.ReactNode; // allow JSX/Element
   icon: IconType;
+  hideLabel?: boolean;     // if true, don't render the small label/header
+  fullWidth?: boolean;     // if true, span both columns
 }
 
 export interface StatusOption {
@@ -45,8 +48,13 @@ export interface BookDetailCardProps {
   onEdit?: () => void;
   onRemove?: () => void;
   onStatusChange?: (value: string) => void;
-  onAddTag?: () => void; // Yeni prop: Tag Ekle
-  onAddToList?: () => void; // Yeni prop: Listeye Ekle
+  onAddTag?: () => void;
+  onAddToList?: () => void;
+  tagSelector?: React.ReactNode;
+  assignedTags?: string[];
+  onTagsChange?: (tags: string[]) => void;
+  // yeni: callback to create a new tag
+  onCreateTag?: (tagName: string) => void;
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -62,6 +70,10 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   onStatusChange,
   onAddTag,
   onAddToList,
+  tagSelector,
+  assignedTags = [],
+  onTagsChange,
+  onCreateTag,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const blockBg = useColorModeValue('gray.50', 'whiteAlpha.100');
@@ -113,23 +125,34 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
           <Grid templateColumns={{ base: '1fr', md: 'repeat(2, 1fr)' }} gap={4}>
             {infoBlocks.map((block) => (
               <GridItem
-                key={block.label}
+                key={block.label + (block.fullWidth ? '-full' : '')}
                 borderRadius="lg"
                 border="1px solid"
                 borderColor={borderColor}
                 bg={blockBg}
                 px={3}
                 py={2}
+                // if fullWidth, span both columns on md+
+                gridColumn={block.fullWidth ? { base: '1 / -1', md: '1 / -1' } : undefined}
               >
-                <HStack spacing={2} mb={1}>
-                  <Icon as={block.icon} boxSize={4} color="teal.400" />
-                  <Text fontSize="xs" letterSpacing="wider" textTransform="uppercase" color="gray.500">
-                    {block.label}
+                {!block.hideLabel && (
+                  <HStack spacing={2} mb={1}>
+                    <Icon as={block.icon} boxSize={4} color="teal.400" />
+                    <Text fontSize="xs" letterSpacing="wider" textTransform="uppercase" color="gray.500">
+                      {block.label}
+                    </Text>
+                  </HStack>
+                )}
+
+                {typeof block.value === 'string' ? (
+                  <Text fontWeight="bold" fontSize="md" color={textColor}>
+                    {block.value}
                   </Text>
-                </HStack>
-                <Text fontWeight="bold" fontSize="md" color={textColor}>
-                  {block.value}
-                </Text>
+                ) : (
+                  <Box>
+                    {block.value}
+                  </Box>
+                )}
               </GridItem>
             ))}
           </Grid>
@@ -164,15 +187,13 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
           <Divider orientation="vertical" h="24px" borderColor={borderColor} />
 
           {/* Yeni Aksiyonlar */}
-          <Tooltip label="Tag Ekle" aria-label="Tag Ekle">
-            <IconButton
-              aria-label="Tag Ekle"
-              icon={<FiTag />}
-              colorScheme="teal"
-              variant="outline"
-              onClick={onAddTag}
-            />
-          </Tooltip>
+          <TagSelector 
+            assignedTags={assignedTags}
+            onChange={onTagsChange || (() => {})}
+            trigger={tagSelector}
+            onCreateTag={onCreateTag}
+          />
+
           <Tooltip label="Listeye Ekle" aria-label="Listeye Ekle">
             <IconButton
               aria-label="Listeye Ekle"

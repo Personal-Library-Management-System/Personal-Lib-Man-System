@@ -21,7 +21,11 @@
     "status": "read",
     "description": "Totaliter bir toplumda yaşayan Winston Smith'in hikayesi",
     "language": "en",
-    "ISBN": "9780451524935"
+    "ISBN": "9780451524935",
+    "tags": [
+      "Bilim Kurgu",
+      "Klasik"
+    ]
   },
   {
     "id": "2",
@@ -45,7 +49,10 @@
     "status": "reading",
     "description": "Irkçılık ve adaletsizlik karşısında cesaret hikayesi",
     "language": "en",
-    "ISBN": "9780061120084"
+    "ISBN": "9780061120084",
+    "tags": [
+      "Klasik"
+    ]
   },
   {
     "id": "3",
@@ -69,7 +76,11 @@
     "status": "want-to-read",
     "description": "Elizabeth Bennet ve Mr. Darcy'nin aşk hikayesi",
     "language": "en",
-    "ISBN": "9780141439518"
+    "ISBN": "9780141439518",
+    "tags": [
+      "Romantik",
+      "Klasik"
+    ]
   },
   {
     "id": "4",
@@ -117,7 +128,10 @@
     "status": "reading",
     "description": "Buendía ailesinin yedi neslik hikayesi",
     "language": "es",
-    "ISBN": "9780060883287"
+    "ISBN": "9780060883287",
+    "tags": [
+      "Fantastik"
+    ]
   },
   {
     "id": "6",
@@ -165,7 +179,11 @@
     "status": "read",
     "description": "Orta Dünya'da büyük bir macera",
     "language": "en",
-    "ISBN": "9780618640157"
+    "ISBN": "9780618640157",
+    "tags": [
+      "Fantastik",
+      "Macera"
+    ]
   },
   {
     "id": "8",
@@ -213,7 +231,11 @@
     "status": "want-to-read",
     "description": "Bilbo Baggins'in beklenmedik yolculuğu",
     "language": "en",
-    "ISBN": "9780345339683"
+    "ISBN": "9780345339683",
+    "tags": [
+      "Fantastik",
+      "Macera"
+    ]
   },
   {
     "id": "10",

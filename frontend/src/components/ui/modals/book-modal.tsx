@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
-import { FiCalendar, FiTag, FiBookOpen, FiStar } from 'react-icons/fi';
+import { FiCalendar, FiTag, FiBookOpen, FiStar} from 'react-icons/fi';
+import { Box, IconButton } from '@chakra-ui/react';
 import Modal from './modal';
 import BookDetailCard, { type InfoBlock, type StatusOption } from './media-detail-card';
 import { type Book } from '../../../types';
@@ -18,10 +19,13 @@ interface BookModalProps {
 
 const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   const [currentStatus, setCurrentStatus] = useState<Book['status']>(book.status);
+  const initialTags = (book as any).tags ?? [];
+  const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
 
   useEffect(() => {
     setCurrentStatus(book.status);
-  }, [book.status]);
+    setCurrentTags((book as any).tags ?? []);
+  }, [book]);
 
   const infoBlocks: InfoBlock[] = [
     { label: 'Yayın Tarihi', value: book.publishedDate || 'Bilinmiyor', icon: FiCalendar },
@@ -38,6 +42,11 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
     console.log('Book kaldırma istek:', book.title);
   };
 
+  const handleTagsChange = (updated: string[]) => {
+    setCurrentTags(updated);
+    console.log('Güncellenen tagler:', updated, 'kitap id:', book.id);
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={book.title}>
       <BookDetailCard
@@ -52,6 +61,11 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
         onStatusChange={(value) => setCurrentStatus(value as Book['status'])}
         onEdit={handleEdit}
         onRemove={handleRemove}
+        assignedTags={currentTags}
+        onTagsChange={handleTagsChange}
+        onCreateTag={(tag) => {
+          console.log(`Kitap ${book.id} için tag eklendi: ${tag}`);
+        }}
       />
     </Modal>
   );
