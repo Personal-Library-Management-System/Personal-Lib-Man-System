@@ -2,6 +2,17 @@
  * @openapi
  * components:
  *   schemas:
+ *     Rating:
+ *       type: object
+ *       required:
+ *         - source
+ *         - value
+ *       properties:
+ *         source:
+ *           type: string
+ *         value:
+ *           type: string
+ *
  *     MediaItemBase:
  *       type: object
  *       required:
@@ -21,28 +32,39 @@
  *           type: string
  *           format: date
  *           nullable: true
- *         averageRating:
- *           type: number
+ *
+ *         ratings:
+ *           type: array
+ *           description: External ratings (no _id field)
  *           nullable: true
+ *           items:
+ *             $ref: '#/components/schemas/Rating'
+ *
  *         ratingCount:
  *           type: number
  *           nullable: true
+ *
  *         categories:
  *           type: array
  *           items:
  *             type: string
+ *
  *         description:
  *           type: string
  *           nullable: true
+ *
  *         coverPhoto:
  *           type: string
  *           nullable: true
+ *
  *         language:
  *           type: string
  *           nullable: true
+ *
  *         author:
  *           type: string
  *           nullable: true
+ *
  *     BookMediaItem:
  *       allOf:
  *         - $ref: '#/components/schemas/MediaItemBase'
@@ -58,6 +80,7 @@
  *             publisher:
  *               type: string
  *               nullable: true
+ *
  *     MovieMediaItem:
  *       allOf:
  *         - $ref: '#/components/schemas/MediaItemBase'
@@ -65,9 +88,9 @@
  *           properties:
  *             actors:
  *               type: array
+ *               nullable: true
  *               items:
  *                 type: string
- *               nullable: true
  *             awards:
  *               type: string
  *               nullable: true
@@ -81,6 +104,7 @@
  *             imdbID:
  *               type: string
  *               nullable: true
+ *
  *     MediaItem:
  *       description: A media item that can be either a book or a movie.
  *       oneOf:
