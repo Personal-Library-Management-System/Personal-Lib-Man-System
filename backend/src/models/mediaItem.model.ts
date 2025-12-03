@@ -1,12 +1,17 @@
 import { Schema, model, Model, HydratedDocument } from 'mongoose';
 
 export const MEDIA_TYPES = ['Book', 'Movie'] as const;
-export type MediaType = typeof MEDIA_TYPES[number];
+export type MediaType = (typeof MEDIA_TYPES)[number];
+
+export interface Rating {
+    source: string;
+    value: string;
+}
 
 export interface MediaItem {
     title: string;
     publishedDate?: Date | null;
-    averageRating?: number | null;
+    ratings?: Rating[] | null;
     ratingCount?: number | null;
     categories: string[];
     description?: string | null;
@@ -23,7 +28,16 @@ const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
     {
         title: { type: String, required: true, trim: true },
         publishedDate: { type: Date },
-        averageRating: { type: Number, min: 0, max: 5 },
+        ratings: {
+            type: [
+                {
+                    _id: false,
+                    source: { type: String, required: true, trim: true },
+                    value: { type: String, required: true, trim: true },
+                },
+            ],
+            default: null,
+        },
         ratingCount: { type: Number, min: 0 },
         categories: [{ type: String, trim: true }],
         description: { type: String },
