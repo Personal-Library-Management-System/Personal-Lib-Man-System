@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import '../models/index';
 
 export const connectToDB = async (): Promise<void> => {
     try {

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { FiCalendar, FiTag, FiClock, FiStar } from 'react-icons/fi';
 import Modal from './modal';
 import BookDetailCard, { type InfoBlock, type StatusOption } from './media-detail-card';
-import { type Movie } from '../../types';
+import { type Movie } from '../../../types';
 
 const movieStatusOptions: StatusOption[] = [
   { label: 'İzlendi', value: 'watched' },

@@ -11,23 +11,14 @@ import {
   Tooltip,
   VStack,
   Text,
-  Icon,
-  Modal,
-  ModalOverlay,
-  ModalContent,
-  ModalHeader,
-  ModalBody,
-  ModalCloseButton,
-  useDisclosure
+  Icon
 } from '@chakra-ui/react';
 import { BsGrid3X3Gap, BsList } from 'react-icons/bs';
-import Layout from './layout';
+import Layout from '../layout';
 import CardView from './card-view';
 import ListView from './list-view';
 import Pagination from './pagination';
-import Filters from './filters';
-import AdvancedSearch from './advanced-search';
-import { type Book, type Movie } from '../../types';
+import { type Book, type Movie } from '../../../types';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -41,6 +32,7 @@ interface ResourcePageLayoutProps<T extends Item> {
   getStatusBadge: (status: string) => React.ReactNode;
   itemType: 'book' | 'movie';
   addItemButtonText: string;
+  onAddItem?: () => void;
   emptyStateIcon: string;
   emptyStateText: string;
   onItemClick?: (item: T) => void; // Generic tür kullanımı
@@ -57,14 +49,13 @@ const ResourcePageLayout = <T extends Item>({
   emptyStateIcon,
   emptyStateText,
   onItemClick,
+  onAddItem,
 }: ResourcePageLayoutProps<T>) => {
   const [items, setItems] = useState<Item[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
-  
-  const { isOpen: isAddModalOpen, onOpen: onAddModalOpen, onClose: onAddModalClose } = useDisclosure();
 
   const bg = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -86,11 +77,9 @@ const ResourcePageLayout = <T extends Item>({
     loadItems();
   }, [mockData, itemType]);
 
-  const filteredItems = items.filter(item => {
-    // 1. Statü Filtresi
-    const matchesStatus = filterStatus === 'all' || item.status === filterStatus;
-    return matchesStatus;
-  });
+  const filteredItems = filterStatus === 'all'
+    ? items
+    : items.filter(item => item.status === filterStatus);
 
   const totalPages = Math.ceil(filteredItems.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -141,23 +130,32 @@ const ResourcePageLayout = <T extends Item>({
                 />
               </Tooltip>
             </HStack>
-            <Button colorScheme="blue" size="md" onClick={onAddModalOpen}>
+            <Button
+              colorScheme="blue"
+              size="md"
+              onClick={onAddItem}
+              disabled={!onAddItem}
+            >
               {addItemButtonText}
             </Button>
           </HStack>
         </Flex>
 
-        <VStack spacing={4} align="stretch" mb={6}>
-          {/* <AdvancedSearch 
-            type={itemType} 
-            onSearch={setSearchCriteria} 
-          /> */}
-          <Filters
-            options={filters.map(f => ({ label: f.label, value: f.key }))}
-            selectedStatus={filterStatus}
-            onStatusChange={setFilterStatus}
-          />
-        </VStack>
+        <Box mb={6}>
+          <HStack spacing={2} flexWrap="wrap">
+            {filters.map(filter => (
+              <Button
+                key={filter.key}
+                onClick={() => setFilterStatus(filter.key)}
+                variant={filterStatus === filter.key ? 'solid' : 'outline'}
+                colorScheme={filterStatus === filter.key ? 'blue' : 'gray'}
+                size="sm"
+              >
+                {filter.label}
+              </Button>
+            ))}
+          </HStack>
+        </Box>
 
         {!isLoading && filteredItems.length === 0 ? (
           <Center py={12}>
@@ -166,7 +164,12 @@ const ResourcePageLayout = <T extends Item>({
               <Text color={subtextColor} fontSize="lg" textAlign="center">
                 {emptyStateText}
               </Text>
-              <Button colorScheme="blue" variant="outline">
+              <Button
+                colorScheme="blue"
+                variant="outline"
+                onClick={onAddItem}
+                disabled={!onAddItem}
+              >
                 İlk {itemType === 'book' ? 'kitabını' : 'filmini'} ekle
               </Button>
             </VStack>
@@ -199,27 +202,6 @@ const ResourcePageLayout = <T extends Item>({
           onPageChange={setCurrentPage}
         />
       </Box>
-
-      {/* Ekleme Modalı */}
-      <Modal isOpen={isAddModalOpen} onClose={onAddModalClose} size="xl">
-        <ModalOverlay />
-        <ModalContent>
-          <ModalHeader>Yeni {itemType === 'book' ? 'Kitap' : 'Film'} Ekle</ModalHeader>
-          <ModalCloseButton />
-          <ModalBody pb={6}>
-            <Text mb={4} color="gray.500">
-              Aşağıdaki kriterlere göre arama yaparak kütüphanenize yeni bir {itemType === 'book' ? 'kitap' : 'film'} ekleyebilirsiniz.
-            </Text>
-            <AdvancedSearch 
-              type={itemType} 
-              onSearch={(criteria) => {
-                console.log("Arama yapılıyor:", criteria);
-                // İleride buraya backend isteği eklenecek
-              }} 
-            />
-          </ModalBody>
-        </ModalContent>
-      </Modal>
     </Layout>
   );
 };

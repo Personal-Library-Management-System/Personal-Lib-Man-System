@@ -10,7 +10,7 @@ const authRouter = Router();
  *   post:
  *     summary: Authenticate a user using a Google ID token
  *     description: |
- *       Accepts a Google ID token obtained from the frontend, verifies it using Google APIs,
+ *       Accepts a Google ID token, verifies it using Google APIs,
  *       creates the user if necessary, generates access/refresh tokens, and stores them in HTTP-only cookies.
  *     tags:
  *       - Authentication
@@ -25,7 +25,7 @@ const authRouter = Router();
  *             properties:
  *               idToken:
  *                 type: string
- *                 description: Google ID token from frontend Google Sign-In
+ *                 description: Google ID token from Google Sign-In
  *           example:
  *             idToken: "eyJhbGc...example"
  *     responses:
@@ -85,7 +85,6 @@ authRouter.post('/google', googleLoginController);
  *       500:
  *         description: Server error
  */
-
 authRouter.post('/refresh', refreshTokenController);
 
 export default authRouter;
