@@ -11,7 +11,7 @@ function App() {
     <Router>
       <Routes>
         {/* Auth Routes */}
-        <Route path="/" element={<AuthPage />} />
+        <Route path="/" element={<MainPage />} />
         <Route path="/auth" element={<AuthPage />} />
         
         {/* Protected Routes - Layout ile */}
