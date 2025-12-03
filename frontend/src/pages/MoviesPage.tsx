@@ -66,28 +66,45 @@ const MoviesPage = () => {
 
       const data = await response.json();
       if (data.Response === 'True') {
+        // Benzersiz IMDb ID'leri için Set kullan
+        const uniqueMovieIds = new Set<string>();
+        
         // OMDb'den gelen veriyi Movie formatına dönüştür
-        const movies: Movie[] = await Promise.all(
-          data.Search.map(async (movie: any) => {
-            // Her film için detaylı bilgi al
-            const detailResponse = await fetch(
-              `https://www.omdbapi.com/?apikey=${OMDb_API_KEY}&i=${movie.imdbID}`
-            );
-            const detailData = await detailResponse.json();
-
-            return {
-              id: parseInt(movie.imdbID.replace(/\D/g, '')) || Date.now(),
-              title: movie.Title,
-              director: detailData.Director || 'Bilinmiyor',
-              imageUrl: movie.Poster !== 'N/A' ? movie.Poster : '',
-              releaseDate: movie.Year,
-              duration: parseInt(detailData.Runtime) || 0,
-              rating: parseFloat(detailData.imdbRating) || 0,
-              status: 'want-to-watch' as const,
-              description: detailData.Plot || 'Açıklama bulunmuyor'
-            };
+        const moviePromises = data.Search
+          .filter((movie: any) => {
+            // Duplicate kontrolü
+            if (uniqueMovieIds.has(movie.imdbID)) {
+              return false;
+            }
+            uniqueMovieIds.add(movie.imdbID);
+            return true;
           })
-        );
+          .map(async (movie: any) => {
+            try {
+              // Her film için detaylı bilgi al
+              const detailResponse = await fetch(
+                `https://www.omdbapi.com/?apikey=${OMDb_API_KEY}&i=${movie.imdbID}`
+              );
+              const detailData = await detailResponse.json();
+
+              return {
+                id: movie.imdbID, // IMDb ID'yi doğrudan string olarak kullan
+                title: movie.Title,
+                director: detailData.Director || 'Bilinmiyor',
+                imageUrl: movie.Poster !== 'N/A' ? movie.Poster : '',
+                releaseDate: movie.Year,
+                duration: parseInt(detailData.Runtime) || 0,
+                rating: parseFloat(detailData.imdbRating) || 0,
+                status: 'want-to-watch' as const,
+                description: detailData.Plot || 'Açıklama bulunmuyor'
+              };
+            } catch (error) {
+              console.error(`Film detayı alınamadı: ${movie.Title}`, error);
+              return null;
+            }
+          });
+
+        const movies = (await Promise.all(moviePromises)).filter((movie): movie is Movie => movie !== null);
 
         setSearchResults(movies);
         setSearchState(movies.length > 0 ? 'success' : 'no-results');
@@ -125,10 +142,11 @@ const MoviesPage = () => {
         searchState={searchState}
         searchResults={searchResults}
         onItemSelect={item => {
-          // AddMedia modalını KAPATMA, sadece film detay modalını aç
-          setSelectedMovie(item);
-          setMovieModalOpen(true);
-          // onClose() çağrısını KALDIRDIK
+          // Tip kontrolü: item'in Movie olduğundan emin ol
+          if ('director' in item || typeof item.id === 'string') {
+            setSelectedMovie(item as Movie);
+            setMovieModalOpen(true);
+          }
         }}
         optionalFields={[
           { name: 'director', label: 'Yönetmen', placeholder: 'Örn. Christopher Nolan' },
@@ -143,7 +161,6 @@ const MoviesPage = () => {
           onClose={() => {
             setMovieModalOpen(false);
             setSelectedMovie(null);
-            // MovieModal kapatıldığında AddMedia hala açık kalacak
           }}
           movie={selectedMovie}
         />

@@ -18,29 +18,26 @@ export interface Book {
   status: 'read' | 'reading' | 'want-to-read';
 }
 
-export interface Movie {
-  id: number;
-  title: string;
-  director: string;
-  imageUrl: string;
-  releaseDate: string;
-  duration: number;
-  rating: number;
-  status: 'watched' | 'want-to-watch';
-  description: string;
+export interface Rating {
+  Source: string;
+  Value: string;
 }
 
-// movie
-//   actors
-//   awards
-//   runtime
-//   director
-//   imbdID
-//   Released
-//   imdbRating
-//   imdbVotes
-//   genre
-//   Plot
-//   Poster
-//   Language
-//   Writer
+export interface Movie {
+  id: string; // IMDb ID string olarak kullanılıyor (örn: "tt1234567")
+  title: string;
+  director: string;
+  imageUrl: string; // Poster URL
+  releaseDate: string; // Released date
+  runtime: number; // Dakika cinsinden süre
+  imdbRating: string; // IMDb puanı
+  imdbVotes?: string; // IMDb oy sayısı
+  genre?: string[]; // Film türleri
+  plot: string; // Film açıklaması
+  language?: string;
+  writer?: string;
+  actors?: string[];
+  awards?: string;
+  ratings?: Rating[]; // Farklı kaynaklardan puanlar
+  status: 'watched' | 'want-to-watch';
+}

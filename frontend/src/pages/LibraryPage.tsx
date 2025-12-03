@@ -45,7 +45,7 @@ const LibraryPage = () => {
 
   // AddMedia için state yönetimi
   const [searchState, setSearchState] = useState<SearchState>('idle');
-  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [searchResults, setSearchResults] = useState<Book[]>([]);
 
   const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
     if (!GOOGLE_BOOKS_API_KEY) {
@@ -124,7 +124,7 @@ const LibraryPage = () => {
         onAddItem={onOpen}
         emptyStateIcon="📚"
         emptyStateText="Bu kategoride kitap bulunamadı."
-        onItemClick={handleBookClick} // Artık uyumlu
+        onItemClick={handleBookClick}
       />
 
       <AddMedia
@@ -135,10 +135,11 @@ const LibraryPage = () => {
         searchState={searchState}
         searchResults={searchResults}
         onItemSelect={item => {
-          // AddMedia modalını KAPATMA, sadece kitap detay modalını aç
-          setSelectedBook(item);
-          setModalOpen(true);
-          // onClose() çağrısını KALDIRDIK
+          // Tip kontrolü: item'in Book olduğundan emin ol
+          if ('authors' in item || typeof item.id === 'string') {
+            setSelectedBook(item as Book);
+            setModalOpen(true);
+          }
         }}
         optionalFields={[
           { name: 'author', label: 'Yazar', placeholder: 'Örn. Orhan Pamuk' },
@@ -154,7 +155,6 @@ const LibraryPage = () => {
           onClose={() => {
             setModalOpen(false);
             setSelectedBook(null);
-            // BookModal kapatıldığında AddMedia hala açık kalacak
           }}
         />
       )}
