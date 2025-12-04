@@ -105,9 +105,6 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
               <Heading size="md" bgGradient="linear(to-r, blue.500, purple.600)" bgClip="text">
                 AI Recommendation System
               </Heading>
-              <Text fontSize="xs" color={subtleColor} mt={1}>
-                Personalized suggestions
-              </Text>
             </Box>
           </HStack>
           <Badge colorScheme="purple" fontSize="xs" px={2} py={0.5} borderRadius="full">
