@@ -15,6 +15,8 @@ export interface Book {
   description?: string;
   language?: string;
   ISBN?: string;
+  currentPage?: number;
+  tags?: string[];
   status: 'read' | 'reading' | 'want-to-read';
 }
 

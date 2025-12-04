@@ -1,23 +1,29 @@
-import React from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Flex,
   Image,
   Heading,
   Text,
-  Button,
-  Icon,
-  IconButton,
-  HStack,
   Stack,
-  Divider,
-  Select,
-  FormControl,
-  FormLabel,
   useColorModeValue,
   Grid,
   GridItem,
+  HStack,
+  Icon,
+  Divider,
+  Button,
   Tooltip,
+  IconButton,
+  FormControl,
+  FormLabel,
+  Select,
+  Popover,
+  PopoverTrigger,
+  PopoverContent,
+  PopoverArrow,
+  PopoverBody,
+  useDisclosure,
 } from '@chakra-ui/react';
 import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
@@ -45,6 +51,8 @@ export interface BookDetailCardProps {
   addedDate?: string;
   status: string;
   statusOptions: StatusOption[];
+  currentPage?: number
+  pageCount?: number
   onEdit?: () => void;
   onRemove?: () => void;
   onStatusChange?: (value: string) => void;
@@ -52,9 +60,10 @@ export interface BookDetailCardProps {
   onAddToList?: () => void;
   tagSelector?: React.ReactNode;
   assignedTags?: string[];
-  onTagsChange?: (tags: string[]) => void;
   // yeni: callback to create a new tag
   onCreateTag?: (tagName: string) => void;
+  // callback when tags change (used by TagSelector)
+  onTagsChange?: (tags: string[]) => void;
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -165,7 +174,7 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
         </Flex>
       </Flex>
 
-      <Divider my={6} borderColor={borderColor} />
+      <Divider my={6} />
 
       <Flex
         direction={{ base: 'column', md: 'row' }}

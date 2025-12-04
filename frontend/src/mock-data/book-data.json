@@ -52,7 +52,8 @@
     "ISBN": "9780061120084",
     "tags": [
       "Klasik"
-    ]
+    ],
+    "currentPage": 300
   },
   {
     "id": "3",
@@ -131,7 +132,8 @@
     "ISBN": "9780060883287",
     "tags": [
       "Fantastik"
-    ]
+    ],
+    "currentPage": 198
   },
   {
     "id": "6",
@@ -207,7 +209,8 @@
     "status": "reading",
     "description": "Raskolnikov'un suç ve ceza hikayesi",
     "language": "ru",
-    "ISBN": "9780486415871"
+    "ISBN": "9780486415871",
+    "currentPage": 289
   },
   {
     "id": "9",
@@ -283,7 +286,8 @@
     "status": "reading",
     "description": "Güzellik ve ahlaki çöküş hikayesi",
     "language": "en",
-    "ISBN": "9780486278070"
+    "ISBN": "9780486278070",
+    "currentPage": 92
   },
   {
     "id": "12",
@@ -379,7 +383,8 @@
     "status": "reading",
     "description": "Mississippi Nehri'nde macera dolu yolculuk",
     "language": "en",
-    "ISBN": "9780486280616"
+    "ISBN": "9780486280616",
+    "currentPage": 127
   },
   {
     "id": "16",
@@ -451,7 +456,8 @@
     "status": "reading",
     "description": "İhanet ve intikam hikayesi",
     "language": "fr",
-    "ISBN": "9780140449266"
+    "ISBN": "9780140449266",
+    "currentPage": 634
   },
   {
     "id": "19",
@@ -523,7 +529,8 @@
     "status": "reading",
     "description": "Şövalyelik hayalleri kuran idealist bir adamın maceraları",
     "language": "es",
-    "ISBN": "9780060934347"
+    "ISBN": "9780060934347",
+    "currentPage": 412
   },
   {
     "id": "22",
@@ -595,6 +602,7 @@
     "status": "reading",
     "description": "Odysseus'un efsanevi yolculuğu",
     "language": "grc",
-    "ISBN": "9780140268867"
+    "ISBN": "9780140268867",
+    "currentPage": 201
   }
 ]
