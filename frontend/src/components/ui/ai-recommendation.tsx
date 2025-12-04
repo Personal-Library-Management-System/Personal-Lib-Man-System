@@ -216,7 +216,7 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
                 handleSubmit();
               }
             }}
-            placeholder="Suggest me action movies"
+            placeholder="Can you suggest the best anime movie of all time? (clue: Princess Mononoke)"
             rows={3}
             resize="vertical"
             bg={textareaBg}

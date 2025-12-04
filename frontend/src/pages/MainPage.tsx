@@ -28,6 +28,8 @@ const MainPage = () => {
 
   // NEW: store AI results and show up to 5 media-item cards
   const [aiResults, setAiResults] = useState<any[]>([]);
+  // Ref to scroll to results section smoothly
+  const resultsRef = useRef<HTMLDivElement>(null);
 
   // Loading UX states for AI request
   const [loading, setLoading] = useState(false);
@@ -63,6 +65,11 @@ const MainPage = () => {
     setLoadingMessageIndex(0);
     setLoading(true);
 
+    const skippedSteps = 
+      (!opts?.useRatings ? 1 : 0) + 
+      (!opts?.useComments ? 1 : 0);
+    const interval = 2000 + (skippedSteps * 600);
+
     // clear any previous interval
     if (loadingIntervalRef.current) {
       window.clearInterval(loadingIntervalRef.current);
@@ -86,12 +93,16 @@ const MainPage = () => {
             pendingResultsRef.current = null;
             responseReadyRef.current = false;
             setLoading(false);
+            // smooth scroll to results
+            setTimeout(() => {
+              resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
           }
           return activeLoadingStepsRef.current.length - 1;
         }
         return next;
       });
-    }, 2500); // slower interval for better UX (2.5s)
+    }, interval); // dynamic interval based on skipped steps
   };
 
   const stopLoadingCycle = () => {
@@ -321,13 +332,17 @@ const MainPage = () => {
                // otherwise wait until final step is displayed (prevents abrupt UI jump)
                pendingResultsRef.current = movies;
                responseReadyRef.current = true;
-               
+
                const lastIndex = activeLoadingStepsRef.current.length - 1;
                if (!loading || loadingMessageIndex === lastIndex) {
                  // no loader running or already at final step -> display immediately
                  setAiResults(movies);
                  // stop loading cycle (cleans refs & interval)
                  stopLoadingCycle();
+                 // smooth scroll to results
+                 setTimeout(() => {
+                   resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                 }, 100);
                }
                 // otherwise we will finalize when the cycle reaches the final step
               } catch (err) {
@@ -351,8 +366,8 @@ const MainPage = () => {
  
         {/* NEW: AI results displayed as detailed list (no CardView) */}
         {aiResults.length > 0 && (
-          <Box mt={4} mb={6} textAlign="left">
-            <Heading size="md" mb={4} color={textColor}>AI Önerileri</Heading>
+          <Box ref={resultsRef} mt={4} mb={6} textAlign="left">
+            <Heading size="md" mb={4} color={textColor}>AI Recommendations</Heading>
             <Stack spacing={4}>
               {aiResults.map((m, i) => (
                 <Box
