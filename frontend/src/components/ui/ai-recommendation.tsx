@@ -64,13 +64,13 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
   return (
     <Box
       w="full"
-      maxW="640px"
+      maxW="900px"
       mx="auto"
       bg={bgColor}
       borderWidth="1px"
       borderColor={borderColor}
       borderRadius="lg"
-      p={4}
+      p={6}
       boxShadow="sm"
       bgGradient={gradientBg}
       position="relative"
@@ -85,29 +85,32 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
         bgGradient: 'linear(to-r, blue.400, purple.500)',
       }}
     >
-      <VStack spacing={4} align="stretch">
+      <VStack spacing={6} align="stretch">
         {/* Header */}
         <Flex align="center" justify="space-between">
           <HStack spacing={3}>
             <Flex
               align="center"
               justify="center"
-              w={10}
-              h={10}
+              w={12}
+              h={12}
               borderRadius="md"
               bg={accentColor}
               color="white"
               boxShadow="md"
             >
-              <Icon as={FiZap} boxSize={5} />
+              <Icon as={FiZap} boxSize={6} />
             </Flex>
             <Box>
-              <Heading size="md" bgGradient="linear(to-r, blue.500, purple.600)" bgClip="text">
+              <Heading size="lg" bgGradient="linear(to-r, blue.500, purple.600)" bgClip="text">
                 AI Recommendation System
               </Heading>
+              <Text fontSize="sm" color={subtleColor} mt={1}>
+                Personalized suggestions powered by AI
+              </Text>
             </Box>
           </HStack>
-          <Badge colorScheme="purple" fontSize="xs" px={2} py={0.5} borderRadius="full">
+          <Badge colorScheme="purple" fontSize="sm" px={3} py={1} borderRadius="full">
             Beta
           </Badge>
         </Flex>
@@ -116,7 +119,7 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
 
         {/* Options Section */}
         <Box>
-          <Text fontSize="xs" fontWeight="semibold" mb={2} color={subtleColor} textTransform="uppercase" letterSpacing="wide">
+          <Text fontSize="sm" fontWeight="semibold" mb={3} color={subtleColor} textTransform="uppercase" letterSpacing="wide">
             Personalize Recommendations
           </Text>
           <Stack spacing={3}>
@@ -131,11 +134,11 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
                   setUseComments(false);
                 }
               }}
-              size="md"
+              size="lg"
               colorScheme="blue"
               display="flex"
               alignItems="center"
-              p={2}
+              p={3}
               borderRadius="md"
               borderWidth="1px"
               borderColor={useHistory ? accentColor : borderColor}
@@ -144,8 +147,8 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
               _hover={{ bg: hoverBg }}
             >
               <HStack spacing={2}>
-                <Icon as={FiCheckCircle} boxSize={4} color={useHistory ? accentColor : subtleColor} />
-                <Text fontSize="sm" fontWeight="medium">Use my reading and watching history</Text>
+                <Icon as={FiCheckCircle} boxSize={5} color={useHistory ? accentColor : subtleColor} />
+                <Text fontSize="md" fontWeight="medium">Use my reading and watching history</Text>
               </HStack>
             </Checkbox>
 
@@ -155,10 +158,10 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
                 onChange={(e) => setUseRatings(e.target.checked)}
                 isDisabled={!useHistory}
                 colorScheme="blue"
-                size="md"
+                size="lg"
                 display="flex"
                 alignItems="center"
-                p={2}
+                p={3}
                 borderRadius="md"
                 borderWidth="1px"
                 borderColor={useRatings ? accentColor : borderColor}
@@ -168,8 +171,8 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
                 _hover={useHistory ? { bg: hoverBg } : undefined}
               >
                 <HStack spacing={2}>
-                  <Icon as={FiStar} boxSize={4} color={useRatings ? accentColor : subtleColor} />
-                  <Text fontSize="sm">Use my ratings</Text>
+                  <Icon as={FiStar} boxSize={5} color={useRatings ? accentColor : subtleColor} />
+                  <Text fontSize="md">Use my ratings</Text>
                 </HStack>
               </Checkbox>
 
@@ -178,10 +181,10 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
                 onChange={(e) => setUseComments(e.target.checked)}
                 isDisabled={!useHistory}
                 colorScheme="blue"
-                size="md"
+                size="lg"
                 display="flex"
                 alignItems="center"
-                p={2}
+                p={3}
                 borderRadius="md"
                 borderWidth="1px"
                 borderColor={useComments ? accentColor : borderColor}
@@ -191,8 +194,8 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
                 _hover={useHistory ? { bg: hoverBg } : undefined}
               >
                 <HStack spacing={2}>
-                  <Icon as={FiMessageSquare} boxSize={4} color={useComments ? accentColor : subtleColor} />
-                  <Text fontSize="sm">Use my comments</Text>
+                  <Icon as={FiMessageSquare} boxSize={5} color={useComments ? accentColor : subtleColor} />
+                  <Text fontSize="md">Use my comments</Text>
                 </HStack>
               </Checkbox>
             </VStack>
@@ -203,7 +206,7 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
 
         {/* Custom Prompt Section */}
         <Box>
-          <Text fontSize="xs" fontWeight="semibold" mb={2} color={subtleColor} textTransform="uppercase" letterSpacing="wide">
+          <Text fontSize="sm" fontWeight="semibold" mb={3} color={subtleColor} textTransform="uppercase" letterSpacing="wide">
             Custom Request (Optional)
           </Text>
           <Textarea
@@ -217,7 +220,7 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
               }
             }}
             placeholder="Can you suggest the best anime movie of all time? (clue: Princess Mononoke)"
-            rows={3}
+            rows={4}
             resize="vertical"
             bg={textareaBg}
             borderWidth="1px"
@@ -227,15 +230,15 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
               borderColor: accentColor,
               boxShadow: `0 0 0 1px ${accentColor}`,
             }}
-            fontSize="sm"
+            fontSize="md"
             p={3}
           />
         </Box>
 
         {/* Submit Button */}
         <Button
-          size="md"
-          h={10}
+          size="lg"
+          h={12}
           bgGradient="linear(to-r, blue.400, purple.500)"
           color="white"
           _hover={{
@@ -247,8 +250,8 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
           isDisabled={!useHistory && !customPrompt.trim()}
           borderRadius="md"
           fontWeight="semibold"
-          fontSize="sm"
-          leftIcon={<Icon as={FiZap} boxSize={4} />}
+          fontSize="md"
+          leftIcon={<Icon as={FiZap} boxSize={5} />}
         >
           Get Recommendations
         </Button>
