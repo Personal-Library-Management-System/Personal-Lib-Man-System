@@ -5,6 +5,7 @@ import {
     deleteMultipleMediaItems,
     getAllMediaItems,
     getMediaItem,
+    getMediaItemsByType,
 } from '../controllers/mediaItem.controller';
 
 const mediaItemRouter = Router();
@@ -164,7 +165,7 @@ mediaItemRouter.get('/:id', getMediaItem as RequestHandler);
  * @openapi
  * /api/v1/mediaItems:
  *   get:
- *     summary: Get all media items for the authenticated user
+ *     summary: Get all media items
  *     tags:
  *       - Media Items
  *     responses:
@@ -189,5 +190,40 @@ mediaItemRouter.get('/:id', getMediaItem as RequestHandler);
  *         description: Server error
  */
 mediaItemRouter.get('/', getAllMediaItems as RequestHandler);
+
+/**
+ * @openapi
+ * /api/v1/mediaItems/type/{mediaType}:
+ *   get:
+ *     summary: Get media items of a specific type
+ *     tags:
+ *       - Media Items
+ *     parameters:
+ *       - in: path
+ *         name: mediaType
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/MediaType'
+ *         description: Type of media items to retrieve
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/MediaItem'
+ *       400:
+ *         description: Invalid mediaType
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+mediaItemRouter.get('/type/:mediaType', getMediaItemsByType as RequestHandler);
 
 export default mediaItemRouter;

@@ -3,6 +3,9 @@ import { Schema, model, Model, HydratedDocument } from 'mongoose';
 export const MEDIA_TYPES = ['Book', 'Movie'] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
 
+export const isValidMediaType = (value: any): value is MediaType =>
+    MEDIA_TYPES.includes(value);
+
 export interface Rating {
     source: string;
     value: string;
