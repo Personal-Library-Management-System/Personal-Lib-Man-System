@@ -2,6 +2,11 @@
  * @openapi
  * components:
  *   schemas:
+ *     MediaType:
+ *       type: string
+ *       description: Type of media item
+ *       enum: [Book, Movie]
+ *
  *     Rating:
  *       type: object
  *       required:
@@ -26,8 +31,7 @@
  *         title:
  *           type: string
  *         mediaType:
- *           type: string
- *           enum: [Book, Movie]
+ *           $ref: '#/components/schemas/MediaType'
  *         publishedDate:
  *           type: string
  *           format: date

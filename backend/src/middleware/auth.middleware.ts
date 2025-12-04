@@ -6,16 +6,13 @@ import { generateTokens, setAuthCookies } from '../utils/auth.utils';
 const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
     const { accessToken, refreshToken } = req.cookies;
 
-    const user = accessToken ? tokenService.verifyJwtToken(accessToken) : null;
+    const user = tokenService.verifyJwtToken(accessToken);
     if (user) {
         req.user = user;
         return next();
     }
 
-    const refreshUser = refreshToken
-        ? tokenService.verifyJwtToken(refreshToken)
-        : null;
-
+    const refreshUser = tokenService.verifyJwtToken(refreshToken);
     if (!refreshUser) {
         return res.status(StatusCodes.UNAUTHORIZED).json({
             error: 'Unauthorized: Both access and refresh tokens are invalid or expired',

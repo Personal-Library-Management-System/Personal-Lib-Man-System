@@ -3,6 +3,7 @@ import {
     MEDIA_TYPES,
     MediaItemDoc,
     MediaItemModel,
+    MediaType,
 } from '../models/mediaItem.model';
 import User from '../models/user.model';
 import { AppError } from '../utils/appError';
@@ -116,12 +117,33 @@ export const getAllMediaItemsForUser = async (
         throw new AppError('User not found.', StatusCodes.NOT_FOUND);
     }
 
-    if (!user.mediaItems || user.mediaItems.length === 0) {
+    if (!user.mediaItems || !user.mediaItems.length) {
         return [];
     }
 
     const items = await MediaItemModel.find({
         _id: { $in: user.mediaItems },
+    });
+
+    return items;
+};
+
+export const getMediaItemsByTypeforUser = async (
+    googleId: string,
+    mediaType: MediaType
+): Promise<MediaItemDoc[]> => {
+    const user = await User.findOne(
+        { googleId },
+        { mediaItems: 1 }
+    );
+
+    if (!user || !user.mediaItems.length) {
+        return [];
+    }
+
+    const items = await MediaItemModel.find({
+        _id: { $in: user.mediaItems },
+        mediaType,
     });
 
     return items;
