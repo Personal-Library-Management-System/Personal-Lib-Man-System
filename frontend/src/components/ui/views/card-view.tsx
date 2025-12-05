@@ -85,11 +85,11 @@ const CardView: React.FC<CardViewProps> = ({
             
             const rating = type === 'book'
               ? (item as Book).averageRating || 0
-              : (item as Movie).rating;
+              : (item as Movie).ratings?.at(0)?.Value || 0;
             
             const additionalInfo = type === 'book'
               ? `${(item as Book).pageCount || 0}s`
-              : `${(item as Movie).duration}dk`;
+              : `${(item as Movie).runtime}dk`;
 
             return (
               <Card
@@ -140,7 +140,7 @@ const CardView: React.FC<CardViewProps> = ({
                     <HStack justify="space-between" align="center">
                       <HStack spacing={1}>
                         <Text fontSize="sm">⭐</Text>
-                        <Text fontSize="sm" color={subtextColor}>{rating.toFixed(1)}</Text>
+                        <Text fontSize="sm" color={subtextColor}>{parseFloat(String(rating)).toFixed(1)}</Text>
                         <Text fontSize="xs" color={subtextColor}>
                           • {additionalInfo}
                         </Text>

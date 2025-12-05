@@ -88,7 +88,7 @@ const ListView: React.FC<ListViewProps> = ({
             
             const rating = type === 'book'
               ? (item as Book).averageRating || 0
-              : (item as Movie).rating;
+              : (item as Movie).ratings?.at(0)?.Value || 0;
             
             const date = type === 'book'
               ? (item as Book).publishedDate || 'Bilinmiyor'
@@ -96,9 +96,9 @@ const ListView: React.FC<ListViewProps> = ({
             
             const pageOrDuration = type === 'book'
               ? `📄 ${(item as Book).pageCount || 0} sayfa`
-              : `⏱️ ${(item as Movie).duration} dakika`;
+              : `⏱️ ${(item as Movie).runtime} dakika`;
             
-            const description = (item as Book).description || (item as Movie).description || 'Açıklama bulunmuyor';
+            const description = (item as Book).description || (item as Movie).plot || 'Açıklama bulunmuyor';
 
             return (
               <Card
@@ -156,7 +156,7 @@ const ListView: React.FC<ListViewProps> = ({
                         </Text>
                         <HStack spacing={1}>
                           <Text fontSize="sm">⭐</Text>
-                          <Text fontSize="sm" color={subtextColor}>{rating.toFixed(1)}</Text>
+                          <Text fontSize="sm" color={subtextColor}>{parseFloat(String(rating)).toFixed(1)}</Text>
                         </HStack>
                       </HStack>
                     </Box>

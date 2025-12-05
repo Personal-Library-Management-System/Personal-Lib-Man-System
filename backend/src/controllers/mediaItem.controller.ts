@@ -1,7 +1,6 @@
-import { NextFunction, Response } from 'express';
+import { Response } from 'express';
 import { AuthenticatedRequest } from '../types/express';
-import { MEDIA_TYPES, MediaItemModel } from '../models/mediaItem.model';
-import User from '../models/user.model';
+import { isValidMediaType, MEDIA_TYPES } from '../models/mediaItem.model';
 import { StatusCodes } from 'http-status-codes';
 import {
     createMediaItemForUser,
@@ -9,6 +8,7 @@ import {
     deleteMultipleMediaItemsForUser,
     getAllMediaItemsForUser,
     getMediaItemForUser,
+    getMediaItemsByTypeforUser,
 } from '../services/mediaItem.service';
 import { handleControllerError } from '../utils/appError';
 
@@ -116,8 +116,8 @@ const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
         const mediaItemId = req.params.id;
-        const item = await getMediaItemForUser(googleId, mediaItemId);
 
+        const item = await getMediaItemForUser(googleId, mediaItemId);
         return res.status(StatusCodes.OK).json({ item });
     } catch (err) {
         return handleControllerError(res, err);
@@ -138,10 +138,37 @@ const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
+const getMediaItemsByType = async (
+    req: AuthenticatedRequest,
+    res: Response
+) => {
+    try {
+        const googleId = req.user.id;
+        const mediaType = req.params.mediaType;
+
+        if (!isValidMediaType(mediaType)) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                error: `Invalid mediaType. Allowed: ${MEDIA_TYPES.join(', ')}`,
+            });
+        }
+
+        const mediaItems = await getMediaItemsByTypeforUser(
+            googleId,
+            mediaType
+        );
+        return res.status(StatusCodes.OK).json({
+            items: mediaItems,
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
 export {
     createMediaItem,
     deleteMediaItem,
     deleteMultipleMediaItems,
     getMediaItem,
     getAllMediaItems,
+    getMediaItemsByType,
 };

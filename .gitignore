@@ -5,3 +5,4 @@ dist
 !.vscode/extensions.json
 
 .env
+.DS_Store
