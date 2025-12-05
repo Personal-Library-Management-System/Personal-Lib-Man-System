@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Movie } from '../types';
 import mockMoviesData from '../mock-data/movie-data.json';
