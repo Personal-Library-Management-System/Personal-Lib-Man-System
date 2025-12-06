@@ -11,15 +11,25 @@ import {
   Tooltip,
   VStack,
   Text,
-  Icon
+  Icon,
+  Menu,
+  MenuButton,
+  MenuList,
+  MenuItem,
+  MenuDivider,
+  Checkbox,
+  Badge,
+  Divider,
 } from '@chakra-ui/react';
 import { BsGrid3X3Gap, BsList } from 'react-icons/bs';
+import { FaTags, FaList, FaChevronDown } from 'react-icons/fa';
 import Layout from '../layout';
 import CardView from './card-view';
 import ListView from './list-view';
 import Pagination from './pagination';
-import { Filters, type FilterState } from '../filters';
+import { Filters, type FilterState, type ListItem } from '../filters';
 import { type Book, type Movie } from '../../../types';
+import listData from '../../../mock-data/list-data.json';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -62,6 +72,8 @@ const ResourcePageLayout = <T extends Item>({
     pageCountRange: 'all',
     categories: [],
     sortBy: 'title-asc',
+    tags: [],
+    lists: [],
   });
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [currentPage, setCurrentPage] = useState(1);
@@ -71,9 +83,8 @@ const ResourcePageLayout = <T extends Item>({
   const cardBg = useColorModeValue('white', 'gray.800');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
 
-  // Mevcut kategorileri çıkar (kitaplar için)
+  // Mevcut kategorileri çıkar (kitaplar ve filmler için)
   const availableCategories = useMemo(() => {
-    if (itemType !== 'book') return [];
     const categories = new Set<string>();
     items.forEach((item) => {
       if ('categories' in item && item.categories) {
@@ -81,7 +92,26 @@ const ResourcePageLayout = <T extends Item>({
       }
     });
     return Array.from(categories).sort();
-  }, [items, itemType]);
+  }, [items]);
+
+  // Mevcut tag'leri çıkar
+  const availableTags = useMemo(() => {
+    const tags = new Set<string>();
+    items.forEach((item) => {
+      if ('tags' in item && (item as any).tags) {
+        ((item as any).tags as string[]).forEach((tag: string) => tags.add(tag));
+      }
+    });
+    return Array.from(tags).sort();
+  }, [items]);
+
+  // Mevcut listeleri al (itemType'a göre filtrele)
+  const availableLists = useMemo(() => {
+    const typeKey = itemType === 'book' ? 'book' : 'movie';
+    return (listData as ListItem[]).filter((list) =>
+      list.items.some((item) => item.type === typeKey)
+    );
+  }, [itemType]);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -184,8 +214,8 @@ const ResourcePageLayout = <T extends Item>({
       });
     }
 
-    // 6. Kategori filtresi (sadece kitaplar)
-    if (itemType === 'book' && filterState.categories && filterState.categories.length > 0) {
+    // 6. Kategori filtresi (kitaplar ve filmler için)
+    if (filterState.categories && filterState.categories.length > 0) {
       result = result.filter(item => {
         if ('categories' in item && item.categories) {
           return filterState.categories!.some((cat: string) => item.categories!.includes(cat));
@@ -194,7 +224,35 @@ const ResourcePageLayout = <T extends Item>({
       });
     }
 
-    // 7. Sıralama
+    // 7. Tag filtresi
+    if (filterState.tags && filterState.tags.length > 0) {
+      result = result.filter(item => {
+        if ('tags' in item && (item as any).tags) {
+          return filterState.tags!.some((tag: string) => ((item as any).tags as string[]).includes(tag));
+        }
+        return false;
+      });
+    }
+
+    // 8. List filtresi
+    if (filterState.lists && filterState.lists.length > 0) {
+      const typeKey = itemType === 'book' ? 'book' : 'movie';
+      const selectedListItems = new Set<string>();
+      
+      (listData as ListItem[])
+        .filter((list) => filterState.lists!.includes(list.id))
+        .forEach((list) => {
+          list.items.forEach((listItem) => {
+            if (listItem.type === typeKey) {
+              selectedListItems.add(listItem.id);
+            }
+          });
+        });
+
+      result = result.filter(item => selectedListItems.has(item.id));
+    }
+
+    // 9. Sıralama
     if (filterState.sortBy) {
       result.sort((a, b) => {
         switch (filterState.sortBy) {
@@ -319,21 +377,119 @@ const ResourcePageLayout = <T extends Item>({
           </HStack>
         </Flex>
 
-        {/* Status Filtresi */}
+        {/* Status Filtresi + Tag/List Dropdown'ları */}
         <Box mb={4}>
-          <HStack spacing={2} flexWrap="wrap">
-            {filters.map(filter => (
-              <Button
-                key={filter.key}
-                onClick={() => setFilterStatus(filter.key)}
-                variant={filterStatus === filter.key ? 'solid' : 'outline'}
-                colorScheme={filterStatus === filter.key ? 'blue' : 'gray'}
-                size="sm"
-              >
-                {filter.label}
-              </Button>
-            ))}
-          </HStack>
+          <Flex gap={4} flexWrap="wrap" align="center">
+            {/* Status Butonları */}
+            <HStack spacing={2} flexWrap="wrap">
+              {filters.map(filter => (
+                <Button
+                  key={filter.key}
+                  onClick={() => setFilterStatus(filter.key)}
+                  variant={filterStatus === filter.key ? 'solid' : 'outline'}
+                  colorScheme={filterStatus === filter.key ? 'blue' : 'gray'}
+                  size="sm"
+                >
+                  {filter.label}
+                </Button>
+              ))}
+            </HStack>
+
+            <Divider orientation="vertical" h="32px" display={{ base: 'none', md: 'block' }} />
+
+            {/* Etiketler Dropdown - Çoklu Seçim */}
+            {availableTags.length > 0 && (
+              <Menu closeOnSelect={false}>
+                <MenuButton
+                  as={Button}
+                  size="sm"
+                  variant="outline"
+                  leftIcon={<FaTags />}
+                  rightIcon={<FaChevronDown />}
+                >
+                  Etiketler
+                  {(filterState.tags?.length || 0) > 0 && (
+                    <Badge ml={2} colorScheme="teal" borderRadius="full">
+                      {filterState.tags?.length}
+                    </Badge>
+                  )}
+                </MenuButton>
+                <MenuList maxH="300px" overflowY="auto">
+                  {(filterState.tags?.length || 0) > 0 && (
+                    <>
+                      <MenuItem
+                        onClick={() => setFilterState({ ...filterState, tags: [] })}
+                        color="red.500"
+                        fontWeight="medium"
+                      >
+                        Temizle
+                      </MenuItem>
+                      <MenuDivider />
+                    </>
+                  )}
+                  {availableTags.map((tag) => (
+                    <MenuItem
+                      key={tag}
+                      onClick={() => {
+                        const currentTags = filterState.tags || [];
+                        const newTags = currentTags.includes(tag)
+                          ? currentTags.filter((t) => t !== tag)
+                          : [...currentTags, tag];
+                        setFilterState({ ...filterState, tags: newTags });
+                      }}
+                    >
+                      <Checkbox
+                        isChecked={filterState.tags?.includes(tag)}
+                        pointerEvents="none"
+                        mr={2}
+                        colorScheme="teal"
+                      />
+                      {tag}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
+            )}
+
+            {/* Listeler Dropdown - Tekli Seçim */}
+            {availableLists.length > 0 && (
+              <Menu>
+                <MenuButton
+                  as={Button}
+                  size="sm"
+                  variant="outline"
+                  leftIcon={<FaList />}
+                  rightIcon={<FaChevronDown />}
+                >
+                  {filterState.lists && filterState.lists.length > 0
+                    ? availableLists.find((l) => l.id === filterState.lists![0])?.name || 'Liste'
+                    : 'Listeler'}
+                </MenuButton>
+                <MenuList maxH="300px" overflowY="auto">
+                  <MenuItem
+                    onClick={() => setFilterState({ ...filterState, lists: [] })}
+                    fontWeight={filterState.lists?.length === 0 ? 'bold' : 'normal'}
+                    bg={filterState.lists?.length === 0 ? 'blue.50' : undefined}
+                    _dark={{ bg: filterState.lists?.length === 0 ? 'blue.900' : undefined }}
+                  >
+                    Tümü
+                  </MenuItem>
+                  <MenuDivider />
+                  {availableLists.map((list) => (
+                    <MenuItem
+                      key={list.id}
+                      onClick={() => setFilterState({ ...filterState, lists: [list.id] })}
+                      fontWeight={filterState.lists?.includes(list.id) ? 'bold' : 'normal'}
+                      bg={filterState.lists?.includes(list.id) ? 'purple.50' : undefined}
+                      _dark={{ bg: filterState.lists?.includes(list.id) ? 'purple.900' : undefined }}
+                    >
+                      {list.name}
+                    </MenuItem>
+                  ))}
+                </MenuList>
+              </Menu>
+            )}
+          </Flex>
         </Box>
 
         {/* Gelişmiş Filtreler */}

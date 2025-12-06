@@ -1,0 +1,83 @@
+[
+  {
+    "id": "list-1",
+    "name": "Favorilerim",
+    "description": "En sevdiğim kitaplar ve filmler",
+    "color": "red",
+    "icon": "heart",
+    "items": [
+      { "type": "book", "id": "1" },
+      { "type": "book", "id": "3" },
+      { "type": "movie", "id": "tt0111161" },
+      { "type": "movie", "id": "tt0068646" }
+    ],
+    "createdAt": "2024-01-15"
+  },
+  {
+    "id": "list-2",
+    "name": "Hafta Sonu İzlenecekler",
+    "description": "Hafta sonu için planladığım filmler",
+    "color": "blue",
+    "icon": "calendar",
+    "items": [
+      { "type": "movie", "id": "tt0110912" },
+      { "type": "movie", "id": "tt0109830" }
+    ],
+    "createdAt": "2024-02-20"
+  },
+  {
+    "id": "list-3",
+    "name": "Klasikler",
+    "description": "Mutlaka okunması/izlenmesi gereken klasikler",
+    "color": "purple",
+    "icon": "star",
+    "items": [
+      { "type": "book", "id": "1" },
+      { "type": "book", "id": "2" },
+      { "type": "book", "id": "5" },
+      { "type": "movie", "id": "tt0068646" },
+      { "type": "movie", "id": "tt0071562" }
+    ],
+    "createdAt": "2024-03-10"
+  },
+  {
+    "id": "list-4",
+    "name": "Bilim Kurgu Koleksiyonu",
+    "description": "Sci-Fi kitaplar ve filmler",
+    "color": "teal",
+    "icon": "rocket",
+    "items": [
+      { "type": "book", "id": "1" },
+      { "type": "book", "id": "6" },
+      { "type": "movie", "id": "tt0133093" },
+      { "type": "movie", "id": "tt0816692" }
+    ],
+    "createdAt": "2024-04-05"
+  },
+  {
+    "id": "list-5",
+    "name": "2024 Okuma Listesi",
+    "description": "Bu yıl okumayı planladığım kitaplar",
+    "color": "green",
+    "icon": "book",
+    "items": [
+      { "type": "book", "id": "4" },
+      { "type": "book", "id": "7" },
+      { "type": "book", "id": "10" }
+    ],
+    "createdAt": "2024-01-01"
+  },
+  {
+    "id": "list-6",
+    "name": "Arkadaş Önerileri",
+    "description": "Arkadaşlarımın önerdiği eserler",
+    "color": "orange",
+    "icon": "users",
+    "items": [
+      { "type": "book", "id": "8" },
+      { "type": "movie", "id": "tt0120737" },
+      { "type": "movie", "id": "tt0167260" }
+    ],
+    "createdAt": "2024-05-12"
+  }
+]
