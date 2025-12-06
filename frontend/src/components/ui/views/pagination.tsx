@@ -65,7 +65,7 @@ const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(Math.max(currentPage - 1, 1))}
         variant="outline"
         size="sm"
-        aria-label="Önceki sayfa"
+        aria-label="Previous page"
       />
 
       <HStack spacing={1}>
@@ -94,7 +94,7 @@ const Pagination: React.FC<PaginationProps> = ({
         onClick={() => onPageChange(Math.min(currentPage + 1, totalPages))}
         variant="outline"
         size="sm"
-        aria-label="Sonraki sayfa"
+        aria-label="Next page"
       />
     </Flex>
   );

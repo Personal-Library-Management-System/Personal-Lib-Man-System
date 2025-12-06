@@ -83,7 +83,7 @@ const ListView: React.FC<ListViewProps> = ({
               : (item as Movie).imageUrl;
             
             const subtitle = type === 'book' 
-              ? (item as Book).authors?.join(', ') || 'Yazar bilinmiyor'
+              ? (item as Book).authors?.join(', ') || 'Unknown author'
               : (item as Movie).director;
             
             const rating = type === 'book'
@@ -91,14 +91,14 @@ const ListView: React.FC<ListViewProps> = ({
               : (item as Movie).ratings?.at(0)?.Value || 0;
             
             const date = type === 'book'
-              ? (item as Book).publishedDate || 'Bilinmiyor'
+              ? (item as Book).publishedDate || 'Unknown'
               : (item as Movie).releaseDate;
             
             const pageOrDuration = type === 'book'
-              ? `📄 ${(item as Book).pageCount || 0} sayfa`
-              : `⏱️ ${(item as Movie).runtime} dakika`;
+              ? `📄 ${(item as Book).pageCount || 0} pages`
+              : `⏱️ ${(item as Movie).runtime} min`;
             
-            const description = (item as Book).description || (item as Movie).plot || 'Açıklama bulunmuyor';
+            const description = (item as Book).description || (item as Movie).plot || 'No description available';
 
             return (
               <Card

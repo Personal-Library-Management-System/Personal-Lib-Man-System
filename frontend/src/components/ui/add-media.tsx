@@ -65,7 +65,7 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
     : (item as Movie).imageUrl;
   
   const subtitle = isBook
-    ? (item as Book).authors?.join(', ') || 'Yazar bilinmiyor'
+    ? (item as Book).authors?.join(', ') || 'Unknown author'
     : (item as Movie).director;
   
   const year = isBook
@@ -199,7 +199,7 @@ const AddMedia = ({
     }
   };
 
-  const mainPlaceholder = searchPlaceholder ?? (mediaType === 'book' ? 'Kitap adı girin...' : 'Film adı girin...');
+  const mainPlaceholder = searchPlaceholder ?? (mediaType === 'book' ? 'Enter book title...' : 'Enter movie title...');
 
   return (
     <Modal 
@@ -325,7 +325,7 @@ const AddMedia = ({
               <VStack spacing={4} justify="center" h="100%" pt={10} opacity={0.8}>
                 <Icon as={SearchIcon} boxSize={16} color="yellow.400" strokeWidth={1} />
                 <Text fontSize="lg" fontWeight="medium" color="gray.500">
-                  Aramanızla eşleşen sonuç bulunamadı.
+                  No results found matching your search.
                 </Text>
               </VStack>
             )}
@@ -334,7 +334,7 @@ const AddMedia = ({
               <Alert status="error" borderRadius="lg" flexDirection="column" alignItems="center" justifyContent="center" textAlign="center" height="200px">
                 <AlertIcon boxSize="40px" mr={0} />
                 <AlertTitle mt={4} mb={1} fontSize="lg">
-                  Arama sırasında bir hata oluştu!
+                  An error occurred during search!
                 </AlertTitle>
               </Alert>
             )}
@@ -347,7 +347,7 @@ const AddMedia = ({
                     item={item}
                     mediaType={mediaType}
                     onSelect={() => {
-                      console.log('Seçilen medya bilgileri:', item);
+                      console.log('Selected media info:', item);
                       onItemSelect(item);
                     }}
                   />

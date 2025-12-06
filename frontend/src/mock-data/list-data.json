@@ -1,8 +1,8 @@
 [
   {
     "id": "list-1",
-    "name": "Favorilerim",
-    "description": "En sevdiğim kitaplar ve filmler",
+    "name": "My Favorites",
+    "description": "My favorite books and movies",
     "color": "red",
     "icon": "heart",
     "items": [
@@ -15,8 +15,8 @@
   },
   {
     "id": "list-2",
-    "name": "Hafta Sonu İzlenecekler",
-    "description": "Hafta sonu için planladığım filmler",
+    "name": "Weekend Watchlist",
+    "description": "Movies planned for the weekend",
     "color": "blue",
     "icon": "calendar",
     "items": [
@@ -27,8 +27,8 @@
   },
   {
     "id": "list-3",
-    "name": "Klasikler",
-    "description": "Mutlaka okunması/izlenmesi gereken klasikler",
+    "name": "Classics",
+    "description": "Must-read and must-watch classics",
     "color": "purple",
     "icon": "star",
     "items": [
@@ -42,8 +42,8 @@
   },
   {
     "id": "list-4",
-    "name": "Bilim Kurgu Koleksiyonu",
-    "description": "Sci-Fi kitaplar ve filmler",
+    "name": "Sci-Fi Collection",
+    "description": "Science fiction books and movies",
     "color": "teal",
     "icon": "rocket",
     "items": [
@@ -56,8 +56,8 @@
   },
   {
     "id": "list-5",
-    "name": "2024 Okuma Listesi",
-    "description": "Bu yıl okumayı planladığım kitaplar",
+    "name": "2024 Reading List",
+    "description": "Books I plan to read this year",
     "color": "green",
     "icon": "book",
     "items": [
@@ -69,8 +69,8 @@
   },
   {
     "id": "list-6",
-    "name": "Arkadaş Önerileri",
-    "description": "Arkadaşlarımın önerdiği eserler",
+    "name": "Friend Recommendations",
+    "description": "Works recommended by friends",
     "color": "orange",
     "icon": "users",
     "items": [

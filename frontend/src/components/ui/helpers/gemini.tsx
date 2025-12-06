@@ -108,7 +108,7 @@ Example output:
       )}. Available models: ${availableModelsText}. If necessary, enable the model in Google Cloud / AI Studio or use a model name listed above.`
     );
   } catch (error) {
-    console.error("Gemini API Hatası:", error);
+    console.error("Gemini API Error:", error);
     throw error;
   }
 };

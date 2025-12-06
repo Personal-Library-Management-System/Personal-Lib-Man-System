@@ -193,11 +193,11 @@ const MainPage = () => {
           mb={4} 
           color={useColorModeValue('blue.600', 'blue.300')}
         >
-          Hoş Geldiniz! 📚
+          Welcome! 📚
         </Heading>
         
         <Text fontSize="lg" color={subtitleColor} mb={8}>
-          Kütüphanenizi yönetmeye başlayabilirsiniz.
+          Start managing your library.
         </Text>
 
         {/* Feature Cards */}
@@ -232,10 +232,10 @@ const MainPage = () => {
               <Icon as={FaBook} color="white" boxSize={7} />
             </Box>
             <Heading size="md" mb={3} color={textColor}>
-              Kitaplarım
+              My Books
             </Heading>
             <Text fontSize="sm" color={subtitleColor}>
-              Kişisel kitap koleksiyonunuzu yönetin
+              Manage your personal book collection
             </Text>
           </Box>
 
@@ -269,10 +269,10 @@ const MainPage = () => {
               <Icon as={FaList} color="white" boxSize={7} />
             </Box>
             <Heading size="md" mb={3} color={textColor}>
-              Okuma Listesi
+              Reading List
             </Heading>
             <Text fontSize="sm" color={subtitleColor}>
-              Okumak istediğiniz kitapları planlayın
+              Plan the books you want to read
             </Text>
           </Box>
 
@@ -306,10 +306,10 @@ const MainPage = () => {
               <Icon as={FaChartBar} color="white" boxSize={7} />
             </Box>
             <Heading size="md" mb={3} color={textColor}>
-              İstatistikler
+              Statistics
             </Heading>
             <Text fontSize="sm" color={subtitleColor}>
-              Okuma alışkanlıklarınızı takip edin
+              Track your reading habits
             </Text>
           </Box>
         </SimpleGrid>
@@ -402,7 +402,7 @@ const MainPage = () => {
                       </Text>
 
                       <Text fontSize="sm" mb={2} color={textColor}>
-                        {m.plot || 'Açıklama yok.'}
+                        {m.plot || 'No description.'}
                       </Text>
 
                       <Text fontSize="xs" color={subtitleColor}>
@@ -454,7 +454,7 @@ const MainPage = () => {
             fontSize="xs" 
             color={useColorModeValue('blue.600', 'blue.200')}
           >
-            🚀 Bu özellikler yakında aktif olacak. PLMS v1.0.0 - Demo Sürüm
+            🚀 These features will be available soon. PLMS v1.0.0 - Demo Version
           </Text>
         </Box>
       </Box>

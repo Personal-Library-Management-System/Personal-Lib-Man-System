@@ -35,7 +35,7 @@ const DurationFilter = ({ value, onChange }: DurationFilterProps) => {
           borderRadius="full"
           _hover={{ bg: hoverBg }}
         >
-          Süre: {selectedOption.label}
+          Duration: {selectedOption.label}
         </MenuButton>
         <MenuList bg={menuBg} borderRadius="lg" shadow="lg" minW="170px">
           {DURATION_OPTIONS.map((option) => (

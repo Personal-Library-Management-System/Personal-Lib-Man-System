@@ -37,7 +37,7 @@ const SortSelect = ({ value, onChange, type }: SortSelectProps) => {
           borderRadius="full"
           _hover={{ bg: hoverBg }}
         >
-          Sırala: {selectedOption.label}
+          Sort: {selectedOption.label}
         </MenuButton>
         <MenuList bg={menuBg} borderRadius="lg" shadow="lg" minW="180px">
           {options.map((option) => (
