@@ -6,6 +6,9 @@ export const BOOK_SPECIFIC_FIELDS = ['ISBN', 'pageCount', 'publisher'];
 export const MEDIA_TYPES = ['Book', 'Movie'] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
 
+export const ITEM_STATUSES = ['PLANNED', 'IN_PROGRESS', 'COMPLETED'] as const;
+export type ItemStatus = (typeof ITEM_STATUSES)[number];
+
 export const isValidMediaType = (value: any): value is MediaType =>
     MEDIA_TYPES.includes(value);
 
@@ -24,6 +27,12 @@ export interface MediaItem {
     coverPhoto?: string | null;
     language?: string | null;
     author?: string | null;
+    //new fields for user media items
+    status: ItemStatus;
+    myRating?: number | null;
+    progress?: number | null;
+    personalNotes?: string | null;
+
     mediaType: MediaType;
 }
 
@@ -58,6 +67,16 @@ const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
             type: String,
             required: true,
             enum: MEDIA_TYPES,
+        },
+        //new fields for user media items
+        myRating: { type: Number, min: 0, max: 5 },
+        personalNotes: { type: String, trim: true ,default: ''},
+        progress: { type: Number, min: 0 ,default: 0},
+        status: {
+            type: String,
+            enum: ITEM_STATUSES,
+            required: true,
+            default: 'PLANNED',
         },
     },
     { discriminatorKey: 'mediaType' }
