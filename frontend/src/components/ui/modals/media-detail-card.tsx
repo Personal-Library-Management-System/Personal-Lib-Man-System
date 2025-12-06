@@ -28,6 +28,7 @@ import {
 import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
 import TagSelector from '../tag-selector';
+import PersonalNote from '../personal-note';
 
 export interface InfoBlock {
   label: string;
@@ -64,6 +65,9 @@ export interface BookDetailCardProps {
   onCreateTag?: (tagName: string) => void;
   // callback when tags change (used by TagSelector)
   onTagsChange?: (tags: string[]) => void;
+  // Personal note
+  personalNote?: string;
+  onPersonalNoteChange?: (note: string) => void;
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -83,6 +87,8 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   assignedTags = [],
   onTagsChange,
   onCreateTag,
+  personalNote = '',
+  onPersonalNoteChange,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const blockBg = useColorModeValue('gray.50', 'whiteAlpha.100');
@@ -171,6 +177,12 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
               {description}
             </Text>
           </Box>
+
+          {/* Kişisel Not */}
+          <PersonalNote
+            note={personalNote}
+            onChange={onPersonalNoteChange || (() => {})}
+          />
         </Flex>
       </Flex>
 

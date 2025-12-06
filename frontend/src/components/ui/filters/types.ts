@@ -3,6 +3,16 @@ export type YearRangePreset = 'all' | '2020s' | '2010s' | '2000s' | 'classic';
 export type DurationPreset = 'all' | 'short' | 'medium' | 'long';
 export type PageCountPreset = 'all' | 'short' | 'medium' | 'long';
 
+export interface ListItem {
+  id: string;
+  name: string;
+  description?: string;
+  color?: string;
+  icon?: string;
+  items: { type: 'book' | 'movie'; id: string }[];
+  createdAt?: string;
+}
+
 export interface FilterState {
   // Ortak filtreler
   rating?: number; // Minimum puan (örn: 4 = 4+ puan)
@@ -17,6 +27,10 @@ export interface FilterState {
   // Filmlere özel
   durationRange?: DurationPreset;
   imdbRating?: number; // Minimum IMDb puanı
+  
+  // Tag ve List filtreleri (her ikisi için)
+  tags?: string[];
+  lists?: string[];
 }
 
 export type SortOption = 

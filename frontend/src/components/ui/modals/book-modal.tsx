@@ -22,10 +22,18 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   const [currentStatus, setCurrentStatus] = useState<Book['status']>(book.status);
   const initialTags = (book as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
+  
+  // localStorage key for personal note
+  const noteKey = `book-note-${book.id}`;
+  const [personalNote, setPersonalNote] = useState<string>(() => {
+    return localStorage.getItem(noteKey) ?? (book as any).personalNote ?? '';
+  });
 
   useEffect(() => {
     setCurrentStatus(book.status);
     setCurrentTags((book as any).tags ?? []);
+    // Load note from localStorage or fallback to book data
+    setPersonalNote(localStorage.getItem(`book-note-${book.id}`) ?? (book as any).personalNote ?? '');
   }, [book]);
 
   // Build page count display with optional progress circle
@@ -66,6 +74,12 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
     console.log('Güncellenen tagler:', updated, 'kitap id:', book.id);
   };
 
+  const handleNoteChange = (note: string) => {
+    setPersonalNote(note);
+    localStorage.setItem(`book-note-${book.id}`, note);
+    console.log('Güncellenen not:', note, 'kitap id:', book.id);
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={book.title}>
       <BookDetailCard
@@ -87,6 +101,8 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
         }}
         currentPage={book.currentPage}
         pageCount={book.pageCount}
+        personalNote={personalNote}
+        onPersonalNoteChange={handleNoteChange}
       />
     </Modal>
   );

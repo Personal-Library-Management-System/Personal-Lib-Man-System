@@ -23,7 +23,7 @@ interface FiltersProps {
   type: 'book' | 'movie';
   filterState: FilterState;
   onFilterChange: (newState: FilterState) => void;
-  availableCategories?: string[]; // Kitaplar için
+  availableCategories?: string[];
 }
 
 const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }: FiltersProps) => {
@@ -32,7 +32,7 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
   const bgCard = useColorModeValue('white', 'gray.800');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
 
-  // Aktif filtre sayısını hesapla
+  // Aktif filtre sayısını hesapla (sadece gelişmiş filtreler)
   const getActiveFilterCount = (): number => {
     let count = 0;
     if (filterState.rating && filterState.rating > 0) count++;
@@ -47,9 +47,10 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
 
   const activeCount = getActiveFilterCount();
 
-  // Tüm filtreleri sıfırla
+  // Gelişmiş filtreleri sıfırla (tag/list hariç)
   const handleReset = () => {
     onFilterChange({
+      ...filterState,
       rating: 0,
       imdbRating: 0,
       yearRange: 'all',
@@ -72,7 +73,7 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
           onClick={onToggle}
           fontWeight="medium"
         >
-          Filtrele & Sırala
+          Gelişmiş Filtreler
           {activeCount > 0 && (
             <Badge ml={2} colorScheme="blue" borderRadius="full">
               {activeCount}
@@ -105,7 +106,7 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
           shadow="sm"
         >
           <Flex gap={3} flexWrap="wrap" align="flex-start">
-            {/* Sıralama - Her iki tip için */}
+            {/* Sıralama */}
             <SortSelect
               type={type}
               value={filterState.sortBy || 'title-asc'}
@@ -114,7 +115,7 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
 
             <Divider orientation="vertical" h="32px" display={{ base: 'none', md: 'block' }} />
 
-            {/* Puan Filtresi - Kitaplar için averageRating, Filmler için imdbRating */}
+            {/* Puan Filtresi */}
             <RatingFilter
               type={type}
               value={type === 'movie' ? (filterState.imdbRating || 0) : (filterState.rating || 0)}
@@ -127,13 +128,13 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
               }}
             />
 
-            {/* Yıl Filtresi - Her iki tip için */}
+            {/* Yıl Filtresi */}
             <YearFilter
               value={filterState.yearRange || 'all'}
               onChange={(value) => onFilterChange({ ...filterState, yearRange: value as YearRangePreset })}
             />
 
-            {/* Süre Filtresi - Sadece filmler için */}
+            {/* Süre Filtresi - Sadece filmler */}
             {type === 'movie' && (
               <DurationFilter
                 value={filterState.durationRange || 'all'}
@@ -141,7 +142,7 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
               />
             )}
 
-            {/* Sayfa Sayısı Filtresi - Sadece kitaplar için */}
+            {/* Sayfa Sayısı Filtresi - Sadece kitaplar */}
             {type === 'book' && (
               <PageCountFilter
                 value={filterState.pageCountRange || 'all'}
@@ -149,8 +150,8 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
               />
             )}
 
-            {/* Kategori Filtresi - Sadece kitaplar için */}
-            {type === 'book' && availableCategories.length > 0 && (
+            {/* Kategori Filtresi */}
+            {availableCategories.length > 0 && (
               <CategoryFilter
                 availableCategories={availableCategories}
                 selectedCategories={filterState.categories || []}
