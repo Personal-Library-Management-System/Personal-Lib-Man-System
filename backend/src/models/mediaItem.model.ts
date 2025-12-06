@@ -1,5 +1,8 @@
 import { Schema, model, Model, HydratedDocument } from 'mongoose';
 
+export const MOVIE_SPECIFIC_FIELDS = ['actors', 'awards', 'runtime', 'director', 'imdbID'];
+export const BOOK_SPECIFIC_FIELDS = ['ISBN', 'pageCount', 'publisher'];
+
 export const MEDIA_TYPES = ['Book', 'Movie'] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
 
