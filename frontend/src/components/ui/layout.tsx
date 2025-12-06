@@ -58,11 +58,11 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
   };
 
   const sidebarItems: SidebarItem[] = [
-    { id: 'anasayfa', label: 'Anasayfa', icon: FaHome, path: '/main' },
-    { id: 'kitaplik', label: 'Kitaplık', icon: FaBook, path: '/library' },
-    { id: 'filmarsivi', label: 'Film Arşivi', icon: FaFilm, path: '/movies' },
-    { id: 'istatistikler', label: 'İstatistikler', icon: FaChartBar, path: '/stats' },
-    { id: 'hesabim', label: 'Hesabım', icon: FaUser, path: '/account' }
+    { id: 'anasayfa', label: 'Home', icon: FaHome, path: '/main' },
+    { id: 'kitaplik', label: 'Library', icon: FaBook, path: '/library' },
+    { id: 'filmarsivi', label: 'Movies', icon: FaFilm, path: '/movies' },
+    { id: 'istatistikler', label: 'Statistics', icon: FaChartBar, path: '/stats' },
+    { id: 'hesabim', label: 'My Account', icon: FaUser, path: '/account' }
   ];
 
   const handleSidebarClick = (path: string) => {
@@ -169,7 +169,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
               }}
               transition="all 0.2s"
             >
-              <Text display={{ base: 'none', md: 'block' }}>Çıkış Yap</Text>
+              <Text display={{ base: 'none', md: 'block' }}>Sign Out</Text>
             </Button>
           </HStack>
         </Flex>
@@ -201,7 +201,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
               textTransform="uppercase"
               letterSpacing="wide"
             >
-              Menü
+              Menu
             </Text>
             <SidebarContent />
           </Box>
@@ -236,7 +236,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
                   onClick={handleSignOut}
                   w="full"
                 >
-                  Çıkış Yap
+                  Sign Out
                 </Button>
               </Box>
             </DrawerBody>

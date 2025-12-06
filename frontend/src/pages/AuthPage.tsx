@@ -106,7 +106,7 @@ const AuthPage = () => {
                                     margin: 0,
                                 }}
                             >
-                                Kişisel Kütüphane Yönetim Sistemi
+                                Personal Library Management System
                             </p>
                         </div>
 
@@ -151,7 +151,7 @@ const AuthPage = () => {
                                         marginBottom: '4px',
                                     }}
                                 >
-                                    Demo Sürümü
+                                    Demo Version
                                 </div>
                                 <div
                                     style={{
@@ -159,7 +159,7 @@ const AuthPage = () => {
                                         fontSize: '12px',
                                     }}
                                 >
-                                    Butona tıklayarak ana sayfaya geçebilirsiniz
+                                    Click the button to go to the main page
                                 </div>
                             </div>
                         </div>
@@ -186,8 +186,8 @@ const AuthPage = () => {
                                     textAlign: 'center',
                                 }}
                             >
-                                📚 Kitaplarınızı organize edin, okuma
-                                deneyiminizi geliştirin
+                                📚 Organize your books, enhance your reading
+                                experience
                             </p>
                             <p
                                 style={{
@@ -196,7 +196,7 @@ const AuthPage = () => {
                                     margin: 0,
                                 }}
                             >
-                                v1.0.0 - Demo Sürüm
+                                v1.0.0 - Demo Version
                             </p>
                         </div>
                     </div>
@@ -222,7 +222,7 @@ const AuthPage = () => {
                             margin: 0,
                         }}
                     >
-                        ✨ Modern, hızlı ve kullanıcı dostu kütüphane yönetimi
+                        ✨ Modern, fast and user-friendly library management
                     </p>
                 </div>
             </div>

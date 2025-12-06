@@ -18,7 +18,7 @@ interface RatingFilterProps {
 
 const RatingFilter = ({ value, onChange, type }: RatingFilterProps) => {
   const options: FilterOption[] = type === 'movie' ? IMDB_RATING_OPTIONS : RATING_OPTIONS;
-  const label = type === 'movie' ? 'IMDb Puanı' : 'Puan';
+  const label = type === 'movie' ? 'IMDb Rating' : 'Rating';
   
   const selectedOption = options.find(opt => opt.value === String(value)) || options[0];
   

@@ -345,24 +345,24 @@ const ResourcePageLayout = <T extends Item>({
           </Heading>
           <HStack spacing={2}>
             <HStack spacing={1} bg={cardBg} p={1} borderRadius="lg" shadow="sm">
-              <Tooltip label="Kart Görünümü">
+              <Tooltip label="Card View">
                 <IconButton
                   icon={<Icon as={BsGrid3X3Gap} />}
                   size="sm"
                   variant={viewMode === 'card' ? 'solid' : 'ghost'}
                   colorScheme={viewMode === 'card' ? 'blue' : 'gray'}
                   onClick={() => setViewMode('card')}
-                  aria-label="Kart görünümü"
+                  aria-label="Card view"
                 />
               </Tooltip>
-              <Tooltip label="Liste Görünümü">
+              <Tooltip label="List View">
                 <IconButton
                   icon={<Icon as={BsList} />}
                   size="sm"
                   variant={viewMode === 'list' ? 'solid' : 'ghost'}
                   colorScheme={viewMode === 'list' ? 'blue' : 'gray'}
                   onClick={() => setViewMode('list')}
-                  aria-label="Liste görünümü"
+                  aria-label="List view"
                 />
               </Tooltip>
             </HStack>
@@ -407,7 +407,7 @@ const ResourcePageLayout = <T extends Item>({
                   leftIcon={<FaTags />}
                   rightIcon={<FaChevronDown />}
                 >
-                  Etiketler
+                  Tags
                   {(filterState.tags?.length || 0) > 0 && (
                     <Badge ml={2} colorScheme="teal" borderRadius="full">
                       {filterState.tags?.length}
@@ -422,7 +422,7 @@ const ResourcePageLayout = <T extends Item>({
                         color="red.500"
                         fontWeight="medium"
                       >
-                        Temizle
+                        Clear
                       </MenuItem>
                       <MenuDivider />
                     </>
@@ -462,8 +462,8 @@ const ResourcePageLayout = <T extends Item>({
                   rightIcon={<FaChevronDown />}
                 >
                   {filterState.lists && filterState.lists.length > 0
-                    ? availableLists.find((l) => l.id === filterState.lists![0])?.name || 'Liste'
-                    : 'Listeler'}
+                    ? availableLists.find((l) => l.id === filterState.lists![0])?.name || 'List'
+                    : 'Lists'}
                 </MenuButton>
                 <MenuList maxH="300px" overflowY="auto">
                   <MenuItem
@@ -472,7 +472,7 @@ const ResourcePageLayout = <T extends Item>({
                     bg={filterState.lists?.length === 0 ? 'blue.50' : undefined}
                     _dark={{ bg: filterState.lists?.length === 0 ? 'blue.900' : undefined }}
                   >
-                    Tümü
+                    All
                   </MenuItem>
                   <MenuDivider />
                   {availableLists.map((list) => (
@@ -513,7 +513,7 @@ const ResourcePageLayout = <T extends Item>({
                 onClick={onAddItem}
                 disabled={!onAddItem}
               >
-                İlk {itemType === 'book' ? 'kitabını' : 'filmini'} ekle
+                Add your first {itemType === 'book' ? 'book' : 'movie'}
               </Button>
             </VStack>
           </Center>

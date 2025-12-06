@@ -73,7 +73,7 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
           onClick={onToggle}
           fontWeight="medium"
         >
-          Gelişmiş Filtreler
+          Advanced Filters
           {activeCount > 0 && (
             <Badge ml={2} colorScheme="blue" borderRadius="full">
               {activeCount}
@@ -82,9 +82,9 @@ const Filters = ({ type, filterState, onFilterChange, availableCategories = [] }
         </Button>
 
         {activeCount > 0 && (
-          <Tooltip label="Filtreleri Sıfırla">
+          <Tooltip label="Reset Filters">
             <IconButton
-              aria-label="Filtreleri sıfırla"
+              aria-label="Reset filters"
               icon={<FaTimes />}
               size="sm"
               variant="ghost"

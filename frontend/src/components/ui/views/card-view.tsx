@@ -80,7 +80,7 @@ const CardView: React.FC<CardViewProps> = ({
               : (item as Movie).imageUrl;
             
             const subtitle = type === 'book' 
-              ? (item as Book).authors?.join(', ') || 'Yazar bilinmiyor'
+              ? (item as Book).authors?.join(', ') || 'Unknown author'
               : (item as Movie).director;
             
             const rating = type === 'book'
@@ -88,8 +88,8 @@ const CardView: React.FC<CardViewProps> = ({
               : (item as Movie).ratings?.at(0)?.Value || 0;
             
             const additionalInfo = type === 'book'
-              ? `${(item as Book).pageCount || 0}s`
-              : `${(item as Movie).runtime}dk`;
+              ? `${(item as Book).pageCount || 0}p`
+              : `${(item as Movie).runtime}min`;
 
             return (
               <Card

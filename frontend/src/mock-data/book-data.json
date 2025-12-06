@@ -19,12 +19,12 @@
       "Science Fiction"
     ],
     "status": "read",
-    "description": "Totaliter bir toplumda yaşayan Winston Smith'in hikayesi",
+    "description": "The story of Winston Smith living in a totalitarian society",
     "language": "en",
     "ISBN": "9780451524935",
     "tags": [
-      "Bilim Kurgu",
-      "Klasik"
+      "Sci-Fi",
+      "Classic"
     ]
   },
   {
@@ -47,11 +47,11 @@
       "Fiction"
     ],
     "status": "reading",
-    "description": "Irkçılık ve adaletsizlik karşısında cesaret hikayesi",
+    "description": "A story of courage against racism and injustice",
     "language": "en",
     "ISBN": "9780061120084",
     "tags": [
-      "Klasik"
+      "Classic"
     ],
     "currentPage": 300
   },
@@ -75,12 +75,12 @@
       "Classic"
     ],
     "status": "want-to-read",
-    "description": "Elizabeth Bennet ve Mr. Darcy'nin aşk hikayesi",
+    "description": "The love story of Elizabeth Bennet and Mr. Darcy",
     "language": "en",
     "ISBN": "9780141439518",
     "tags": [
-      "Romantik",
-      "Klasik"
+      "Romance",
+      "Classic"
     ]
   },
   {
@@ -103,7 +103,7 @@
       "Fiction"
     ],
     "status": "read",
-    "description": "1920'lerin Amerika'sında aşk ve hayal kırıklığı",
+    "description": "Love and disillusionment in 1920s America",
     "language": "en",
     "ISBN": "9780743273565"
   },
@@ -127,11 +127,11 @@
       "Fiction"
     ],
     "status": "reading",
-    "description": "Buendía ailesinin yedi neslik hikayesi",
+    "description": "The seven-generation story of the Buendía family",
     "language": "es",
     "ISBN": "9780060883287",
     "tags": [
-      "Fantastik"
+      "Fantasy"
     ],
     "currentPage": 198
   },
@@ -155,7 +155,7 @@
       "Fiction"
     ],
     "status": "want-to-read",
-    "description": "Holden Caulfield'in New York'taki maceraları",
+    "description": "Holden Caulfield's adventures in New York",
     "language": "en",
     "ISBN": "9780316769488"
   },
@@ -179,12 +179,12 @@
       "Adventure"
     ],
     "status": "read",
-    "description": "Orta Dünya'da büyük bir macera",
+    "description": "An epic adventure in Middle-earth",
     "language": "en",
     "ISBN": "9780618640157",
     "tags": [
-      "Fantastik",
-      "Macera"
+      "Fantasy",
+      "Adventure"
     ]
   },
   {
@@ -207,7 +207,7 @@
       "Psychological Fiction"
     ],
     "status": "reading",
-    "description": "Raskolnikov'un suç ve ceza hikayesi",
+    "description": "Raskolnikov's story of crime and punishment",
     "language": "ru",
     "ISBN": "9780486415871",
     "currentPage": 289
@@ -232,12 +232,12 @@
       "Adventure"
     ],
     "status": "want-to-read",
-    "description": "Bilbo Baggins'in beklenmedik yolculuğu",
+    "description": "Bilbo Baggins' unexpected journey",
     "language": "en",
     "ISBN": "9780345339683",
     "tags": [
-      "Fantastik",
-      "Macera"
+      "Fantasy",
+      "Adventure"
     ]
   },
   {
@@ -260,7 +260,7 @@
       "Classic"
     ],
     "status": "read",
-    "description": "Napolyon döneminde Rus aristokrasisi",
+    "description": "Russian aristocracy during the Napoleonic era",
     "language": "ru",
     "ISBN": "9781400079988"
   },
@@ -284,7 +284,7 @@
       "Classic"
     ],
     "status": "reading",
-    "description": "Güzellik ve ahlaki çöküş hikayesi",
+    "description": "A story of beauty and moral decay",
     "language": "en",
     "ISBN": "9780486278070",
     "currentPage": 92
@@ -309,7 +309,7 @@
       "Science Fiction"
     ],
     "status": "want-to-read",
-    "description": "Distopik bir gelecekte teknoloji ve kontrol",
+    "description": "Technology and control in a dystopian future",
     "language": "en",
     "ISBN": "9780060850524"
   },
@@ -333,7 +333,7 @@
       "Romance"
     ],
     "status": "read",
-    "description": "Yetim bir kızın aşk ve bağımsızlık mücadelesi",
+    "description": "An orphan girl's struggle for love and independence",
     "language": "en",
     "ISBN": "9780141441146"
   },
@@ -357,7 +357,7 @@
       "Classic"
     ],
     "status": "want-to-read",
-    "description": "Kaptan Ahab'ın beyaz balinayla mücadelesi",
+    "description": "Captain Ahab's battle with the white whale",
     "language": "en",
     "ISBN": "9781503280786"
   },
@@ -381,7 +381,7 @@
       "Classic"
     ],
     "status": "reading",
-    "description": "Mississippi Nehri'nde macera dolu yolculuk",
+    "description": "An adventurous journey on the Mississippi River",
     "language": "en",
     "ISBN": "9780486280616",
     "currentPage": 127
@@ -406,7 +406,7 @@
       "Romance"
     ],
     "status": "read",
-    "description": "Tutkulu ve yıkıcı bir aşk hikayesi",
+    "description": "A passionate and destructive love story",
     "language": "en",
     "ISBN": "9780141439556"
   },
@@ -430,7 +430,7 @@
       "Classic"
     ],
     "status": "want-to-read",
-    "description": "19. yüzyıl Fransa'sında adalet ve merhamet",
+    "description": "Justice and mercy in 19th century France",
     "language": "fr",
     "ISBN": "9780451419439"
   },
@@ -454,7 +454,7 @@
       "Historical Fiction"
     ],
     "status": "reading",
-    "description": "İhanet ve intikam hikayesi",
+    "description": "A story of betrayal and revenge",
     "language": "fr",
     "ISBN": "9780140449266",
     "currentPage": 634
@@ -479,7 +479,7 @@
       "Classic"
     ],
     "status": "read",
-    "description": "Aşk, ihanet ve toplumsal baskılar",
+    "description": "Love, betrayal and social pressures",
     "language": "ru",
     "ISBN": "9780143035008"
   },
@@ -503,7 +503,7 @@
       "Classic"
     ],
     "status": "want-to-read",
-    "description": "Dört kardeşin aile trajedisi",
+    "description": "A family tragedy of four brothers",
     "language": "ru",
     "ISBN": "9780374528379"
   },
@@ -527,7 +527,7 @@
       "Classic"
     ],
     "status": "reading",
-    "description": "Şövalyelik hayalleri kuran idealist bir adamın maceraları",
+    "description": "Adventures of an idealist dreaming of knighthood",
     "language": "es",
     "ISBN": "9780060934347",
     "currentPage": 412
@@ -552,7 +552,7 @@
       "Classic"
     ],
     "status": "read",
-    "description": "Pip'in büyük beklentileri ve hayal kırıklıkları",
+    "description": "Pip's great expectations and disappointments",
     "language": "en",
     "ISBN": "9780141439563"
   },
@@ -576,7 +576,7 @@
       "Science Fiction"
     ],
     "status": "want-to-read",
-    "description": "Bilim ve yaratılış üzerine gotik bir hikaye",
+    "description": "A gothic story about science and creation",
     "language": "en",
     "ISBN": "9780486282115"
   },
@@ -600,7 +600,7 @@
       "Classic"
     ],
     "status": "reading",
-    "description": "Odysseus'un efsanevi yolculuğu",
+    "description": "Odysseus' legendary journey",
     "language": "grc",
     "ISBN": "9780140268867",
     "currentPage": 201
