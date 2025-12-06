@@ -1,0 +1,83 @@
+[
+  {
+    "id": "list-1",
+    "name": "My Favorites",
+    "description": "My favorite books and movies",
+    "color": "red",
+    "icon": "heart",
+    "items": [
+      { "type": "book", "id": "1" },
+      { "type": "book", "id": "3" },
+      { "type": "movie", "id": "tt0111161" },
+      { "type": "movie", "id": "tt0068646" }
+    ],
+    "createdAt": "2024-01-15"
+  },
+  {
+    "id": "list-2",
+    "name": "Weekend Watchlist",
+    "description": "Movies planned for the weekend",
+    "color": "blue",
+    "icon": "calendar",
+    "items": [
+      { "type": "movie", "id": "tt0110912" },
+      { "type": "movie", "id": "tt0109830" }
+    ],
+    "createdAt": "2024-02-20"
+  },
+  {
+    "id": "list-3",
+    "name": "Classics",
+    "description": "Must-read and must-watch classics",
+    "color": "purple",
+    "icon": "star",
+    "items": [
+      { "type": "book", "id": "1" },
+      { "type": "book", "id": "2" },
+      { "type": "book", "id": "5" },
+      { "type": "movie", "id": "tt0068646" },
+      { "type": "movie", "id": "tt0071562" }
+    ],
+    "createdAt": "2024-03-10"
+  },
+  {
+    "id": "list-4",
+    "name": "Sci-Fi Collection",
+    "description": "Science fiction books and movies",
+    "color": "teal",
+    "icon": "rocket",
+    "items": [
+      { "type": "book", "id": "1" },
+      { "type": "book", "id": "6" },
+      { "type": "movie", "id": "tt0133093" },
+      { "type": "movie", "id": "tt0816692" }
+    ],
+    "createdAt": "2024-04-05"
+  },
+  {
+    "id": "list-5",
+    "name": "2024 Reading List",
+    "description": "Books I plan to read this year",
+    "color": "green",
+    "icon": "book",
+    "items": [
+      { "type": "book", "id": "4" },
+      { "type": "book", "id": "7" },
+      { "type": "book", "id": "10" }
+    ],
+    "createdAt": "2024-01-01"
+  },
+  {
+    "id": "list-6",
+    "name": "Friend Recommendations",
+    "description": "Works recommended by friends",
+    "color": "orange",
+    "icon": "users",
+    "items": [
+      { "type": "book", "id": "8" },
+      { "type": "movie", "id": "tt0120737" },
+      { "type": "movie", "id": "tt0167260" }
+    ],
+    "createdAt": "2024-05-12"
+  }
+]

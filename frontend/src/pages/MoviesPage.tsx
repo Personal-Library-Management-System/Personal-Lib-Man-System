@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Movie } from '../types';
 import mockMoviesData from '../mock-data/movie-data.json';
@@ -8,8 +8,8 @@ import AddMedia, { type SearchState } from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {
   const statusConfig: Record<Movie['status'], { text: string; colorScheme: string }> = {
-    'watched': { text: 'İzlendi', colorScheme: 'green' },
-    'want-to-watch': { text: 'İzlenecek', colorScheme: 'yellow' }
+    'watched': { text: 'Watched', colorScheme: 'green' },
+    'want-to-watch': { text: 'Want to Watch', colorScheme: 'yellow' }
   };
   if (status in statusConfig) {
     const config = statusConfig[status as Movie['status']];
@@ -19,9 +19,9 @@ const getStatusBadge = (status: string) => {
 };
 
 const filters = [
-  { key: 'all', label: 'Tümü' },
-  { key: 'watched', label: 'İzlendi' },
-  { key: 'want-to-watch', label: 'İzlenecek' }
+  { key: 'all', label: 'All' },
+  { key: 'watched', label: 'Watched' },
+  { key: 'want-to-watch', label: 'Want to Watch' }
 ];
 
 const OMDb_API_KEY = import.meta.env.VITE_OMDB_API_KEY;
@@ -32,7 +32,7 @@ const MoviesPage = () => {
   const { isOpen, onOpen, onClose } = useDisclosure();
 
   if (!OMDb_API_KEY) {
-    console.error('OMDb API anahtarı bulunamadı. Lütfen .env dosyanıza VITE_OMDB_API_KEY ekleyin.');
+    console.error('OMDb API key not found. Please add VITE_OMDB_API_KEY to your .env file.');
   }
 
   const handleMovieClick = (movie: Movie) => {
@@ -46,7 +46,7 @@ const MoviesPage = () => {
 
   const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
     if (!OMDb_API_KEY) {
-      console.error('OMDb API anahtarı bulunamadı.');
+      console.error('OMDb API key not found.');
       setSearchState('error');
       return;
     }
@@ -54,7 +54,7 @@ const MoviesPage = () => {
     setSearchState('loading');
     setSearchResults([]);
 
-    // OMDb API'si için sorgu oluşturma
+    // Build query for OMDb API
     let apiUrl = `https://www.omdbapi.com/?apikey=${OMDb_API_KEY}&s=${encodeURIComponent(payload.query)}`;
     if (payload.extras.year) {
       apiUrl += `&y=${payload.extras.year}`;
@@ -62,7 +62,7 @@ const MoviesPage = () => {
 
     try {
       const response = await fetch(apiUrl);
-      if (!response.ok) throw new Error('OMDb API isteği başarısız oldu');
+      if (!response.ok) throw new Error('OMDb API request failed');
 
       const data = await response.json();
       if (data.Response === 'True') {
@@ -90,16 +90,16 @@ const MoviesPage = () => {
               return {
                 id: movie.imdbID, // IMDb ID'yi doğrudan string olarak kullan
                 title: movie.Title,
-                director: detailData.Director || 'Bilinmiyor',
+                director: detailData.Director || 'Unknown',
                 imageUrl: movie.Poster !== 'N/A' ? movie.Poster : '',
                 releaseDate: movie.Year,
                 duration: parseInt(detailData.Runtime) || 0,
                 rating: parseFloat(detailData.imdbRating) || 0,
                 status: 'want-to-watch' as const,
-                description: detailData.Plot || 'Açıklama bulunmuyor'
+                description: detailData.Plot || 'No description available'
               };
             } catch (error) {
-              console.error(`Film detayı alınamadı: ${movie.Title}`, error);
+              console.error(`Could not fetch movie details: ${movie.Title}`, error);
               return null;
             }
           });
@@ -113,7 +113,7 @@ const MoviesPage = () => {
         setSearchState('no-results');
       }
     } catch (error) {
-      console.error('OMDb Arama Hatası:', error);
+      console.error('OMDb Search Error:', error);
       setSearchState('error');
     }
   };
@@ -121,16 +121,16 @@ const MoviesPage = () => {
   return (
     <>
       <ResourcePageLayout
-        pageTitle="🎬 Film Arşivim"
+        pageTitle="🎬 My Movies"
         activeItem="filmarsivi"
         mockData={mockMoviesData as Movie[]}
         filters={filters}
         getStatusBadge={getStatusBadge}
         itemType="movie"
-        addItemButtonText="+ Film Ekle"
+        addItemButtonText="+ Add Movie"
         onAddItem={onOpen}
         emptyStateIcon="🎬"
-        emptyStateText="Bu kategoride film bulunamadı."
+        emptyStateText="No movies found in this category."
         onItemClick={handleMovieClick}
       />
 
@@ -149,8 +149,8 @@ const MoviesPage = () => {
           }
         }}
         optionalFields={[
-          { name: 'director', label: 'Yönetmen', placeholder: 'Örn. Christopher Nolan' },
-          { name: 'year', label: 'Çıkış Yılı', placeholder: 'Örn. 2021' }
+          { name: 'director', label: 'Director', placeholder: 'e.g. Christopher Nolan' },
+          { name: 'year', label: 'Release Year', placeholder: 'e.g. 2021' }
         ]}
       />
 

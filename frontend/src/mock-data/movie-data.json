@@ -9,6 +9,7 @@
     "imdbRating": "9.3",
     "imdbVotes": "2,805,123",
     "genre": ["Drama"],
+    "categories": ["Drama"],
     "plot": "Over the course of several years, two convicts form a friendship, seeking consolation and, eventually, redemption through basic compassion.",
     "language": "English",
     "writer": "Stephen King, Frank Darabont",
@@ -20,8 +21,8 @@
       { "Source": "Metacritic", "Value": "80/100" }
     ],
     "status": "watched",
-    "description": "İki hükümlü yıllar boyunca bağ kurar ve nihayetinde dostluk ve kefaret yoluyla teselli bulur",
-    "tags": ["Dram", "Klasik"]
+    "description": "Two convicts form a bond over the years and find solace through friendship and redemption",
+    "tags": ["Drama", "Classic"]
   },
   {
     "id": "tt0068646",
@@ -33,6 +34,7 @@
     "imdbRating": "9.2",
     "imdbVotes": "1,954,453",
     "genre": ["Crime", "Drama"],
+    "categories": ["Crime", "Drama"],
     "plot": "The aging patriarch of an organized crime dynasty transfers control of his clandestine empire to his reluctant son.",
     "language": "English, Italian, Latin",
     "writer": "Mario Puzo, Francis Ford Coppola",
@@ -44,8 +46,8 @@
       { "Source": "Metacritic", "Value": "100/100" }
     ],
     "status": "watched",
-    "description": "Güçlü bir Amerikan suç ailesinin yaşlı patriğinin kontrolünü en küçük oğluna devretmesi",
-    "tags": ["Suç", "Klasik"]
+    "description": "The aging patriarch of a powerful American crime family transfers control to his youngest son",
+    "tags": ["Crime", "Classic"]
   },
   {
     "id": "tt0468569",
@@ -57,6 +59,7 @@
     "imdbRating": "9.0",
     "imdbVotes": "2,784,564",
     "genre": ["Action", "Crime", "Drama"],
+    "categories": ["Action", "Crime", "Drama"],
     "plot": "When the menace known as the Joker wreaks havoc and chaos on the people of Gotham, Batman must accept one of the greatest psychological and physical tests of his ability to fight injustice.",
     "language": "English, Mandarin",
     "writer": "Jonathan Nolan, Christopher Nolan, David S. Goyer",
@@ -68,7 +71,7 @@
       { "Source": "Metacritic", "Value": "84/100" }
     ],
     "status": "want-to-watch",
-    "description": "Batman, Joker adlı anarşist suçluyla karşı karşıya gelir"
+    "description": "Batman faces off against the anarchist criminal known as the Joker"
   },
   {
     "id": "tt0050083",
@@ -80,6 +83,7 @@
     "imdbRating": "9.0",
     "imdbVotes": "834,125",
     "genre": ["Crime", "Drama"],
+    "categories": ["Crime", "Drama"],
     "plot": "The jury in a New York City murder trial is frustrated by a single member whose skeptical caution forces them to more carefully consider the evidence before jumping to a hasty verdict.",
     "language": "English",
     "writer": "Reginald Rose",
@@ -91,8 +95,8 @@
       { "Source": "Metacritic", "Value": "96/100" }
     ],
     "status": "want-to-watch",
-    "description": "Jüri üyelerinin bir cinayet davasındaki müzakereleri",
-    "tags": ["Klasik"]
+    "description": "Jury members deliberate on a murder case",
+    "tags": ["Classic"]
   },
   {
     "id": "tt0108052",
@@ -104,6 +108,7 @@
     "imdbRating": "9.0",
     "imdbVotes": "1,412,543",
     "genre": ["Biography", "Drama", "History"],
+    "categories": ["Biography", "Drama", "History"],
     "plot": "In German-occupied Poland during World War II, industrialist Oskar Schindler gradually becomes concerned for his Jewish workforce after witnessing their persecution by the Nazis.",
     "language": "English, Hebrew, German, Polish, Latin",
     "writer": "Thomas Keneally, Steven Zaillian",
@@ -115,8 +120,8 @@
       { "Source": "Metacritic", "Value": "94/100" }
     ],
     "status": "watched",
-    "description": "Holocaust sırasında Yahudileri kurtaran Oskar Schindler'in hikayesi",
-    "tags": ["Tarih", "Dram"]
+    "description": "The story of Oskar Schindler who saved Jews during the Holocaust",
+    "tags": ["History", "Drama"]
   },
   {
     "id": "tt0110912",
@@ -128,6 +133,7 @@
     "imdbRating": "8.9",
     "imdbVotes": "2,154,321",
     "genre": ["Crime", "Drama"],
+    "categories": ["Crime", "Drama"],
     "plot": "The lives of two mob hitmen, a boxer, a gangster and his wife, and a pair of diner bandits intertwine in four tales of violence and redemption.",
     "language": "English, Spanish, French",
     "writer": "Quentin Tarantino, Roger Avary",
@@ -139,8 +145,8 @@
       { "Source": "Metacritic", "Value": "94/100" }
     ],
     "status": "want-to-watch",
-    "description": "Los Angeles'ta birbirine bağlı suçlu hikayelerinin koleksiyonu",
-    "tags": ["Suç", "Klasik"]
+    "description": "A collection of interconnected criminal stories in Los Angeles",
+    "tags": ["Crime", "Classic"]
   },
   {
     "id": "tt0167260",
@@ -152,6 +158,7 @@
     "imdbRating": "9.0",
     "imdbVotes": "1,921,456",
     "genre": ["Action", "Adventure", "Drama"],
+    "categories": ["Action", "Adventure", "Drama"],
     "plot": "Gandalf and Aragorn lead the World of Men against Sauron's army to draw his gaze from Frodo and Sam as they approach Mount Doom with the One Ring.",
     "language": "English, Quenya, Old English, Sindarin",
     "writer": "J.R.R. Tolkien, Fran Walsh, Philippa Boyens",
@@ -163,8 +170,8 @@
       { "Source": "Metacritic", "Value": "94/100" }
     ],
     "status": "want-to-watch",
-    "description": "Gandalf ve Aragorn, Frodo ve Sam'in Mordor'a yolculuğunda Gondor'un orduları",
-    "tags": ["Fantastik", "Macera"]
+    "description": "Gandalf and Aragorn lead the armies of Gondor while Frodo and Sam journey to Mordor",
+    "tags": ["Fantasy", "Adventure"]
   },
   {
     "id": "tt0109830",
@@ -176,6 +183,7 @@
     "imdbRating": "8.8",
     "imdbVotes": "2,184,321",
     "genre": ["Drama", "Romance"],
+    "categories": ["Drama", "Romance"],
     "plot": "The presidencies of Kennedy and Johnson, the Vietnam War, the Watergate scandal and other historical events unfold from the perspective of an Alabama man with an IQ of 75, whose only desire is to be reunited with his childhood sweetheart.",
     "language": "English",
     "writer": "Winston Groom, Eric Roth",
@@ -187,8 +195,8 @@
       { "Source": "Metacritic", "Value": "82/100" }
     ],
     "status": "watched",
-    "description": "Düşük IQ'lu ama iyi kalpli bir adamın yaşamının anlatıldığı dram",
-    "tags": ["Dram", "Romantik"]
+    "description": "A drama about the life of a kind-hearted man with low IQ",
+    "tags": ["Drama", "Romance"]
   },
   {
     "id": "tt1375666",
@@ -200,6 +208,7 @@
     "imdbRating": "8.8",
     "imdbVotes": "2,465,789",
     "genre": ["Action", "Adventure", "Sci-Fi"],
+    "categories": ["Action", "Adventure", "Sci-Fi"],
     "plot": "A thief who steals corporate secrets through the use of dream-sharing technology is given the inverse task of planting an idea into the mind of a C.E.O., but his tragic past may doom the project and his team to disaster.",
     "language": "English, Japanese, French",
     "writer": "Christopher Nolan",
@@ -211,8 +220,8 @@
       { "Source": "Metacritic", "Value": "74/100" }
     ],
     "status": "want-to-watch",
-    "description": "Rüya paylaşımı teknolojisi ile bilinçaltına girme hikayesi",
-    "tags": ["Bilim Kurgu", "Aksiyon"]
+    "description": "A story about entering the subconscious through dream-sharing technology",
+    "tags": ["Sci-Fi", "Action"]
   },
   {
     "id": "tt0137523",
@@ -224,6 +233,7 @@
     "imdbRating": "8.8",
     "imdbVotes": "2,234,567",
     "genre": ["Drama"],
+    "categories": ["Drama"],
     "plot": "An insomniac office worker and a devil-may-care soap maker form an underground fight club that evolves into something much, much more.",
     "language": "English",
     "writer": "Chuck Palahniuk, Jim Uhls",
@@ -235,8 +245,8 @@
       { "Source": "Metacritic", "Value": "66/100" }
     ],
     "status": "want-to-watch",
-    "description": "Uykusuzluk hastası bir adam ve sabun satıcısının kurduğu yeraltı dövüş kulübü",
-    "tags": ["Dram", "Aksiyon"]
+    "description": "An insomniac and a soap salesman create an underground fight club",
+    "tags": ["Drama", "Action"]
   },
   {
     "id": "tt0133093",
@@ -248,6 +258,7 @@
     "imdbRating": "8.7",
     "imdbVotes": "1,998,765",
     "genre": ["Action", "Sci-Fi"],
+    "categories": ["Action", "Sci-Fi"],
     "plot": "When a beautiful stranger leads computer hacker Neo to a forbidding underworld, he discovers the shocking truth--the life he knows is the elaborate deception of an evil cyber-intelligence.",
     "language": "English",
     "writer": "Lilly Wachowski, Lana Wachowski",
@@ -259,8 +270,8 @@
       { "Source": "Metacritic", "Value": "73/100" }
     ],
     "status": "watched",
-    "description": "Bilgisayar hackerı Neo, gerçekliğin doğasını sorgulamaya başlar",
-    "tags": ["Bilim Kurgu", "Aksiyon"]
+    "description": "Computer hacker Neo begins to question the nature of reality",
+    "tags": ["Sci-Fi", "Action"]
   },
   {
     "id": "tt0099685",
@@ -272,6 +283,7 @@
     "imdbRating": "8.7",
     "imdbVotes": "1,212,345",
     "genre": ["Biography", "Crime", "Drama"],
+    "categories": ["Biography", "Crime", "Drama"],
     "plot": "The story of Henry Hill and his life in the mob, covering his relationship with his wife Karen Hill and his mob partners Jimmy Conway and Tommy DeVito in the Italian-American crime syndicate.",
     "language": "English, Italian",
     "writer": "Nicholas Pileggi, Martin Scorsese",
@@ -283,8 +295,8 @@
       { "Source": "Metacritic", "Value": "90/100" }
     ],
     "status": "want-to-watch",
-    "description": "Henry Hill'in mafya dünyasındaki yükselişi ve düşüşü",
-    "tags": ["Suç", "Klasik"]
+    "description": "Henry Hill's rise and fall in the mafia world",
+    "tags": ["Crime", "Classic"]
   },
   {
     "id": "tt0080684",
@@ -296,6 +308,7 @@
     "imdbRating": "8.7",
     "imdbVotes": "1,345,678",
     "genre": ["Action", "Adventure", "Fantasy"],
+    "categories": ["Action", "Adventure", "Fantasy"],
     "plot": "After the Rebels are brutally overpowered by the Empire on the ice planet Hoth, Luke Skywalker begins Jedi training with Yoda, while his friends are pursued across the galaxy by Darth Vader and bounty hunter Boba Fett.",
     "language": "English",
     "writer": "Leigh Brackett, Lawrence Kasdan, George Lucas",
@@ -307,8 +320,8 @@
       { "Source": "Metacritic", "Value": "82/100" }
     ],
     "status": "want-to-watch",
-    "description": "Luke Skywalker Jedi eğitimini alırken, arkadaşları İmparatorluktan kaçmaya çalışır",
-    "tags": ["Fantastik", "Macera"]
+    "description": "Luke Skywalker trains as a Jedi while his friends flee from the Empire",
+    "tags": ["Fantasy", "Adventure"]
   },
   {
     "id": "tt0073486",
@@ -320,6 +333,7 @@
     "imdbRating": "8.7",
     "imdbVotes": "1,045,678",
     "genre": ["Drama"],
+    "categories": ["Drama"],
     "plot": "A criminal pleads insanity and is admitted to a mental institution, where he rebels against the oppressive nurse and rallies up the scared patients.",
     "language": "English",
     "writer": "Lawrence Hauben, Bo Goldman, Ken Kesey",
@@ -331,8 +345,8 @@
       { "Source": "Metacritic", "Value": "79/100" }
     ],
     "status": "watched",
-    "description": "Akıl hastanesinde geçen isyan hikayesi",
-    "tags": ["Dram", "Klasik"]
+    "description": "A story of rebellion set in a mental institution",
+    "tags": ["Drama", "Classic"]
   },
   {
     "id": "tt0102926",
@@ -344,6 +358,7 @@
     "imdbRating": "8.6",
     "imdbVotes": "1,500,123",
     "genre": ["Crime", "Drama", "Thriller"],
+    "categories": ["Crime", "Drama", "Thriller"],
     "plot": "A young F.B.I. cadet must receive the help of an incarcerated and manipulative cannibal killer to help catch another serial killer, a madman who skins his victims.",
     "language": "English, Latin",
     "writer": "Thomas Harris, Ted Tally",
@@ -355,8 +370,8 @@
       { "Source": "Metacritic", "Value": "85/100" }
     ],
     "status": "want-to-watch",
-    "description": "FBI ajanı Clarice Starling, seri katil Hannibal Lecter'dan yardım ister",
-    "tags": ["Gerilim", "Suç"]
+    "description": "FBI agent Clarice Starling seeks help from serial killer Hannibal Lecter",
+    "tags": ["Thriller", "Crime"]
   },
   {
     "id": "tt0120815",
@@ -368,6 +383,7 @@
     "imdbRating": "8.6",
     "imdbVotes": "1,456,789",
     "genre": ["Drama", "War"],
+    "categories": ["Drama", "War"],
     "plot": "Following the Normandy Landings, a group of U.S. soldiers go behind enemy lines to retrieve a paratrooper whose brothers have been killed in action.",
     "language": "English, French, German, Czech",
     "writer": "Robert Rodat",
@@ -379,8 +395,8 @@
       { "Source": "Metacritic", "Value": "91/100" }
     ],
     "status": "want-to-watch",
-    "description": "D-Day çıkarması sonrası kayıp bir askerin aranması",
-    "tags": ["Savaş", "Dram"]
+    "description": "The search for a missing soldier after the D-Day landings",
+    "tags": ["War", "Drama"]
   },
   {
     "id": "tt0317248",
@@ -392,6 +408,7 @@
     "imdbRating": "8.6",
     "imdbVotes": "789,123",
     "genre": ["Crime", "Drama"],
+    "categories": ["Crime", "Drama"],
     "plot": "In the slums of Rio, two kids' paths diverge as one struggles to become a photographer and the other a kingpin.",
     "language": "Portuguese",
     "writer": "Paulo Lins, Bráulio Mantovani",
@@ -403,8 +420,8 @@
       { "Source": "Metacritic", "Value": "79/100" }
     ],
     "status": "watched",
-    "description": "Rio de Janeiro'nun tehlikeli mahallelerindeki yaşam",
-    "tags": ["Suç", "Dram"]
+    "description": "Life in the dangerous neighborhoods of Rio de Janeiro",
+    "tags": ["Crime", "Drama"]
   },
   {
     "id": "tt0816692",
@@ -416,6 +433,7 @@
     "imdbRating": "8.7",
     "imdbVotes": "1,987,654",
     "genre": ["Adventure", "Drama", "Sci-Fi"],
+    "categories": ["Adventure", "Drama", "Sci-Fi"],
     "plot": "A team of explorers travel through a wormhole in space in an attempt to ensure humanity's survival.",
     "language": "English",
     "writer": "Jonathan Nolan, Christopher Nolan",
@@ -427,8 +445,8 @@
       { "Source": "Metacritic", "Value": "74/100" }
     ],
     "status": "want-to-watch",
-    "description": "Astronotların insanlığı kurtarmak için uzay yolculuğu",
-    "tags": ["Bilim Kurgu", "Dram"]
+    "description": "Astronauts embark on a space journey to save humanity",
+    "tags": ["Sci-Fi", "Drama"]
   },
   {
     "id": "tt0118799",
@@ -440,6 +458,7 @@
     "imdbRating": "8.6",
     "imdbVotes": "723,456",
     "genre": ["Comedy", "Drama", "Romance"],
+    "categories": ["Comedy", "Drama", "Romance"],
     "plot": "When an open-minded Jewish waiter and his son become victims of the Holocaust, he uses a perfect mixture of will, humor, and imagination to protect his son from the dangers around their camp.",
     "language": "Italian, German, English",
     "writer": "Vincenzo Cerami, Roberto Benigni",
@@ -451,8 +470,8 @@
       { "Source": "Metacritic", "Value": "59/100" }
     ],
     "status": "want-to-watch",
-    "description": "Holocaust sırasında bir babanın oğlunu koruma çabası",
-    "tags": ["Dram", "Komedi"]
+    "description": "A father's struggle to protect his son during the Holocaust",
+    "tags": ["Drama", "Comedy"]
   },
   {
     "id": "tt0482571",
@@ -464,6 +483,7 @@
     "imdbRating": "8.5",
     "imdbVotes": "1,400,123",
     "genre": ["Drama", "Mystery", "Sci-Fi"],
+    "categories": ["Drama", "Mystery", "Sci-Fi"],
     "plot": "After a tragic accident, two stage magicians in 1890s London engage in a battle to create the ultimate illusion while sacrificing everything they have to outwit each other.",
     "language": "English",
     "writer": "Jonathan Nolan, Christopher Nolan, Christopher Priest",
@@ -475,8 +495,8 @@
       { "Source": "Metacritic", "Value": "68/100" }
     ],
     "status": "watched",
-    "description": "İki sihirbazın arasındaki rekabet ve intikam hikayesi",
-    "tags": ["Dram", "Gizem"]
+    "description": "A rivalry and revenge story between two magicians",
+    "tags": ["Drama", "Mystery"]
   },
   {
     "id": "tt0407887",
@@ -488,6 +508,7 @@
     "imdbRating": "8.5",
     "imdbVotes": "1,387,654",
     "genre": ["Crime", "Drama", "Thriller"],
+    "categories": ["Crime", "Drama", "Thriller"],
     "plot": "An undercover cop and a mole in the police attempt to identify each other while infiltrating an Irish gang in South Boston.",
     "language": "English, Cantonese",
     "writer": "William Monahan, Alan Mak, Felix Chong",
@@ -499,8 +520,8 @@
       { "Source": "Metacritic", "Value": "85/100" }
     ],
     "status": "want-to-watch",
-    "description": "Boston'da mafya ve polis arasındaki çifte ajan hikayesi",
-    "tags": ["Suç", "Gerilim"]
+    "description": "A double agent story between the mafia and police in Boston",
+    "tags": ["Crime", "Thriller"]
   },
   {
     "id": "tt2582802",
@@ -512,6 +533,7 @@
     "imdbRating": "8.5",
     "imdbVotes": "912,345",
     "genre": ["Drama", "Music"],
+    "categories": ["Drama", "Music"],
     "plot": "A promising young drummer enrolls at a cut-throat music conservatory where his dreams of greatness are mentored by an instructor who will stop at nothing to realize a student's potential.",
     "language": "English",
     "writer": "Damien Chazelle",
@@ -523,8 +545,8 @@
       { "Source": "Metacritic", "Value": "88/100" }
     ],
     "status": "want-to-watch",
-    "description": "Genç davulcu ile acımasız müzik öğretmeni arasındaki ilişki",
-    "tags": ["Dram", "Müzik"]
+    "description": "The intense relationship between a young drummer and his ruthless music instructor",
+    "tags": ["Drama", "Music"]
   },
   {
     "id": "tt0172495",
@@ -536,6 +558,7 @@
     "imdbRating": "8.5",
     "imdbVotes": "1,567,890",
     "genre": ["Action", "Adventure", "Drama"],
+    "categories": ["Action", "Adventure", "Drama"],
     "plot": "A former Roman General sets out to exact vengeance against the corrupt emperor who murdered his family and sent him into slavery.",
     "language": "English",
     "writer": "David Franzoni, John Logan, William Nicholson",
@@ -547,8 +570,8 @@
       { "Source": "Metacritic", "Value": "67/100" }
     ],
     "status": "watched",
-    "description": "Roma generali Maximus'un gladyatör olarak intikam yolculuğu",
-    "tags": ["Aksiyon", "Dram"]
+    "description": "Roman general Maximus's journey of revenge as a gladiator",
+    "tags": ["Action", "Drama"]
   },
   {
     "id": "tt0110357",
@@ -560,6 +583,7 @@
     "imdbRating": "8.5",
     "imdbVotes": "1,100,123",
     "genre": ["Animation", "Adventure", "Drama"],
+    "categories": ["Animation", "Adventure", "Drama"],
     "plot": "Lion prince Simba and his father are targeted by his bitter uncle, who wants to ascend the throne himself.",
     "language": "English, Swahili, Xhosa, Zulu",
     "writer": "Irene Mecchi, Jonathan Roberts, Linda Woolverton",
@@ -571,7 +595,7 @@
       { "Source": "Metacritic", "Value": "88/100" }
     ],
     "status": "want-to-watch",
-    "description": "Genç aslan Simba'nın kral olma yolculuğu",
-    "tags": ["Animasyon", "Macera"]
+    "description": "Young lion Simba's journey to becoming king",
+    "tags": ["Animation", "Adventure"]
   }
 ]

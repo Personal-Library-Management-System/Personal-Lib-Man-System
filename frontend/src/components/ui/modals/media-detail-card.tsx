@@ -28,6 +28,7 @@ import {
 import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
 import TagSelector from '../tag-selector';
+import PersonalNote from '../personal-note';
 
 export interface InfoBlock {
   label: string;
@@ -64,6 +65,9 @@ export interface BookDetailCardProps {
   onCreateTag?: (tagName: string) => void;
   // callback when tags change (used by TagSelector)
   onTagsChange?: (tags: string[]) => void;
+  // Personal note
+  personalNote?: string;
+  onPersonalNoteChange?: (note: string) => void;
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -83,6 +87,8 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   assignedTags = [],
   onTagsChange,
   onCreateTag,
+  personalNote = '',
+  onPersonalNoteChange,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const blockBg = useColorModeValue('gray.50', 'whiteAlpha.100');
@@ -171,6 +177,12 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
               {description}
             </Text>
           </Box>
+
+          {/* Personal Note */}
+          <PersonalNote
+            note={personalNote}
+            onChange={onPersonalNoteChange || (() => {})}
+          />
         </Flex>
       </Flex>
 
@@ -182,20 +194,17 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
         justify="space-between"
         gap={4}
       >
-        {/* Aksiyon Butonları */}
+        {/* Action Buttons */}
         <HStack spacing={3}>
-          {/* Mevcut Aksiyonlar */}
           <Button colorScheme="blue" onClick={onEdit}>
-            Düzenle
+            Edit
           </Button>
           <Button colorScheme="red" variant="outline" onClick={onRemove}>
-            Kaldır
+            Remove
           </Button>
 
-          {/* Ayrım için Divider */}
           <Divider orientation="vertical" h="24px" borderColor={borderColor} />
 
-          {/* Yeni Aksiyonlar */}
           <TagSelector 
             assignedTags={assignedTags}
             onChange={onTagsChange || (() => {})}
@@ -203,9 +212,9 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
             onCreateTag={onCreateTag}
           />
 
-          <Tooltip label="Listeye Ekle" aria-label="Listeye Ekle">
+          <Tooltip label="Add to List" aria-label="Add to List">
             <IconButton
-              aria-label="Listeye Ekle"
+              aria-label="Add to List"
               icon={<FiPlus />}
               colorScheme="teal"
               variant="outline"
@@ -214,10 +223,10 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
           </Tooltip>
         </HStack>
 
-        {/* Durum Değiştir */}
+        {/* Change Status */}
         <FormControl maxW="220px">
           <FormLabel fontSize="sm" color="gray.500" mb={1}>
-            Durum Değiştir
+            Change Status
           </FormLabel>
           <Select
             value={status}

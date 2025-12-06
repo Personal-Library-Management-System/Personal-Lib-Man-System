@@ -8,9 +8,9 @@ import AddMedia, { type SearchState } from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {
   const statusConfig: Record<Book['status'], { text: string; colorScheme: string }> = {
-    'read': { text: 'Okundu', colorScheme: 'green' },
-    'reading': { text: 'Okunuyor', colorScheme: 'blue' },
-    'want-to-read': { text: 'Okunacak', colorScheme: 'yellow' }
+    'read': { text: 'Read', colorScheme: 'green' },
+    'reading': { text: 'Reading', colorScheme: 'blue' },
+    'want-to-read': { text: 'Want to Read', colorScheme: 'yellow' }
   };
   if (status in statusConfig) {
     const config = statusConfig[status as Book['status']];
@@ -20,10 +20,10 @@ const getStatusBadge = (status: string) => {
 };
 
 const filters = [
-  { key: 'all', label: 'Tümü' },
-  { key: 'read', label: 'Okundu' },
-  { key: 'reading', label: 'Okunuyor' },
-  { key: 'want-to-read', label: 'Okunacak' }
+  { key: 'all', label: 'All' },
+  { key: 'read', label: 'Read' },
+  { key: 'reading', label: 'Reading' },
+  { key: 'want-to-read', label: 'Want to Read' }
 ];
 
 const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
@@ -35,7 +35,7 @@ const LibraryPage = () => {
 
   if (!GOOGLE_BOOKS_API_KEY) {
     console.error(
-      'Google Books API anahtarı bulunamadı. Lütfen .env dosyanıza VITE_GOOGLE_BOOKS_API_KEY ekleyin.'
+      'Google Books API key not found. Please add VITE_GOOGLE_BOOKS_API_KEY to your .env file.'
     );
   }
   const handleBookClick = (book: Book) => {
@@ -49,7 +49,7 @@ const LibraryPage = () => {
 
   const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
     if (!GOOGLE_BOOKS_API_KEY) {
-      console.error('Google Books API anahtarı bulunamadı.');
+      console.error('Google Books API key not found.');
       setSearchState('error');
       return;
     }
@@ -72,7 +72,7 @@ const LibraryPage = () => {
         )}&key=${GOOGLE_BOOKS_API_KEY}&maxResults=20`
       );
       if (!response.ok) {
-        throw new Error('API isteği başarısız oldu');
+        throw new Error('API request failed');
       }
       const data = await response.json();
       const rawItems = data.items || [];
@@ -106,7 +106,7 @@ const LibraryPage = () => {
     setSearchResults(uniqueBooks);
     setSearchState(uniqueBooks.length > 0 ? 'success' : 'no-results');
   } catch (error) {
-    console.error('Arama hatası:', error);
+    console.error('Search error:', error);
     setSearchState('error');
   }
   };
@@ -114,16 +114,16 @@ const LibraryPage = () => {
   return (
     <>
       <ResourcePageLayout
-        pageTitle="📚 Kitaplığım"
+        pageTitle="📚 My Library"
         activeItem="kitaplik"
         mockData={mockBooksData as Book[]}
         filters={filters}
         getStatusBadge={getStatusBadge}
         itemType="book"
-        addItemButtonText="+ Kitap Ekle"
+        addItemButtonText="+ Add Book"
         onAddItem={onOpen}
         emptyStateIcon="📚"
-        emptyStateText="Bu kategoride kitap bulunamadı."
+        emptyStateText="No books found in this category."
         onItemClick={handleBookClick}
       />
 
@@ -142,8 +142,8 @@ const LibraryPage = () => {
           }
         }}
         optionalFields={[
-          { name: 'author', label: 'Yazar', placeholder: 'Örn. Orhan Pamuk' },
-          { name: 'publisher', label: 'Yayınevi', placeholder: 'Örn. Can Yayınları' },
+          { name: 'author', label: 'Author', placeholder: 'e.g. George Orwell' },
+          { name: 'publisher', label: 'Publisher', placeholder: 'e.g. Penguin Books' },
         ]}
       />
 
