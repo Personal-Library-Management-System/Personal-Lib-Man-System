@@ -4,6 +4,8 @@ import {
     MediaItemDoc,
     MediaItemModel,
     MediaType,
+    BOOK_SPECIFIC_FIELDS,
+    MOVIE_SPECIFIC_FIELDS
 } from '../models/mediaItem.model';
 import User from '../models/user.model';
 import { AppError } from '../utils/appError';
@@ -148,10 +150,6 @@ export const getMediaItemsByTypeforUser = async (
 
     return items;
 };
-
-const MOVIE_SPECIFIC_FIELDS = ['actors', 'awards', 'runtime', 'director', 'imdbID'];
-
-const BOOK_SPECIFIC_FIELDS = ['ISBN', 'pageCount', 'publisher'];
 
 export const updateMediaItemForUser = async (
     googleId: string,
