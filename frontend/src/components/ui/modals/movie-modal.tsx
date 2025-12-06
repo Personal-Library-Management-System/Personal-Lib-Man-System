@@ -23,10 +23,18 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
   const [currentStatus, setCurrentStatus] = useState<Movie['status']>(movie.status);
   const initialTags = (movie as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
+  
+  // localStorage key for personal note
+  const noteKey = `movie-note-${movie.id}`;
+  const [personalNote, setPersonalNote] = useState<string>(() => {
+    return localStorage.getItem(noteKey) ?? (movie as any).personalNote ?? '';
+  });
 
   useEffect(() => {
     setCurrentStatus(movie.status);
     setCurrentTags((movie as any).tags ?? []);
+    // Load note from localStorage or fallback to movie data
+    setPersonalNote(localStorage.getItem(`movie-note-${movie.id}`) ?? (movie as any).personalNote ?? '');
   }, [movie]);
 
   const getRatingBySource = (source: string) =>
@@ -109,6 +117,12 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     console.log('Güncellenen tagler (film):', updated, 'film id:', movie.id);
   };
 
+  const handleNoteChange = (note: string) => {
+    setPersonalNote(note);
+    localStorage.setItem(`movie-note-${movie.id}`, note);
+    console.log('Güncellenen not (film):', note, 'film id:', movie.id);
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={movie.title}>
       <Box>
@@ -130,6 +144,8 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
             // geçici: backend çağrısı yerine console.log
             console.log(`Film ${movie.id} için tag eklendi: ${tag}`);
           }}
+          personalNote={personalNote}
+          onPersonalNoteChange={handleNoteChange}
         />
       </Box>
     </Modal>
