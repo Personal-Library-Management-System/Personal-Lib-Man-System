@@ -15,18 +15,14 @@ const UserSchema = new Schema<IUser>(
         name: { type: String, required: true },
         email: { type: String, required: true },
         picture: { type: String, default: null },
-        mediaItems: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: 'MediaItem',
-            },
-        ],
-        lists: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: 'MediaList'
-            }
-        ]
+        mediaItems: {
+            type: [{ type: Schema.Types.ObjectId, ref: 'MediaIem' }],
+            default: [],
+        },
+        lists: {
+            type: [{ type: Schema.Types.ObjectId, ref: 'MediaList' }],
+            default: [],
+        },
     },
     { timestamps: true }
 );
