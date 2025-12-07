@@ -6,6 +6,7 @@ export interface IUser extends Document {
     email: string;
     picture?: string | null;
     mediaItems: Types.ObjectId[];
+    lists: Types.ObjectId[];
 }
 
 const UserSchema = new Schema<IUser>(
@@ -20,6 +21,12 @@ const UserSchema = new Schema<IUser>(
                 ref: 'MediaItem',
             },
         ],
+        lists: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'MediaList'
+            }
+        ]
     },
     { timestamps: true }
 );

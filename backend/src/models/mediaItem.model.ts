@@ -1,4 +1,4 @@
-import { Schema, model, Model, HydratedDocument } from 'mongoose';
+import { Schema, model, HydratedDocument } from 'mongoose';
 
 export const MEDIA_TYPES = ['Book', 'Movie'] as const;
 export type MediaType = (typeof MEDIA_TYPES)[number];
@@ -25,9 +25,8 @@ export interface MediaItem {
 }
 
 export type MediaItemDoc = HydratedDocument<MediaItem>;
-export interface MediaItemModel extends Model<MediaItem> {}
 
-const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
+const mediaItemSchema = new Schema<MediaItem>(
     {
         title: { type: String, required: true, trim: true },
         publishedDate: { type: Date },
@@ -57,12 +56,16 @@ const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
             enum: MEDIA_TYPES,
         },
     },
-    { discriminatorKey: 'mediaType' }
+    {
+        discriminatorKey: 'mediaType',
+        timestamps: true,
+        strict: true
+    }
 );
 
 mediaItemSchema.index({ mediaType: 1 });
 
-export const MediaItemModel = model<MediaItem, MediaItemModel>(
+export const MediaItemModel = model<MediaItem>(
     'MediaItem',
     mediaItemSchema
 );
