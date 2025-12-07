@@ -2,7 +2,11 @@ import { StatusCodes } from 'http-status-codes';
 import { AuthenticatedRequest } from '../types/express';
 import { Response } from 'express';
 import { validateCreateListPayload } from '../validators/mediaList.validator';
-import { createMediaListForUser, getAllMediaListsOfUser } from '../services/mediaList.service';
+import {
+    createMediaListForUser,
+    getAllMediaListsOfUser,
+    getMediaListOfUser,
+} from '../services/mediaList.service';
 import { handleControllerError } from '../utils/appError';
 
 export const createList = async (
@@ -18,20 +22,17 @@ export const createList = async (
             return res.status(StatusCodes.BAD_REQUEST).json({ errors });
         }
 
-        const mediaList = await createMediaListForUser(
-            googleId,
-            {
-                title: payload.title,
-                color: payload.color,
-                mediaType: payload.mediaType,
-                items: payload.items
-            }
-        );
-        return res.status(StatusCodes.OK).json({
+        const mediaList = await createMediaListForUser(googleId, {
+            title: payload.title,
+            color: payload.color,
+            mediaType: payload.mediaType,
+            items: payload.items,
+        });
+        return res.status(StatusCodes.CREATED).json({
             message: `Media list ${mediaList.title} created successfully.`,
             list: mediaList,
         });
-    } catch (err: any) {
+    } catch (err) {
         return handleControllerError(res, err);
     }
 };
@@ -40,14 +41,14 @@ export const getAllLists = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
-    try{
+    try {
         const googleId = req.user.id;
 
         const mediaLists = await getAllMediaListsOfUser(googleId);
 
         return res.status(StatusCodes.OK).json({
-            message: "Media lists of the user fetched successfully.",
-            lists: mediaLists
+            message: 'Media lists of the user have been fetched successfully.',
+            lists: mediaLists,
         });
     } catch (err) {
         return handleControllerError(res, err);
@@ -58,9 +59,18 @@ export const getListById = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
-    return res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({ error: 'not implemented yet' });
+    try {
+        const googleId = req.user.id;
+        const mediaListId = req.params.id;
+
+        const mediaList = await getMediaListOfUser(googleId, mediaListId);
+        return res.status(StatusCodes.OK).json({
+            message: `Media list "${mediaList.title}" has been fetched successfully.`,
+            list: mediaList,
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
 };
 
 export const deleteSingleList = async (

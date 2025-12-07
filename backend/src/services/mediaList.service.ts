@@ -7,6 +7,7 @@ import {
 import User from '../models/user.model';
 import { MediaItemModel } from '../models/mediaItem.model';
 import { AppError } from '../utils/appError';
+import { Types } from 'mongoose';
 
 export const createMediaListForUser = async (
     googleId: string,
@@ -87,4 +88,35 @@ export const getAllMediaListsOfUser = async (
         _id: { $in: user.lists },
     }).sort({ createdAt: -1 });
     return mediaLists;
+};
+
+export const getMediaListOfUser = async (
+    googleId: string,
+    mediaListId: string
+): Promise<MediaListDoc> => {
+    const user = await User.findOne({ googleId }).select('lists');
+    if (!user) {
+        throw new AppError(
+            'User not found for the given googleId.',
+            StatusCodes.NOT_FOUND
+        );
+    }
+
+    const mediaListObjectId = new Types.ObjectId(mediaListId);
+    const ownsList = user.lists.some((id) => id.equals(mediaListObjectId));
+    if (!ownsList) {
+        throw new AppError(
+            `User does not own the list ${mediaListId}`,
+            StatusCodes.FORBIDDEN
+        );
+    }
+
+    const mediaList = await MediaListModel.findById(mediaListObjectId)
+        .populate('items')
+        .exec();
+
+    if (!mediaList) {
+        throw new AppError('Media list not found.', StatusCodes.NOT_FOUND);
+    }
+    return mediaList;
 };
