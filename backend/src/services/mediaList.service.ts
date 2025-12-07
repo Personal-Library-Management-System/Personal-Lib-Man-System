@@ -67,3 +67,24 @@ export const createMediaListForUser = async (
 
     return mediaList;
 };
+
+export const getAllMediaListsOfUser = async (
+    googleId: string
+): Promise<MediaListDoc[]> => {
+    const user = await User.findOne({ googleId }).select('lists');
+    if (!user) {
+        throw new AppError(
+            'User not found for the given googleId.',
+            StatusCodes.NOT_FOUND
+        );
+    }
+
+    if (!user.lists || user.lists.length === 0) {
+        return [];
+    }
+
+    const mediaLists = await MediaListModel.find({
+        _id: { $in: user.lists },
+    }).sort({ createdAt: -1 });
+    return mediaLists;
+};

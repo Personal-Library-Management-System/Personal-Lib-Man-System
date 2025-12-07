@@ -2,7 +2,7 @@ import { StatusCodes } from 'http-status-codes';
 import { AuthenticatedRequest } from '../types/express';
 import { Response } from 'express';
 import { validateCreateListPayload } from '../validators/mediaList.validator';
-import { createMediaListForUser } from '../services/mediaList.service';
+import { createMediaListForUser, getAllMediaListsOfUser } from '../services/mediaList.service';
 import { handleControllerError } from '../utils/appError';
 
 export const createList = async (
@@ -40,9 +40,18 @@ export const getAllLists = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
-    return res
-        .status(StatusCodes.INTERNAL_SERVER_ERROR)
-        .json({ error: 'not implemented yet' });
+    try{
+        const googleId = req.user.id;
+
+        const mediaLists = await getAllMediaListsOfUser(googleId);
+
+        return res.status(StatusCodes.OK).json({
+            message: "Media lists of the user fetched successfully.",
+            lists: mediaLists
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
 };
 
 export const getListById = async (
