@@ -7,14 +7,15 @@ import {
     getAllMediaListsOfUser,
     getMediaListOfUser,
 } from '../services/mediaList.service';
-import { handleControllerError } from '../utils/appError';
+import { AppError, handleControllerError } from '../utils/appError';
+import { Types } from 'mongoose';
 
 export const createList = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
     try {
-        const googleId = req.user.id;
+        const userDoc = req.userDoc;
         const payload = req.body;
 
         const errors = validateCreateListPayload(payload);
@@ -22,7 +23,7 @@ export const createList = async (
             return res.status(StatusCodes.BAD_REQUEST).json({ errors });
         }
 
-        const mediaList = await createMediaListForUser(googleId, {
+        const mediaList = await createMediaListForUser(userDoc, {
             title: payload.title,
             color: payload.color,
             mediaType: payload.mediaType,
@@ -42,9 +43,9 @@ export const getAllLists = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const googleId = req.user.id;
+        const userDoc = req.userDoc;
 
-        const mediaLists = await getAllMediaListsOfUser(googleId);
+        const mediaLists = await getAllMediaListsOfUser(userDoc);
 
         return res.status(StatusCodes.OK).json({
             message: 'Media lists of the user have been fetched successfully.',
@@ -60,10 +61,20 @@ export const getListById = async (
     res: Response
 ): Promise<Response> => {
     try {
-        const googleId = req.user.id;
+        const userDoc = req.userDoc;
         const mediaListId = req.params.id;
 
-        const mediaList = await getMediaListOfUser(googleId, mediaListId);
+        if (!Types.ObjectId.isValid(mediaListId)) {
+            throw new AppError(
+                `Media list ID ${mediaListId} is invalid.`,
+                StatusCodes.BAD_REQUEST
+            );
+        }
+
+        const mediaList = await getMediaListOfUser(
+            userDoc,
+            new Types.ObjectId(mediaListId)
+        );
         return res.status(StatusCodes.OK).json({
             message: `Media list "${mediaList.title}" has been fetched successfully.`,
             list: mediaList,

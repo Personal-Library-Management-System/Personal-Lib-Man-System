@@ -4,23 +4,15 @@ import {
     MediaListDoc,
     MediaListModel,
 } from '../models/mediaList.model';
-import User from '../models/user.model';
+import { UserDoc } from '../models/user.model';
 import { MediaItemModel } from '../models/mediaItem.model';
 import { AppError } from '../utils/appError';
 import { Types } from 'mongoose';
 
 export const createMediaListForUser = async (
-    googleId: string,
+    user: UserDoc,
     mediaListPayload: MediaList
 ): Promise<MediaListDoc> => {
-    const user = await User.findOne({ googleId }).select('mediaItems lists');
-    if (!user) {
-        throw new AppError(
-            'User not found for the given googleId.',
-            StatusCodes.NOT_FOUND
-        );
-    }
-
     const items = mediaListPayload.items ?? [];
     if (items.length === 0) {
         const mediaList = await MediaListModel.create(mediaListPayload);
@@ -70,16 +62,8 @@ export const createMediaListForUser = async (
 };
 
 export const getAllMediaListsOfUser = async (
-    googleId: string
+    user: UserDoc
 ): Promise<MediaListDoc[]> => {
-    const user = await User.findOne({ googleId }).select('lists');
-    if (!user) {
-        throw new AppError(
-            'User not found for the given googleId.',
-            StatusCodes.NOT_FOUND
-        );
-    }
-
     if (!user.lists || user.lists.length === 0) {
         return [];
     }
@@ -91,19 +75,10 @@ export const getAllMediaListsOfUser = async (
 };
 
 export const getMediaListOfUser = async (
-    googleId: string,
-    mediaListId: string
+    user: UserDoc,
+    mediaListId: Types.ObjectId
 ): Promise<MediaListDoc> => {
-    const user = await User.findOne({ googleId }).select('lists');
-    if (!user) {
-        throw new AppError(
-            'User not found for the given googleId.',
-            StatusCodes.NOT_FOUND
-        );
-    }
-
-    const mediaListObjectId = new Types.ObjectId(mediaListId);
-    const ownsList = user.lists.some((id) => id.equals(mediaListObjectId));
+    const ownsList = user.lists.some((id) => id.equals(mediaListId));
     if (!ownsList) {
         throw new AppError(
             `User does not own the list ${mediaListId}`,
@@ -111,7 +86,7 @@ export const getMediaListOfUser = async (
         );
     }
 
-    const mediaList = await MediaListModel.findById(mediaListObjectId)
+    const mediaList = await MediaListModel.findById(mediaListId)
         .populate('items')
         .exec();
 
