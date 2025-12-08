@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../types/express';
 import { Response } from 'express';
 import { validateCreateListPayload } from '../validators/mediaList.validator';
 import {
+    addMediaItemsToMediaList,
     createMediaListForUser,
     deleteMultipleListsOfUser,
     deleteSingleMediaListOfUser,
@@ -11,6 +12,10 @@ import {
 } from '../services/mediaList.service';
 import { AppError, handleControllerError } from '../utils/appError';
 import { Types } from 'mongoose';
+import {
+    validateAndConvertObjectId,
+    validateAndConvertObjectIdArray,
+} from '../utils/validation.utils';
 
 export const createList = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
@@ -42,7 +47,6 @@ export const getAllLists = async (req: AuthenticatedRequest, res: Response): Pro
         const userDoc = req.userDoc;
 
         const mediaLists = await getAllMediaListsOfUser(userDoc);
-
         return res.status(StatusCodes.OK).json({
             message: 'Media lists of the user have been fetched successfully.',
             lists: mediaLists,
@@ -57,11 +61,8 @@ export const getListById = async (req: AuthenticatedRequest, res: Response): Pro
         const userDoc = req.userDoc;
         const mediaListId = req.params.id;
 
-        if (!Types.ObjectId.isValid(mediaListId)) {
-            throw new AppError(`Media list ID ${mediaListId} is invalid.`, StatusCodes.BAD_REQUEST);
-        }
-
-        const mediaList = await getMediaListOfUser(userDoc, new Types.ObjectId(mediaListId));
+        const mediaListObjectId = validateAndConvertObjectId(mediaListId, 'Media list');
+        const mediaList = await getMediaListOfUser(userDoc, mediaListObjectId);
         return res.status(StatusCodes.OK).json({
             message: `Media list "${mediaList.title}" has been fetched successfully.`,
             list: mediaList,
@@ -79,14 +80,8 @@ export const deleteSingleList = async (
         const userDoc = req.userDoc;
         const mediaListId = req.params.id;
 
-        if (!Types.ObjectId.isValid(mediaListId)) {
-            throw new AppError(`Media list ID ${mediaListId} is invalid.`, StatusCodes.BAD_REQUEST);
-        }
-
-        const deletedMediaList = await deleteSingleMediaListOfUser(
-            userDoc,
-            new Types.ObjectId(mediaListId)
-        );
+        const mediaListObjectId = validateAndConvertObjectId(mediaListId, 'Media list');
+        const deletedMediaList = await deleteSingleMediaListOfUser(userDoc, mediaListObjectId);
 
         return res.status(StatusCodes.OK).json({
             message: `Media list ${deletedMediaList.title} has been deleted successfully.`,
@@ -105,23 +100,7 @@ export const deleteMultipleLists = async (
         const userDoc = req.userDoc;
         const mediaListIds = req.body.mediaLists;
 
-        if (!Array.isArray(mediaListIds) || mediaListIds.length === 0) {
-            throw new AppError('mediaLists must be a non-empty array.', StatusCodes.BAD_REQUEST);
-        }
-
-        const invalidMediaListIds = mediaListIds.filter(
-            (mediaListId) => typeof mediaListId !== 'string' || !Types.ObjectId.isValid(mediaListId)
-        );
-        if (invalidMediaListIds.length > 0) {
-            throw new AppError(
-                `Invalid media list ID(s): ${invalidMediaListIds.join(', ')}`,
-                StatusCodes.BAD_REQUEST
-            );
-        }
-
-        const mediaListObjectIds = (mediaListIds as string[]).map(
-            (mediaListId) => new Types.ObjectId(mediaListId)
-        );
+        const mediaListObjectIds = validateAndConvertObjectIdArray(mediaListIds, 'mediaLists');
         const deletedMediaLists = await deleteMultipleListsOfUser(userDoc, mediaListObjectIds);
 
         return res.status(StatusCodes.OK).json({
@@ -134,5 +113,38 @@ export const deleteMultipleLists = async (
 };
 
 export const updateList = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
+    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'not implemented yet' });
+};
+
+export const addMediaItemsToList = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const userDoc = req.userDoc;
+        const mediaItemIdList = req.body.items;
+        const mediaListId = req.params.id;
+
+        const mediaItemObjectIds = validateAndConvertObjectIdArray(mediaItemIdList, 'items');
+        const mediaListObjectId = validateAndConvertObjectId(mediaListId, 'Media list');
+
+        const updatedMediaList = await addMediaItemsToMediaList(
+            userDoc,
+            mediaListObjectId,
+            mediaItemObjectIds
+        );
+        return res.status(StatusCodes.OK).json({
+            message: `Items have been added to ${updatedMediaList.title} list.`,
+            list: updatedMediaList,
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export const removeMediaItemsFromList = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<Response> => {
     return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'not implemented yet' });
 };

@@ -21,7 +21,9 @@ export const createMediaListForUser = async (
         (user.mediaItems as typeof items).map((id: any) => id.toString())
     );
 
-    const notOwnedMediaItemIds = items.map((id) => id.toString()).filter((id) => !userItemIdSet.has(id));
+    const notOwnedMediaItemIds = items
+        .map((id) => id.toString())
+        .filter((id) => !userItemIdSet.has(id));
     if (notOwnedMediaItemIds.length > 0) {
         const notOwnedItemsList = notOwnedMediaItemIds.join(', ');
         throw new AppError(
@@ -139,3 +141,70 @@ export const deleteMultipleListsOfUser = async (
 
     return mediaLists;
 };
+
+export const addMediaItemsToMediaList = async (
+    user: UserDoc,
+    mediaListId: Types.ObjectId,
+    mediaItemIds: Types.ObjectId[]
+): Promise<MediaListDoc> => {
+    const ownsList = user.lists.some((id) => id.equals(mediaListId));
+    if (!ownsList) {
+        throw new AppError(`User does not own the list ${mediaListId}`, StatusCodes.FORBIDDEN);
+    }
+
+    const mediaList = await MediaListModel.findById(mediaListId);
+    if (!mediaList) {
+        throw new AppError(`Media list ${mediaListId} not found.`, StatusCodes.NOT_FOUND);
+    }
+
+    const notOwnedItems = mediaItemIds.filter(
+        (itemId) => !user.mediaItems.some((ownedId) => ownedId.equals(itemId))
+    );
+    if (notOwnedItems.length > 0) {
+        throw new AppError(
+            `User does not own the following media item ID(s): ${notOwnedItems.join(', ')}`,
+            StatusCodes.FORBIDDEN
+        );
+    }
+
+    const mediaItems = await MediaItemModel.find({
+        _id: { $in: mediaItemIds },
+    }).select('_id mediaType');
+
+    const missingItems = mediaItemIds.filter(
+        (id) => !mediaItems.some((item) => item._id.equals(id))
+    );
+    if (missingItems.length > 0) {
+        throw new AppError(
+            `The following media item ID(s) were not found: ${missingItems.join(', ')}`,
+            StatusCodes.NOT_FOUND
+        );
+    }
+
+    const mismatchedMediaItems = mediaItems
+        .filter((item) => item.mediaType !== mediaList.mediaType)
+        .map((item) => item._id.toString());
+
+    if (mismatchedMediaItems.length > 0) {
+        throw new AppError(
+            `The following media item ID(s) do not match the list media type '${mediaList.mediaType}': ${mismatchedMediaItems.join(
+                ', '
+            )}`,
+            StatusCodes.BAD_REQUEST
+        );
+    }
+
+    const newItemsToAdd = mediaItemIds.filter(
+        (id) => !mediaList.items.some((existingId) => existingId.equals(id))
+    );
+
+    if (newItemsToAdd.length > 0) {
+        mediaList.items.push(...newItemsToAdd);
+        await mediaList.save();
+    }
+
+    await mediaList.populate('items');
+
+    return mediaList as MediaListDoc;
+};
+
