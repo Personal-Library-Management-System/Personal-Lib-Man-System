@@ -1,9 +1,5 @@
 import { StatusCodes } from 'http-status-codes';
-import {
-    MediaList,
-    MediaListDoc,
-    MediaListModel,
-} from '../models/mediaList.model';
+import { MediaList, MediaListDoc, MediaListModel } from '../models/mediaList.model';
 import { UserDoc } from '../models/user.model';
 import { MediaItemModel } from '../models/mediaItem.model';
 import { AppError } from '../utils/appError';
@@ -25,12 +21,9 @@ export const createMediaListForUser = async (
         (user.mediaItems as typeof items).map((id: any) => id.toString())
     );
 
-    const notOwned = items
-        .map((id) => id.toString())
-        .filter((id) => !userItemIdSet.has(id));
-
-    if (notOwned.length > 0) {
-        const notOwnedItemsList = notOwned.join(', ');
+    const notOwnedMediaItemIds = items.map((id) => id.toString()).filter((id) => !userItemIdSet.has(id));
+    if (notOwnedMediaItemIds.length > 0) {
+        const notOwnedItemsList = notOwnedMediaItemIds.join(', ');
         throw new AppError(
             `User does not own the following media item ID(s): ${notOwnedItemsList}.`,
             StatusCodes.BAD_REQUEST
@@ -41,13 +34,13 @@ export const createMediaListForUser = async (
         _id: { $in: items },
     }).select('_id mediaType');
 
-    const mismatched = mediaItems
+    const mismatchedMediaItemIds = mediaItems
         .filter((item) => item.mediaType !== mediaListPayload.mediaType)
         .map((item) => item._id.toString());
 
-    if (mismatched.length > 0) {
+    if (mismatchedMediaItemIds.length > 0) {
         const listMediaType = mediaListPayload.mediaType;
-        const mismatchedMediaItems = mismatched.join(', ');
+        const mismatchedMediaItems = mismatchedMediaItemIds.join(', ');
         throw new AppError(
             `The following media item ID(s) do not match the list media type '${listMediaType}': ${mismatchedMediaItems}.`,
             StatusCodes.BAD_REQUEST
@@ -61,9 +54,7 @@ export const createMediaListForUser = async (
     return mediaList;
 };
 
-export const getAllMediaListsOfUser = async (
-    user: UserDoc
-): Promise<MediaListDoc[]> => {
+export const getAllMediaListsOfUser = async (user: UserDoc): Promise<MediaListDoc[]> => {
     if (!user.lists || user.lists.length === 0) {
         return [];
     }
@@ -80,18 +71,71 @@ export const getMediaListOfUser = async (
 ): Promise<MediaListDoc> => {
     const ownsList = user.lists.some((id) => id.equals(mediaListId));
     if (!ownsList) {
-        throw new AppError(
-            `User does not own the list ${mediaListId}`,
-            StatusCodes.FORBIDDEN
-        );
+        throw new AppError(`User does not own the list ${mediaListId}`, StatusCodes.FORBIDDEN);
     }
 
-    const mediaList = await MediaListModel.findById(mediaListId)
-        .populate('items')
-        .exec();
+    const mediaList = await MediaListModel.findById(mediaListId).populate('items').exec();
 
     if (!mediaList) {
         throw new AppError('Media list not found.', StatusCodes.NOT_FOUND);
     }
     return mediaList;
+};
+
+export const deleteSingleMediaListOfUser = async (user: UserDoc, mediaListId: Types.ObjectId) => {
+    const ownsList = user.lists.some((id) => id.equals(mediaListId));
+    if (!ownsList) {
+        throw new AppError(`User does not own the list ${mediaListId}`, StatusCodes.FORBIDDEN);
+    }
+
+    user.lists = user.lists.filter((id) => !id.equals(mediaListId));
+    await user.save();
+
+    const deletedMediaList = await MediaListModel.findByIdAndDelete(mediaListId);
+    if (!deletedMediaList) {
+        throw new AppError('Media list not found.', StatusCodes.NOT_FOUND);
+    }
+    return deletedMediaList;
+};
+
+export const deleteMultipleListsOfUser = async (
+    user: UserDoc,
+    targetMediaListIds: Types.ObjectId[]
+): Promise<MediaListDoc[]> => {
+    const notOwnedMediaLists = targetMediaListIds.filter(
+        (targetId) => !user.lists.some((ownedId) => ownedId.equals(targetId))
+    );
+
+    if (notOwnedMediaLists.length > 0) {
+        throw new AppError(
+            `User does not own the following list ID(s): ${notOwnedMediaLists.join(', ')}`,
+            StatusCodes.FORBIDDEN
+        );
+    }
+
+    const mediaLists = await MediaListModel.find({
+        _id: { $in: targetMediaListIds },
+    });
+
+    const missingMediaLists = targetMediaListIds.filter(
+        (id) => !mediaLists.some((list) => list._id.equals(id))
+    );
+
+    if (missingMediaLists.length > 0) {
+        throw new AppError(
+            `The following media list ID(s) were not found: ${missingMediaLists.join(', ')}`,
+            StatusCodes.NOT_FOUND
+        );
+    }
+
+    user.lists = user.lists.filter(
+        (ownedId) => !targetMediaListIds.some((targetId) => targetId.equals(ownedId))
+    );
+    await user.save();
+
+    await MediaListModel.deleteMany({
+        _id: { $in: targetMediaListIds },
+    });
+
+    return mediaLists;
 };
