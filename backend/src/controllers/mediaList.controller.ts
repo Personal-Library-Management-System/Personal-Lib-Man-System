@@ -5,6 +5,7 @@ import { validateCreateListPayload } from '../validators/mediaList.validator';
 import {
     addMediaItemsToMediaList,
     createMediaListForUser,
+    deleteMediaItemsFromMediaList,
     deleteMultipleListsOfUser,
     deleteSingleMediaListOfUser,
     getAllMediaListsOfUser,
@@ -122,7 +123,7 @@ export const addMediaItemsToList = async (
 ): Promise<Response> => {
     try {
         const userDoc = req.userDoc;
-        const mediaItemIdList = req.body.items;
+        const mediaItemIdList = req.body?.items;
         const mediaListId = req.params.id;
 
         const mediaItemObjectIds = validateAndConvertObjectIdArray(mediaItemIdList, 'items');
@@ -146,5 +147,24 @@ export const removeMediaItemsFromList = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'not implemented yet' });
+    try {
+        const userDoc = req.userDoc;
+        const mediaItemIdList = req.body?.items;
+        const mediaListId = req.params.id;
+
+        const mediaItemObjectIds = validateAndConvertObjectIdArray(mediaItemIdList, 'items');
+        const mediaListObjectId = validateAndConvertObjectId(mediaListId, 'Media list');
+
+        const updatedMediaList = await deleteMediaItemsFromMediaList(
+            userDoc,
+            mediaListObjectId,
+            mediaItemObjectIds
+        );
+        return res.status(StatusCodes.OK).json({
+            message: `Media items have been deleted from ${updatedMediaList.title} list.`,
+            list: updatedMediaList
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
 };

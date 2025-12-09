@@ -176,3 +176,49 @@ export const addMediaItemsToMediaList = async (
     await mediaList.populate('items');
     return mediaList as MediaListDoc;
 };
+
+export const deleteMediaItemsFromMediaList = async (
+    user: UserDoc,
+    mediaListId: Types.ObjectId,
+    mediaItemIdList: Types.ObjectId[]
+): Promise<MediaListDoc> => {
+    ensureUserOwnsMediaList(user, mediaListId);
+
+    const mediaList = await MediaListModel.findById(mediaListId);
+    if (!mediaList) {
+        throw new AppError(`Media list ${mediaListId} not found.`, StatusCodes.NOT_FOUND);
+    }
+
+    const mediaItems = await MediaItemModel.find({
+        _id: { $in: mediaItemIdList },
+    }).select('_id');
+
+    const missingItems = mediaItemIdList.filter(
+        (id) => !mediaItems.some((item) => item._id.equals(id))
+    );
+    if (missingItems.length > 0) {
+        throw new AppError(
+            `The following media item ID(s) were not found: ${missingItems.join(', ')}.`,
+            StatusCodes.NOT_FOUND
+        );
+    }
+
+    const notInList = mediaItemIdList.filter(
+        (id) => !mediaList.items.some((existingId) => existingId.equals(id))
+    );
+    if (notInList.length > 0) {
+        throw new AppError(
+            `The following media item ID(s) are not part of this list: ${notInList.join(', ')}.`,
+            StatusCodes.BAD_REQUEST
+        );
+    }
+
+    mediaList.items = mediaList.items.filter(
+        (existingId) => !mediaItemIdList.some((targetId) => targetId.equals(existingId))
+    );
+
+    await mediaList.save();
+    await mediaList.populate('items');
+
+    return mediaList as MediaListDoc;
+};
