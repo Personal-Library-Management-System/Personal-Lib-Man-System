@@ -12,7 +12,6 @@ import {
     getMediaListOfUser,
 } from '../services/mediaList.service';
 import { AppError, handleControllerError } from '../utils/appError';
-import { Types } from 'mongoose';
 import {
     validateAndConvertObjectId,
     validateAndConvertObjectIdArray,
@@ -114,7 +113,7 @@ export const deleteMultipleLists = async (
 };
 
 export const updateList = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
-    return res.status(StatusCodes.INTERNAL_SERVER_ERROR).json({ error: 'not implemented yet' });
+    return res.status(StatusCodes.NOT_IMPLEMENTED).json({ error: 'update list not implemented yet' });
 };
 
 export const addMediaItemsToList = async (

@@ -1,4 +1,4 @@
-import { Schema, model, HydratedDocument } from 'mongoose';
+import { Schema, model, HydratedDocument, Types } from 'mongoose';
 
 export const MOVIE_SPECIFIC_FIELDS = ['actors', 'awards', 'runtime', 'director', 'imdbID'];
 export const BOOK_SPECIFIC_FIELDS = ['ISBN', 'pageCount', 'publisher'];
@@ -27,7 +27,7 @@ export interface MediaItem {
     coverPhoto?: string | null;
     language?: string | null;
     author?: string | null;
-    //new fields for user media items
+    lists: Types.ObjectId[],
     status: ItemStatus;
     myRating?: number | null;
     progress?: number | null;
@@ -62,12 +62,16 @@ const mediaItemSchema = new Schema<MediaItem>(
             set: (value: string) => value?.toUpperCase(),
         },
         author: { type: String, trim: true },
+        lists: {
+            type: [Schema.Types.ObjectId],
+            ref: 'MediaList',
+            default: []
+        },
         mediaType: {
             type: String,
             required: true,
             enum: MEDIA_TYPES,
         },
-        //new fields for user media items
         myRating: { type: Number, min: 0, max: 5 },
         personalNotes: { type: String, trim: true ,default: ''},
         progress: { type: Number, min: 0 ,default: 0},

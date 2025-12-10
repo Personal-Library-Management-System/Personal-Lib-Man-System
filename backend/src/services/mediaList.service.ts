@@ -59,15 +59,30 @@ export const createMediaListForUser = async (
     mediaListPayload: MediaList
 ): Promise<MediaListDoc> => {
     const items = mediaListPayload.items ?? [];
+    const uniqueItemIds = Array.from(new Set(items.map((id) => id.toString()))).map(
+        (id) => new Types.ObjectId(id)
+    );
 
-    if (items.length > 0) {
-        await validateMediaItemsForList(user, items, mediaListPayload.mediaType);
+    if (uniqueItemIds.length > 0) {
+        await validateMediaItemsForList(user, uniqueItemIds, mediaListPayload.mediaType);
     }
 
-    const mediaList = await MediaListModel.create(mediaListPayload);
+    const mediaList = await MediaListModel.create({
+        ...mediaListPayload,
+        items: uniqueItemIds,
+    });
+
     user.lists.push(mediaList._id);
     await user.save();
 
+    if (uniqueItemIds.length > 0) {
+        await MediaItemModel.updateMany(
+            { _id: { $in: uniqueItemIds } },
+            { $addToSet: { lists: mediaList._id } }
+        );
+    }
+
+    await mediaList.populate('items');
     return mediaList;
 };
 
@@ -78,7 +93,9 @@ export const getAllMediaListsOfUser = async (user: UserDoc): Promise<MediaListDo
 
     const mediaLists = await MediaListModel.find({
         _id: { $in: user.lists },
-    }).sort({ createdAt: -1 });
+    })
+        .sort({ createdAt: -1 })
+        .populate('items');
     return mediaLists;
 };
 
@@ -98,14 +115,24 @@ export const getMediaListOfUser = async (
 export const deleteSingleMediaListOfUser = async (user: UserDoc, mediaListId: Types.ObjectId) => {
     ensureUserOwnsMediaList(user, mediaListId);
 
+    const existingMediaList = await MediaListModel.findById(mediaListId);
+    if (!existingMediaList) {
+        throw new AppError(`Media list ${mediaListId} not found.`, StatusCodes.NOT_FOUND);
+    }
+
     user.lists = user.lists.filter((id) => !id.equals(mediaListId));
     await user.save();
 
-    const deletedMediaList = await MediaListModel.findByIdAndDelete(mediaListId);
-    if (!deletedMediaList) {
-        throw new AppError(`Media list ${mediaListId} not found.`, StatusCodes.NOT_FOUND);
+    if (existingMediaList.items.length > 0) {
+        await MediaItemModel.updateMany(
+            { _id: { $in: existingMediaList.items } },
+            { $pull: { lists: existingMediaList._id } }
+        );
     }
-    return deletedMediaList;
+
+    await MediaListModel.findByIdAndDelete(mediaListId);
+
+    return existingMediaList;
 };
 
 export const deleteMultipleListsOfUser = async (
@@ -143,6 +170,14 @@ export const deleteMultipleListsOfUser = async (
     );
     await user.save();
 
+    const allItemIds = mediaLists.flatMap((list) => list.items);
+    if (allItemIds.length > 0) {
+        await MediaItemModel.updateMany(
+            { _id: { $in: allItemIds } },
+            { $pull: { lists: { $in: targetMediaListIds } } }
+        );
+    }
+
     await MediaListModel.deleteMany({
         _id: { $in: targetMediaListIds },
     });
@@ -171,6 +206,11 @@ export const addMediaItemsToMediaList = async (
     if (newItemsToAdd.length > 0) {
         mediaList.items.push(...newItemsToAdd);
         await mediaList.save();
+
+        await MediaItemModel.updateMany(
+            { _id: { $in: newItemsToAdd } },
+            { $addToSet: { lists: mediaList._id } }
+        );
     }
 
     await mediaList.populate('items');
@@ -218,7 +258,11 @@ export const deleteMediaItemsFromMediaList = async (
     );
 
     await mediaList.save();
-    await mediaList.populate('items');
+    await MediaItemModel.updateMany(
+        { _id: { $in: mediaItemIdList } },
+        { $pull: { lists: mediaList._id } }
+    );
 
+    await mediaList.populate('items');
     return mediaList as MediaListDoc;
 };

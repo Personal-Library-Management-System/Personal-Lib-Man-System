@@ -17,7 +17,7 @@ const UserSchema = new Schema<IUser>(
         email: { type: String, required: true },
         picture: { type: String, default: null },
         mediaItems: {
-            type: [{ type: Schema.Types.ObjectId, ref: 'MediaIem' }],
+            type: [{ type: Schema.Types.ObjectId, ref: 'MediaItem' }],
             default: [],
         },
         lists: {
