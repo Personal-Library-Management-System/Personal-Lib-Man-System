@@ -73,6 +73,13 @@
  *         author:
  *           type: string
  *           nullable: true
+ *
+ *         lists:
+ *           type: array
+ *           description: IDs of media lists that contain this item
+ *           readOnly: true
+ *           items:
+ *             type: string
  *         status:
  *           type: string
  *           description: User's status for the media item
@@ -147,6 +154,51 @@
  *         mapping:
  *           Book: '#/components/schemas/BookMediaItem'
  *           Movie: '#/components/schemas/MovieMediaItem'
+ *
+ *     MediaListCreate:
+ *       type: object
+ *       required:
+ *         - title
+ *         - mediaType
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Name of the list
+ *         color:
+ *           type: string
+ *           description: Hex color in #RGB or #RRGGBB format
+ *           example: '#FFAA00'
+ *         mediaType:
+ *           $ref: '#/components/schemas/MediaType'
+ *         items:
+ *           type: array
+ *           description: Optional list of media item IDs to include
+ *           items:
+ *             type: string
+ *
+ *     MediaList:
+ *       type: object
+ *       description: A user-defined list of media items
+ *       required:
+ *         - title
+ *         - mediaType
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Mongo document identifier
+ *           readOnly: true
+ *         title:
+ *           type: string
+ *         color:
+ *           type: string
+ *           description: Hex color in #RGB or #RRGGBB format
+ *         mediaType:
+ *           $ref: '#/components/schemas/MediaType'
+ *         items:
+ *           type: array
+ *           description: Media items contained in this list
+ *           items:
+ *             $ref: '#/components/schemas/MediaItem'
  * 
  *     UserStatistics:
  *       type: object
