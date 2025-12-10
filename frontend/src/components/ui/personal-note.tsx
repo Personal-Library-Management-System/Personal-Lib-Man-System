@@ -21,7 +21,7 @@ interface PersonalNoteProps {
 const PersonalNote: React.FC<PersonalNoteProps> = ({
   note,
   onChange,
-  placeholder = 'Kişisel notunuzu ekleyin...',
+  placeholder = 'Add your personal note...',
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [draft, setDraft] = useState(note);
@@ -88,9 +88,9 @@ const PersonalNote: React.FC<PersonalNoteProps> = ({
             {draft.length}/{MAX_LENGTH}
           </Text>
           <Flex gap={2}>
-            <Tooltip label="İptal (Esc)">
+            <Tooltip label="Cancel (Esc)">
               <IconButton
-                aria-label="İptal"
+                aria-label="Cancel"
                 icon={<FiX />}
                 size="sm"
                 variant="ghost"
@@ -98,9 +98,9 @@ const PersonalNote: React.FC<PersonalNoteProps> = ({
                 onClick={handleCancel}
               />
             </Tooltip>
-            <Tooltip label="Kaydet (Enter)">
+            <Tooltip label="Save (Enter)">
               <IconButton
-                aria-label="Kaydet"
+                aria-label="Save"
                 icon={<FiCheck />}
                 size="sm"
                 colorScheme="teal"
@@ -132,9 +132,9 @@ const PersonalNote: React.FC<PersonalNoteProps> = ({
         <Text fontSize="sm" color="gray.500" fontStyle="italic">
           {placeholder}
         </Text>
-        <Tooltip label="Not ekle">
+        <Tooltip label="Add note">
           <IconButton
-            aria-label="Not ekle"
+            aria-label="Add note"
             icon={<FiEdit2 />}
             size="sm"
             variant="ghost"
@@ -173,9 +173,9 @@ const PersonalNote: React.FC<PersonalNoteProps> = ({
           "{note}"
         </Text>
       </Box>
-      <Tooltip label="Düzenle">
+      <Tooltip label="Edit">
         <IconButton
-          aria-label="Düzenle"
+          aria-label="Edit"
           icon={<FiEdit2 />}
           size="sm"
           variant="ghost"

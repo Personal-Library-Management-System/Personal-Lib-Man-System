@@ -9,6 +9,7 @@ import {
     getAllMediaItemsForUser,
     getMediaItemForUser,
     getMediaItemsByTypeforUser,
+    updateMediaItemForUser
 } from '../services/mediaItem.service';
 import { handleControllerError } from '../utils/appError';
 
@@ -158,6 +159,23 @@ export const getMediaItemsByType = async (
         );
         return res.status(StatusCodes.OK).json({
             items: mediaItems,
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const googleId = req.user.id;
+        const mediaItemId = req.params.id;
+        const updates = req.body;
+
+        const updatedItem = await updateMediaItemForUser(googleId, mediaItemId, updates);
+
+        return res.status(StatusCodes.OK).json({
+            message: 'Media item updated successfully',
+            item: updatedItem
         });
     } catch (err) {
         return handleControllerError(res, err);

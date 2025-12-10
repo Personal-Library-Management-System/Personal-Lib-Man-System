@@ -4,6 +4,8 @@ import {
     MediaItemDoc,
     MediaItemModel,
     MediaType,
+    BOOK_SPECIFIC_FIELDS,
+    MOVIE_SPECIFIC_FIELDS
 } from '../models/mediaItem.model';
 import User from '../models/user.model';
 import { AppError } from '../utils/appError';
@@ -161,4 +163,59 @@ export const getMediaItemsByTypeforUser = async (
     });
 
     return items;
+};
+
+export const updateMediaItemForUser = async (
+    googleId: string,
+    mediaItemId: string,
+    updates: any
+) => {
+    if (!Types.ObjectId.isValid(mediaItemId)) {
+        throw new AppError('Invalid media item id.', StatusCodes.BAD_REQUEST);
+    }
+
+    const userHasItem = await User.exists({ googleId, mediaItems: mediaItemId });
+    if (!userHasItem) {
+        throw new AppError('Media item not found for this user.', StatusCodes.NOT_FOUND);
+    }
+
+    const existingItem = await MediaItemModel.findById(mediaItemId);
+    if (!existingItem) {
+        throw new AppError('Item not found.', StatusCodes.NOT_FOUND);
+    }
+
+    const updateKeys = Object.keys(updates);
+
+    if (existingItem.mediaType === 'Book') {
+        const invalidFields = updateKeys.filter(key => MOVIE_SPECIFIC_FIELDS.includes(key));
+        
+        if (invalidFields.length > 0) {
+            throw new AppError(
+                `Invalid fields for a Book: ${invalidFields.join(', ')}`, 
+                StatusCodes.BAD_REQUEST
+            );
+        }
+    }
+
+    if (existingItem.mediaType === 'Movie') {
+        const invalidFields = updateKeys.filter(key => BOOK_SPECIFIC_FIELDS.includes(key));
+        
+        if (invalidFields.length > 0) {
+            throw new AppError(
+                `Invalid fields for a Movie: ${invalidFields.join(', ')}`, 
+                StatusCodes.BAD_REQUEST
+            );
+        }
+    }
+
+    delete updates.mediaType; 
+    delete updates._id;      
+    
+    const updatedItem = await MediaItemModel.findByIdAndUpdate(
+        mediaItemId,
+        { $set: updates },
+        { new: true, runValidators: true }
+    );
+
+    return updatedItem;
 };

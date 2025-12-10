@@ -6,6 +6,11 @@
  *       type: string
  *       description: Type of media item
  *       enum: [Book, Movie]
+ * 
+ *     ItemStatus:
+ *       type: string
+ *       description: User's status for the media item
+ *       enum: [PLANNED, IN_PROGRESS, COMPLETED]
  *
  *     Rating:
  *       type: object
@@ -68,6 +73,29 @@
  *         author:
  *           type: string
  *           nullable: true
+ *         status:
+ *           type: string
+ *           description: User's status for the media item
+ *           enum: [PLANNED, IN_PROGRESS, COMPLETED]
+ * 
+ *         myRating:
+ *           type: number
+ *           description: User's personal rating for the media item
+ *           nullable: true
+ *           minimum: 0
+ *           maximum: 5
+ * 
+ *         progress:
+ *           type: number
+ *           description: User's progress for the media item
+ *           nullable: true
+ *           minimum: 0
+ * 
+ *         personalNotes:
+ *           type: string
+ *           description: User's personal notes for the media item
+ *           trim: true
+ *           default: ''
  *
  *     BookMediaItem:
  *       allOf:

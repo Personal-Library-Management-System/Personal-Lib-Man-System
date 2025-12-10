@@ -50,7 +50,7 @@ const CategoryFilter = ({ availableCategories, selectedCategories, onChange }: C
           borderRadius="full"
           _hover={{ bg: hoverBg }}
         >
-          Kategori {selectedCategories.length > 0 && `(${selectedCategories.length})`}
+          Category {selectedCategories.length > 0 && `(${selectedCategories.length})`}
         </MenuButton>
         <MenuList bg={menuBg} borderRadius="lg" shadow="lg" maxH="250px" overflowY="auto">
           <MenuOptionGroup type="checkbox" value={selectedCategories}>
@@ -92,7 +92,7 @@ const CategoryFilter = ({ availableCategories, selectedCategories, onChange }: C
                 cursor="pointer"
                 onClick={handleClear}
               >
-                <TagLabel>Temizle</TagLabel>
+                <TagLabel>Clear</TagLabel>
               </Tag>
             </WrapItem>
           )}

@@ -35,7 +35,7 @@ const PageCountFilter = ({ value, onChange }: PageCountFilterProps) => {
           borderRadius="full"
           _hover={{ bg: hoverBg }}
         >
-          Sayfa: {selectedOption.label}
+          Pages: {selectedOption.label}
         </MenuButton>
         <MenuList bg={menuBg} borderRadius="lg" shadow="lg" minW="150px">
           {PAGE_COUNT_OPTIONS.map((option) => (

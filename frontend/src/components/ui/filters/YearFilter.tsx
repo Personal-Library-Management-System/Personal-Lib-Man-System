@@ -35,7 +35,7 @@ const YearFilter = ({ value, onChange }: YearFilterProps) => {
           borderRadius="full"
           _hover={{ bg: hoverBg }}
         >
-          Yıl: {selectedOption.label}
+          Year: {selectedOption.label}
         </MenuButton>
         <MenuList bg={menuBg} borderRadius="lg" shadow="lg" minW="150px">
           {YEAR_PRESETS.map((option) => (

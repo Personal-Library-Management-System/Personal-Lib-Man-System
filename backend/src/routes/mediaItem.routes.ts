@@ -6,6 +6,7 @@ import {
     getAllMediaItems,
     getMediaItem,
     getMediaItemsByType,
+    updateMediaItem
 } from '../controllers/mediaItem.controller';
 
 const mediaItemRouter = Router();
@@ -225,5 +226,34 @@ mediaItemRouter.get('/', getAllMediaItems as RequestHandler);
  *         description: Server error
  */
 mediaItemRouter.get('/type/:mediaType', getMediaItemsByType as RequestHandler);
+
+/**
+ * @openapi
+ * /api/v1/mediaItems/{id}:
+ *   patch:
+ *     summary: Update a media item
+ *     tags:
+ *       - Media Items
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MediaItem'
+ *     responses:
+ *       200:
+ *         description: Updated successfully
+ *       400:
+ *         description: Validation error
+ *       404:
+ *         description: Item not found
+ */
+mediaItemRouter.patch('/:id', updateMediaItem as RequestHandler);
 
 export default mediaItemRouter;
