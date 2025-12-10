@@ -147,4 +147,64 @@
  *         mapping:
  *           Book: '#/components/schemas/BookMediaItem'
  *           Movie: '#/components/schemas/MovieMediaItem'
+ * 
+ *     UserStatistics:
+ *       type: object
+ *       description: Aggregated user reading and watching statistics
+ *       properties:
+ *         userId:
+ *           type: string
+ *           description: The user's unique ID
+ *         totalReadBooks:
+ *           type: integer
+ *           description: Total number of books marked as read/owned
+ *         totalReadPages:
+ *           type: integer
+ *           description: Sum of page counts of all books
+ *         totalWatchedMovies:
+ *           type: integer
+ *           description: Total number of movies marked as watched/owned
+ *         totalWatchedMinutes:
+ *           type: integer
+ *           description: Sum of runtimes of all movies
+ *         top5Authors:
+ *           type: array
+ *           description: Top 5 most frequent authors
+ *           items:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               count:
+ *                 type: integer
+ *         top5Directors:
+ *           type: array
+ *           description: Top 5 most frequent directors
+ *           items:
+ *             type: object
+ *             properties:
+ *               name:
+ *                 type: string
+ *               count:
+ *                 type: integer
+ *         top5BookCategories:
+ *           type: array
+ *           description: Top 5 most frequent book categories
+ *           items:
+ *             type: object
+ *             properties:
+ *               category:
+ *                 type: string
+ *               count:
+ *                 type: integer
+ *         top5MovieCategories:
+ *           type: array
+ *           description: Top 5 most frequent movie categories
+ *           items:
+ *             type: object
+ *             properties:
+ *               category:
+ *                 type: string
+ *               count:
+ *                 type: integer
  */
