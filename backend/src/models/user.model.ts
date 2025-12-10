@@ -1,4 +1,4 @@
-import { Schema, model, Document, Types } from 'mongoose';
+import { Schema, model, Document, Types, HydratedDocument } from 'mongoose';
 
 export interface IUser extends Document {
     googleId: string;
@@ -6,7 +6,9 @@ export interface IUser extends Document {
     email: string;
     picture?: string | null;
     mediaItems: Types.ObjectId[];
+    lists: Types.ObjectId[];
 }
+export type UserDoc = HydratedDocument<IUser>;
 
 const UserSchema = new Schema<IUser>(
     {
@@ -14,12 +16,14 @@ const UserSchema = new Schema<IUser>(
         name: { type: String, required: true },
         email: { type: String, required: true },
         picture: { type: String, default: null },
-        mediaItems: [
-            {
-                type: Schema.Types.ObjectId,
-                ref: 'MediaItem',
-            },
-        ],
+        mediaItems: {
+            type: [{ type: Schema.Types.ObjectId, ref: 'MediaItem' }],
+            default: [],
+        },
+        lists: {
+            type: [{ type: Schema.Types.ObjectId, ref: 'MediaList' }],
+            default: [],
+        },
     },
     { timestamps: true }
 );

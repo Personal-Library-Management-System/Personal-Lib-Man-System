@@ -13,7 +13,7 @@ import {
 } from '../services/mediaItem.service';
 import { handleControllerError } from '../utils/appError';
 
-const createMediaItem = async (
+export const createMediaItem = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
@@ -51,7 +51,7 @@ const createMediaItem = async (
     }
 };
 
-const deleteMediaItem = async (
+export const deleteMediaItem = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
@@ -77,7 +77,7 @@ const deleteMediaItem = async (
     }
 };
 
-const deleteMultipleMediaItems = async (
+export const deleteMultipleMediaItems = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
@@ -113,7 +113,7 @@ const deleteMultipleMediaItems = async (
     }
 };
 
-const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+export const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
         const mediaItemId = req.params.id;
@@ -125,7 +125,7 @@ const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
+export const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
         const items = await getAllMediaItemsForUser(googleId);
@@ -139,7 +139,7 @@ const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-const getMediaItemsByType = async (
+export const getMediaItemsByType = async (
     req: AuthenticatedRequest,
     res: Response
 ) => {
@@ -165,7 +165,7 @@ const getMediaItemsByType = async (
     }
 };
 
-const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+export const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
         const mediaItemId = req.params.id;
@@ -180,14 +180,4 @@ const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     } catch (err) {
         return handleControllerError(res, err);
     }
-};
-
-export {
-    createMediaItem,
-    deleteMediaItem,
-    deleteMultipleMediaItems,
-    getMediaItem,
-    getAllMediaItems,
-    getMediaItemsByType,
-    updateMediaItem,
 };

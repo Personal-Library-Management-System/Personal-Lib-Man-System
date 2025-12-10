@@ -10,6 +10,7 @@ import {
 import User from '../models/user.model';
 import { AppError } from '../utils/appError';
 import { StatusCodes } from 'http-status-codes';
+import { MediaListModel } from '../models/mediaList.model';
 
 interface CreateMediaItemPayload {
     mediaType: (typeof MEDIA_TYPES)[number];
@@ -34,7 +35,7 @@ export const createMediaItemForUser = async (
 export const deleteMediaItemForUser = async (
     googleId: string,
     mediaItemId: string
-) => {
+): Promise<MediaItemDoc | null> => {
     if (!Types.ObjectId.isValid(mediaItemId)) return null;
 
     const itemObjectId = new Types.ObjectId(mediaItemId);
@@ -47,38 +48,54 @@ export const deleteMediaItemForUser = async (
     if (updateResult.modifiedCount === 0) return null;
 
     const deletedItem = await MediaItemModel.findByIdAndDelete(mediaItemId);
-    return deletedItem ?? null;
+    if (!deletedItem) return null;
+
+    await MediaListModel.updateMany(
+        { items: itemObjectId },
+        { $pull: { items: itemObjectId } }
+    );
+    return deletedItem;
 };
 
 export const deleteMultipleMediaItemsForUser = async (
     googleId: string,
     mediaItemIds: string[]
 ) => {
-    const validIds = mediaItemIds.filter((id) => Types.ObjectId.isValid(id));
-    if (!validIds.length)
+    const validObjIds = mediaItemIds
+        .filter(Types.ObjectId.isValid)
+        .map((id) => new Types.ObjectId(id));
+
+    if (!validObjIds.length)
         return { deletedIds: [], notDeletedIds: mediaItemIds };
 
     const user = await User.findOne({ googleId }, { mediaItems: 1 }).lean();
-    if (!user?.mediaItems?.length)
+    if (!user?.mediaItems.length)
         return { deletedIds: [], notDeletedIds: mediaItemIds };
 
-    const userMediaSet = new Set(user.mediaItems.map((id) => id.toString()));
-    const confirmedIds = validIds.filter((id) => userMediaSet.has(id));
+    const userMediaSet = new Set(user.mediaItems.map(String));
 
-    if (!confirmedIds.length)
+    const confirmedObjIds = validObjIds.filter((oid) =>
+        userMediaSet.has(oid.toString())
+    );
+    if (!confirmedObjIds.length)
         return { deletedIds: [], notDeletedIds: mediaItemIds };
 
     await Promise.all([
-        MediaItemModel.deleteMany({ _id: { $in: confirmedIds } }),
+        MediaItemModel.deleteMany({ _id: { $in: confirmedObjIds } }),
         User.updateOne(
             { googleId },
-            { $pull: { mediaItems: { $in: confirmedIds } } }
+            { $pull: { mediaItems: { $in: confirmedObjIds } } }
+        ),
+        MediaListModel.updateMany(
+            { items: { $in: confirmedObjIds } },
+            { $pull: { items: { $in: confirmedObjIds } } }
         ),
     ]);
+    const deletedIds = confirmedObjIds.map((oid) => oid.toString());
 
     return {
-        deletedIds: confirmedIds,
-        notDeletedIds: mediaItemIds.filter((id) => !confirmedIds.includes(id)),
+        deletedIds,
+        notDeletedIds: mediaItemIds.filter((id) => !deletedIds.includes(id)),
     };
 };
 
@@ -134,10 +151,7 @@ export const getMediaItemsByTypeforUser = async (
     googleId: string,
     mediaType: MediaType
 ): Promise<MediaItemDoc[]> => {
-    const user = await User.findOne(
-        { googleId },
-        { mediaItems: 1 }
-    );
+    const user = await User.findOne({ googleId }, { mediaItems: 1 });
 
     if (!user || !user.mediaItems.length) {
         return [];
