@@ -1,9 +1,8 @@
-import User, { IUser } from "../models/user.model";
-import { IGoogleUserPayload } from "../types/auth.types";
+import { DEFAULT_MEDIA_LISTS, MediaListModel } from '../models/mediaList.model';
+import User, { IUser } from '../models/user.model';
+import { IGoogleUserPayload } from '../types/auth.types';
 
-const getOrCreateUser = async (
-    userPayload: IGoogleUserPayload
-): Promise<IUser> => {
+const getOrCreateUser = async (userPayload: IGoogleUserPayload): Promise<IUser> => {
     const googleSubId = userPayload.sub;
 
     let user = await User.findOne({ googleId: googleSubId });
@@ -14,6 +13,10 @@ const getOrCreateUser = async (
             email: userPayload.email,
             picture: userPayload.picture,
         });
+
+        const createdLists = await MediaListModel.create(DEFAULT_MEDIA_LISTS);
+        user.lists = createdLists.map((list) => list._id);
+        await user.save();
     }
     return user;
 };

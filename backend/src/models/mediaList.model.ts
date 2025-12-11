@@ -9,6 +9,14 @@ export interface MediaList {
 }
 export type MediaListDoc = HydratedDocument<MediaList>;
 
+export const DEFAULT_MEDIA_LISTS: { title: string; mediaType: MediaType }[] = [
+    { title: 'Want to Read', mediaType: 'Book' },
+    { title: 'Currently Reading', mediaType: 'Book' },
+    { title: 'Finished Books', mediaType: 'Book' },
+    { title: 'Want to Watch', mediaType: 'Movie' },
+    { title: 'Finished Movies', mediaType: 'Movie' },
+];
+
 export const HEX_COLOR_REGEX = /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/;
 
 const mediaListSchema = new Schema<MediaList>(
@@ -21,7 +29,7 @@ const mediaListSchema = new Schema<MediaList>(
         color: {
             type: String,
             trim: true,
-            default: "#FFFFFF",
+            default: '#FFFFFF',
             set: (value: string) => value?.toUpperCase(),
             validate: {
                 validator: (value: string) => HEX_COLOR_REGEX.test(value),
