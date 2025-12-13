@@ -56,8 +56,20 @@ const validateMediaItemsForList = async (
 
 export const createMediaListForUser = async (
     user: UserDoc,
-    mediaListPayload: MediaList
+    mediaListPayload: Omit<MediaList, 'ownerId'>
 ): Promise<MediaListDoc> => {
+    const existingList = await MediaListModel.findOne({
+        ownerId: user._id,
+        title: mediaListPayload.title.trim(),
+    });
+
+    if (existingList) {
+        throw new AppError(
+            `A list named "${mediaListPayload.title}" already exists.`,
+            StatusCodes.CONFLICT
+        );
+    }
+
     const items = mediaListPayload.items ?? [];
     const uniqueItemIds = Array.from(new Set(items.map((id) => id.toString()))).map(
         (id) => new Types.ObjectId(id)
@@ -69,6 +81,7 @@ export const createMediaListForUser = async (
 
     const mediaList = await MediaListModel.create({
         ...mediaListPayload,
+        ownerId: user._id,
         items: uniqueItemIds,
     });
 
@@ -87,13 +100,7 @@ export const createMediaListForUser = async (
 };
 
 export const getAllMediaListsOfUser = async (user: UserDoc): Promise<MediaListDoc[]> => {
-    if (user.lists.length === 0) {
-        return [];
-    }
-
-    const mediaLists = await MediaListModel.find({
-        _id: { $in: user.lists },
-    })
+    const mediaLists = await MediaListModel.find({ ownerId: user._id })
         .sort({ createdAt: -1 })
         .populate('items');
     return mediaLists;
