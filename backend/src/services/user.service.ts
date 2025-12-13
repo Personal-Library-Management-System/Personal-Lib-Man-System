@@ -1,21 +1,32 @@
-import User, { IUser } from "../models/user.model";
-import { IGoogleUserPayload } from "../types/auth.types";
+import { DEFAULT_MEDIA_LISTS, MediaListModel } from '../models/mediaList.model';
+import User, { IUser } from '../models/user.model';
+import { IGoogleUserPayload } from '../types/auth.types';
 
-const getOrCreateUser = async (
-    userPayload: IGoogleUserPayload
-): Promise<IUser> => {
+const getOrCreateUser = async (userPayload: IGoogleUserPayload): Promise<IUser> => {
     const googleSubId = userPayload.sub;
 
-    let user = await User.findOne({ googleId: googleSubId });
-    if (!user) {
-        user = await User.create({
-            googleId: googleSubId,
-            name: userPayload.name,
-            email: userPayload.email,
-            picture: userPayload.picture,
-        });
+    let existingUser = await User.findOne({ googleId: googleSubId });
+    if (existingUser) {
+        return existingUser;
     }
-    return user;
+
+    const newUser = await User.create({
+        googleId: googleSubId,
+        name: userPayload.name,
+        email: userPayload.email,
+        picture: userPayload.picture,
+    });
+
+    const createdLists = await MediaListModel.insertMany(
+        DEFAULT_MEDIA_LISTS.map((defaultList) => ({
+            title: defaultList.title,
+            mediaType: defaultList.mediaType,
+            ownerId: newUser._id,
+        }))
+    );
+    newUser.lists = createdLists.map((list) => list._id);
+    await newUser.save();
+    return newUser;
 };
 
 const getUserByEmail = async (email: string): Promise<IUser | null> => {

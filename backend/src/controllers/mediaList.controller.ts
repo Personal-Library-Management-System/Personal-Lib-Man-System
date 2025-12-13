@@ -45,7 +45,6 @@ export const createList = async (req: AuthenticatedRequest, res: Response): Prom
 export const getAllLists = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
         const userDoc = req.userDoc;
-
         const mediaLists = await getAllMediaListsOfUser(userDoc);
         return res.status(StatusCodes.OK).json({
             message: 'Media lists of the user have been fetched successfully.',
