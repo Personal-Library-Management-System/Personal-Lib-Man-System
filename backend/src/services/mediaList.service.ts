@@ -273,3 +273,57 @@ export const deleteMediaItemsFromMediaList = async (
     await mediaList.populate('items');
     return mediaList as MediaListDoc;
 };
+
+export const reorderMediaItemsOfListOfUser = async (
+    user: UserDoc,
+    mediaListId: Types.ObjectId,
+    mediaItemIdList: Types.ObjectId[]
+): Promise<MediaListDoc> => {
+    ensureUserOwnsMediaList(user, mediaListId);
+
+    const mediaList = await MediaListModel.findById(mediaListId);
+    if (!mediaList) {
+        throw new AppError(`Media list ${mediaListId} not found.`, StatusCodes.NOT_FOUND);
+    }
+
+    if (mediaItemIdList.length !== mediaList.items.length) {
+        throw new AppError(
+            `Number of media items in request (${mediaItemIdList.length}) does not match the number of media items in the list (${mediaList.items.length}).`,
+            StatusCodes.BAD_REQUEST
+        );
+    }
+
+    const existingItemsSet = new Set(mediaList.items.map((id) => id.toString()));
+
+    const notInList = mediaItemIdList.filter((id) => !existingItemsSet.has(id.toString()));
+    if (notInList.length > 0) {
+        throw new AppError(
+            `The following media item ID(s) are not part of this list: ${notInList.join(', ')}.`,
+            StatusCodes.BAD_REQUEST
+        );
+    }
+
+    const seenIds = new Set<string>();
+    const duplicateIds = new Set<string>();
+
+    for (const mediaItemId of mediaItemIdList) {
+        const idStr = mediaItemId.toString();
+        if (seenIds.has(idStr)) {
+            duplicateIds.add(idStr);
+        }
+        seenIds.add(idStr);
+    }
+
+    if (duplicateIds.size > 0) {
+        const duplicateIdsStr = Array.from(duplicateIds).join(', ');
+        throw new AppError(
+            `The following media item ID(s) are duplicated in the request: ${duplicateIdsStr}.`,
+            StatusCodes.BAD_REQUEST
+        );
+    }
+
+    mediaList.items = mediaItemIdList;
+    await mediaList.save();
+
+    return mediaList;
+};
