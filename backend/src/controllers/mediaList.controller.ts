@@ -10,6 +10,7 @@ import {
     deleteSingleMediaListOfUser,
     getAllMediaListsOfUser,
     getMediaListOfUser,
+    reorderMediaItemsOfListOfUser
 } from '../services/mediaList.service';
 import { AppError, handleControllerError } from '../utils/appError';
 import {
@@ -112,7 +113,9 @@ export const deleteMultipleLists = async (
 };
 
 export const updateList = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
-    return res.status(StatusCodes.NOT_IMPLEMENTED).json({ error: 'update list not implemented yet' });
+    return res
+        .status(StatusCodes.NOT_IMPLEMENTED)
+        .json({ error: 'update list not implemented yet' });
 };
 
 export const addMediaItemsToList = async (
@@ -121,11 +124,11 @@ export const addMediaItemsToList = async (
 ): Promise<Response> => {
     try {
         const userDoc = req.userDoc;
-        const mediaItemIdList = req.body?.items;
         const mediaListId = req.params.id;
+        const mediaItemIdList = req.body?.items;
 
-        const mediaItemObjectIds = validateAndConvertObjectIdArray(mediaItemIdList, 'items');
         const mediaListObjectId = validateAndConvertObjectId(mediaListId, 'Media list');
+        const mediaItemObjectIds = validateAndConvertObjectIdArray(mediaItemIdList, 'items');
 
         const updatedMediaList = await addMediaItemsToMediaList(
             userDoc,
@@ -160,7 +163,34 @@ export const removeMediaItemsFromList = async (
         );
         return res.status(StatusCodes.OK).json({
             message: `Media items have been deleted from ${updatedMediaList.title} list.`,
-            list: updatedMediaList
+            list: updatedMediaList,
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export const reorderMediaItemsOfList = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<Response> => {
+    try {
+        const userDoc = req.userDoc;
+        const mediaListId = req.params.id;
+        const mediaItemIdList = req.body?.items;
+
+        const mediaListObjectId = validateAndConvertObjectId(mediaListId, 'Media list');
+        const mediaItemObjectIds = validateAndConvertObjectIdArray(mediaItemIdList, 'Media list');
+
+        const reorderedMediaList = await reorderMediaItemsOfListOfUser(
+            userDoc,
+            mediaListObjectId,
+            mediaItemObjectIds
+        );
+
+        return res.status(StatusCodes.OK).json({
+            message: `Media items in list ${reorderedMediaList.title} have been re-ordered.`,
+            list: reorderedMediaList
         });
     } catch (err) {
         return handleControllerError(res, err);

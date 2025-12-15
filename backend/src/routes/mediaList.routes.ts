@@ -7,6 +7,7 @@ import {
     getAllLists,
     getListById,
     removeMediaItemsFromList,
+    reorderMediaItemsOfList,
     updateList,
 } from '../controllers/mediaList.controller';
 
@@ -328,5 +329,59 @@ mediaListRouter.post('/:id/items', addMediaItemsToList as RequestHandler);
  *         description: Server error
  */
 mediaListRouter.delete('/:id/items', removeMediaItemsFromList as RequestHandler);
+
+/**
+ * @openapi
+ * /api/v1/mediaLists/{id}/order:
+ *   patch:
+ *     summary: Reorder media items in a media list
+ *     tags:
+ *       - Media Lists
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Media list ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             required:
+ *               - items
+ *             properties:
+ *               items:
+ *                 type: array
+ *                 description: The full list of media item IDs in the new order (must match the list length and contain no duplicates).
+ *                 items:
+ *                   type: string
+ *     responses:
+ *       200:
+ *         description: Items reordered
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 list:
+ *                   $ref: '#/components/schemas/MediaList'
+ *       400:
+ *         description: Invalid media list ID or invalid request body (length mismatch, duplicates, or IDs not in list)
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: List does not belong to the user
+ *       404:
+ *         description: Media list not found
+ *       500:
+ *         description: Server error
+ */
+mediaListRouter.patch('/:id/order', reorderMediaItemsOfList as RequestHandler);
+
 
 export default mediaListRouter;
