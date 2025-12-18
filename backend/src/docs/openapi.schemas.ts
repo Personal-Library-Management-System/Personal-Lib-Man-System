@@ -259,4 +259,70 @@
  *                 type: string
  *               count:
  *                 type: integer
+ * 
+ *     UserProfile:
+ *       type: object
+ *       description: User profile information
+ *       properties:
+ *         googleId:
+ *           type: string
+ *           description: Google account identifier
+ *         name:
+ *           type: string
+ *           description: User's full name
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           description: URL to user's profile picture
+ * 
+ *     MediaListExport:
+ *       type: object
+ *       description: Media list data for export (without ownerId)
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Name of the list
+ *         color:
+ *           type: string
+ *           description: Hex color in #RGB or #RRGGBB format
+ *         mediaType:
+ *           $ref: '#/components/schemas/MediaType'
+ *         items:
+ *           type: array
+ *           description: IDs of media items in this list
+ *           items:
+ *             type: string
+ * 
+ *     LibraryExport:
+ *       type: object
+ *       description: Complete user library data export
+ *       properties:
+ *         googleId:
+ *           type: string
+ *           description: Google account identifier
+ *         name:
+ *           type: string
+ *           description: User's full name
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           description: URL to user's profile picture
+ *         mediaItems:
+ *           type: array
+ *           description: All media items owned by the user
+ *           items:
+ *             $ref: '#/components/schemas/MediaItem'
+ *         lists:
+ *           type: array
+ *           description: All media lists created by the user
+ *           items:
+ *             $ref: '#/components/schemas/MediaListExport'
  */

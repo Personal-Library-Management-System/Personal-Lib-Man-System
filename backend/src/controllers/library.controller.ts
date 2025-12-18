@@ -12,7 +12,7 @@ export const exportLibrary = async (
         const userDoc = req.userDoc;
         const userLibrary = await getLibraryDataOfUser(userDoc);
         return res.status(StatusCodes.OK).json({
-            message: "",
+            message: "Library data exported successfully",
             library: userLibrary
         });
     }catch(err)  {
