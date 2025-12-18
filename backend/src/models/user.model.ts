@@ -1,4 +1,6 @@
 import { Schema, model, Document, Types, HydratedDocument } from 'mongoose';
+import { MediaItem } from './mediaItem.model';
+import { MediaList } from './mediaList.model';
 
 export interface IUser extends Document {
     googleId: string;
@@ -9,6 +11,11 @@ export interface IUser extends Document {
     lists: Types.ObjectId[];
 }
 export type UserDoc = HydratedDocument<IUser>;
+
+export interface IPopulatedUser extends Omit<IUser, 'mediaItems' | 'lists'> {
+    mediaItems: MediaItem[];
+    lists: Omit<MediaList, 'ownerId'>[];
+}
 
 const UserSchema = new Schema<IUser>(
     {
