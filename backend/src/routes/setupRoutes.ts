@@ -6,6 +6,7 @@ import statsRouter from './stats.routes';
 import authMiddleware from '../middleware/auth.middleware';
 import mediaListRouter from './mediaList.routes';
 import tagRouter from './tag.routes';
+import libraryRouter from './library.routes';
 
 const setupRoutes = (app: express.Application) => {
     app.use('/api/v1/auth', authRouter);
@@ -14,6 +15,7 @@ const setupRoutes = (app: express.Application) => {
     app.use('/api/v1/mediaLists', authMiddleware, mediaListRouter);
     app.use('/api/v1/tags', authMiddleware, tagRouter);
     app.use('/api/v1/stats', authMiddleware, statsRouter);
+    app.use('/api/v1/library', authMiddleware, libraryRouter);
 };
 
 export default setupRoutes;
