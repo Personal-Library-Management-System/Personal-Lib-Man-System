@@ -9,7 +9,9 @@ import {
     getAllMediaItemsForUser,
     getMediaItemForUser,
     getMediaItemsByTypeforUser,
-    updateMediaItemForUser
+    updateMediaItemForUser,
+    addTagsToMediaItem,
+    removeTagFromMediaItem
 } from '../services/mediaItem.service';
 import { handleControllerError } from '../utils/appError';
 
@@ -128,7 +130,12 @@ export const getMediaItem = async (req: AuthenticatedRequest, res: Response) => 
 export const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
-        const items = await getAllMediaItemsForUser(googleId);
+
+        const filters = {
+            tagIds: req.query.tagIds as string,
+            match: req.query.match as 'any' | 'all'
+        };
+        const items = await getAllMediaItemsForUser(googleId, filters);
 
         return res.status(StatusCodes.OK).json({
             count: items.length,
@@ -153,9 +160,15 @@ export const getMediaItemsByType = async (
             });
         }
 
+        const filters = {
+            tagIds: req.query.tagIds as string,
+            match: req.query.match as 'any' | 'all'
+        };
+
         const mediaItems = await getMediaItemsByTypeforUser(
             googleId,
-            mediaType
+            mediaType,
+            filters
         );
         return res.status(StatusCodes.OK).json({
             items: mediaItems,
@@ -177,6 +190,45 @@ export const updateMediaItem = async (req: AuthenticatedRequest, res: Response) 
             message: 'Media item updated successfully',
             item: updatedItem
         });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export const addTags = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const googleId = req.user.id; 
+        const { id } = req.params; // Media Item ID
+        const { tagIds } = req.body; // Array of Tag IDs
+
+        if (!Array.isArray(tagIds)) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'tagIds must be an array.' });
+        }
+
+        const updatedItem = await addTagsToMediaItem(
+            googleId,
+            id,
+            tagIds
+        );
+
+        return res.status(StatusCodes.OK).json(updatedItem);
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export const removeTag = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const googleId = req.user.id;
+        const { id, tagId } = req.params; // id=mediaId, tagId=tagToRemove
+
+        const updatedItem = await removeTagFromMediaItem(
+            googleId,
+            id,
+            tagId
+        );
+
+        return res.status(StatusCodes.OK).json(updatedItem);
     } catch (err) {
         return handleControllerError(res, err);
     }

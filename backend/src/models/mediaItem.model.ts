@@ -1,6 +1,5 @@
 import { Schema, model, HydratedDocument, Types } from 'mongoose';
-
-export const MOVIE_SPECIFIC_FIELDS = ['actors', 'awards', 'runtime', 'director', 'imdbID'];
+import { Tag } from './tag.model';export const MOVIE_SPECIFIC_FIELDS = ['actors', 'awards', 'runtime', 'director', 'imdbID'];
 export const BOOK_SPECIFIC_FIELDS = ['ISBN', 'pageCount', 'publisher'];
 
 export const MEDIA_TYPES = ['Book', 'Movie'] as const;
@@ -28,6 +27,7 @@ export interface MediaItem {
     language?: string | null;
     author?: string | null;
     lists: Types.ObjectId[],
+    tags?: Types.ObjectId[] | null;
     status: ItemStatus;
     myRating?: number | null;
     progress?: number | null;
@@ -67,6 +67,12 @@ const mediaItemSchema = new Schema<MediaItem>(
             ref: 'MediaList',
             default: []
         },
+        tags: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Tag',
+            },
+        ],
         mediaType: {
             type: String,
             required: true,

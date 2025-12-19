@@ -22,6 +22,22 @@
  *           type: string
  *         value:
  *           type: string
+ *     Tag:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier for the tag
+ *         name:
+ *           type: string
+ *           description: Name of the tag (unique per user)
+ *         color:
+ *           type: string
+ *           description: Hex color code for the tag
+ *           example: "#FF5733"
  *
  *     MediaItemBase:
  *       type: object
@@ -80,6 +96,11 @@
  *           readOnly: true
  *           items:
  *             type: string
+ *         tags:
+ *           type: array
+ *           description: List of tags attached to this item
+ *           items:
+ *             $ref: '#/components/schemas/Tag'
  *         status:
  *           type: string
  *           description: User's status for the media item

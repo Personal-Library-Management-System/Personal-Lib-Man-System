@@ -11,10 +11,16 @@ import User from '../models/user.model';
 import { AppError } from '../utils/appError';
 import { StatusCodes } from 'http-status-codes';
 import { MediaListModel } from '../models/mediaList.model';
+import { TagModel } from '../models/tag.model';
 
 interface CreateMediaItemPayload {
     mediaType: (typeof MEDIA_TYPES)[number];
     [key: string]: any;
+}
+
+export interface MediaFilterOptions {
+    tagIds?: string; 
+    match?: 'any' | 'all';
 }
 
 export const createMediaItemForUser = async (
@@ -119,7 +125,7 @@ export const getMediaItemForUser = async (
         );
     }
 
-    const item = await MediaItemModel.findById(mediaItemId);
+    const item = await MediaItemModel.findById(mediaItemId).populate('tags');
 
     if (!item) {
         throw new AppError('Media item not found.', StatusCodes.NOT_FOUND);
@@ -129,7 +135,8 @@ export const getMediaItemForUser = async (
 };
 
 export const getAllMediaItemsForUser = async (
-    googleId: string
+    googleId: string,
+    filters?: MediaFilterOptions
 ): Promise<MediaItemDoc[]> => {
     const user = await User.findOne({ googleId }, { mediaItems: 1 });
     if (!user) {
@@ -140,16 +147,35 @@ export const getAllMediaItemsForUser = async (
         return [];
     }
 
-    const items = await MediaItemModel.find({
+    const query: any = {
         _id: { $in: user.mediaItems },
-    });
+    };
 
+    if (filters?.tagIds) {
+        const tagIdArray = filters.tagIds.split(',').map((id) => id.trim());
+        const validTagObjectIds = tagIdArray
+            .filter((id) => Types.ObjectId.isValid(id))
+            .map((id) => new Types.ObjectId(id));
+
+        if (validTagObjectIds.length > 0) {
+            if (filters.match === 'all') {
+                // Reason: AND logic - Item must have ALL specified tags
+                query.tags = { $all: validTagObjectIds };
+            } else {
+                // Reason: OR logic (default) - Item must have AT LEAST ONE of the specified tags
+                query.tags = { $in: validTagObjectIds };
+            }
+        }
+    }
+
+    const items = await MediaItemModel.find(query).populate('tags');
     return items;
 };
 
 export const getMediaItemsByTypeforUser = async (
     googleId: string,
-    mediaType: MediaType
+    mediaType: MediaType,
+    filters?: MediaFilterOptions
 ): Promise<MediaItemDoc[]> => {
     const user = await User.findOne({ googleId }, { mediaItems: 1 });
 
@@ -157,10 +183,27 @@ export const getMediaItemsByTypeforUser = async (
         return [];
     }
 
-    const items = await MediaItemModel.find({
+    const query: any = {
         _id: { $in: user.mediaItems },
         mediaType,
-    });
+    };
+
+    if (filters?.tagIds) {
+        const tagIdArray = filters.tagIds.split(',').map((id) => id.trim());
+        const validTagObjectIds = tagIdArray
+            .filter((id) => Types.ObjectId.isValid(id))
+            .map((id) => new Types.ObjectId(id));
+
+        if (validTagObjectIds.length > 0) {
+            if (filters.match === 'all') {
+                query.tags = { $all: validTagObjectIds };
+            } else {
+                query.tags = { $in: validTagObjectIds };
+            }
+        }
+    }
+
+    const items = await MediaItemModel.find(query).populate('tags');
 
     return items;
 };
@@ -216,6 +259,97 @@ export const updateMediaItemForUser = async (
         { $set: updates },
         { new: true, runValidators: true }
     );
+
+    return updatedItem;
+};
+
+export const addTagsToMediaItem = async (
+    googleId: string,
+    mediaItemId: string,
+    tagIds: string[]
+): Promise<MediaItemDoc> => {
+    if (!Types.ObjectId.isValid(mediaItemId)) {
+        throw new AppError('Invalid media item ID.', StatusCodes.BAD_REQUEST);
+    }
+    
+    const validTagIds = tagIds
+        .filter((id) => Types.ObjectId.isValid(id))
+        .map((id) => new Types.ObjectId(id));
+
+    if (validTagIds.length === 0) {
+        throw new AppError('No valid tag IDs provided.', StatusCodes.BAD_REQUEST);
+    }
+    // Verify User Existence and Media Item Ownership
+    const user = await User.findOne({ googleId });
+    if (!user) {
+        throw new AppError('User not found.', StatusCodes.NOT_FOUND);
+    }
+
+    // Check if the user owns this media item (it must be in their mediaItems array)
+    const hasMediaItem = user.mediaItems.some(
+        (id) => id.toString() === mediaItemId
+    );
+
+    if (!hasMediaItem) {
+        throw new AppError('Media item not found for this user.', StatusCodes.NOT_FOUND);
+    }
+
+    const validTagsCount = await TagModel.countDocuments({
+        _id: { $in: validTagIds },
+        userId: user._id,
+    });
+
+    if (validTagsCount !== validTagIds.length) {
+        throw new AppError(
+            'One or more tags do not belong to this user or do not exist.',
+            StatusCodes.FORBIDDEN
+        );
+    }
+
+    const updatedItem = await MediaItemModel.findByIdAndUpdate(
+        mediaItemId,
+        { $addToSet: { tags: { $each: validTagIds } } },
+        { new: true }
+    ).populate('tags'); // Return with populated tag details
+
+    if (!updatedItem) {
+        throw new AppError('Media item not found.', StatusCodes.NOT_FOUND);
+    }
+
+    return updatedItem;
+};
+
+export const removeTagFromMediaItem = async (
+    googleId: string,
+    mediaItemId: string,
+    tagId: string
+): Promise<MediaItemDoc> => {
+    if (!Types.ObjectId.isValid(mediaItemId) || !Types.ObjectId.isValid(tagId)) {
+        throw new AppError('Invalid ID(s).', StatusCodes.BAD_REQUEST);
+    }
+
+    const user = await User.findOne({ googleId });
+    if (!user) {
+        throw new AppError('User not found.', StatusCodes.NOT_FOUND);
+    }
+
+    const hasMediaItem = user.mediaItems.some(
+        (id) => id.toString() === mediaItemId
+    );
+
+    if (!hasMediaItem) {
+        throw new AppError('Media item not found for this user.', StatusCodes.NOT_FOUND);
+    }
+
+    const updatedItem = await MediaItemModel.findByIdAndUpdate(
+        mediaItemId,
+        { $pull: { tags: new Types.ObjectId(tagId) } },
+        { new: true }
+    ).populate('tags');
+
+    if (!updatedItem) {
+        throw new AppError('Media item not found.', StatusCodes.NOT_FOUND);
+    }
 
     return updatedItem;
 };
