@@ -6,7 +6,9 @@ import {
     getAllMediaItems,
     getMediaItem,
     getMediaItemsByType,
-    updateMediaItem
+    updateMediaItem,
+    addTags,
+    removeTag
 } from '../controllers/mediaItem.controller';
 
 const mediaItemRouter = Router();
@@ -169,6 +171,21 @@ mediaItemRouter.get('/:id', getMediaItem as RequestHandler);
  *     summary: Get all media items
  *     tags:
  *       - Media Items
+ *     parameters:
+ *       - in: query
+ *         name: tagIds
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of Tag IDs to filter by (e.g. "id1,id2")
+ *         required: false
+ *       - in: query
+ *         name: match
+ *         schema:
+ *           type: string
+ *           enum: [any, all]
+ *           default: any
+ *         description: Filter logic. 'any' returns items with at least one tag, 'all' returns items with all tags.
+ *         required: false
  *     responses:
  *       200:
  *         description: OK
@@ -206,6 +223,20 @@ mediaItemRouter.get('/', getAllMediaItems as RequestHandler);
  *         schema:
  *           $ref: '#/components/schemas/MediaType'
  *         description: Type of media items to retrieve
+ *       - in: query
+ *         name: tagIds
+ *         schema:
+ *           type: string
+ *         description: Comma-separated list of Tag IDs to filter by
+ *         required: false
+ *       - in: query
+ *         name: match
+ *         schema:
+ *           type: string
+ *           enum: [any, all]
+ *           default: any
+ *         description: Filter logic (any/all)
+ *         required: false
  *     responses:
  *       200:
  *         description: OK
@@ -255,5 +286,82 @@ mediaItemRouter.get('/type/:mediaType', getMediaItemsByType as RequestHandler);
  *         description: Item not found
  */
 mediaItemRouter.patch('/:id', updateMediaItem as RequestHandler);
+
+/**
+ * @openapi
+ * /api/v1/mediaItems/{id}/tags:
+ *  post:
+ *   summary: Add tags to a media item
+ *   description: Attach one or more existing tags to a specific book or movie.
+ *   tags:
+ *     - Media Items
+ *   parameters:
+ *     - in: path
+ *       name: id
+ *       required: true
+ *       schema:
+ *         type: string
+ *       description: Media Item ID
+ *   requestBody:
+ *     required: true
+ *     content:
+ *       application/json:
+ *         schema:
+ *           type: object
+ *           required:
+ *             - tagIds
+ *           properties:
+ *             tagIds:
+ *               type: array
+ *               items:
+ *                 type: string
+ *               description: Array of Tag IDs to attach
+ *   responses:
+ *     200:
+ *       description: Tags added successfully
+ *       content:
+ *         application/json:
+ *           schema:
+ *             $ref: '#/components/schemas/MediaItem'
+ *     403:
+ *       description: Forbidden - One or more tags do not belong to the user
+ *     404:
+ *       description: Media item not found
+ */
+mediaItemRouter.post('/:id/tags', addTags as RequestHandler);
+
+/**
+ * @openapi
+ * /api/v1/mediaItems/{id}/tags/{tagId}:
+ *   delete:
+ *     summary: Remove a tag from a media item
+ *     description: Detach a specific tag from a book or movie.
+ *     tags:
+ *       - Media Items
+ *     parameters:
+ *       - in: path
+ *         name: id
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Media Item ID
+ *       - in: path
+ *         name: tagId
+ *         required: true
+ *         schema:
+ *           type: string
+ *         description: Tag ID to remove
+ *     responses:
+ *       200:
+ *         description: Tag removed successfully
+ *         content:
+ *           application/json:
+ *             schema:
+ *               $ref: '#/components/schemas/MediaItem'
+ *       404:
+ *         description: Media item not found
+ */
+mediaItemRouter.delete('/:id/tags/:tagId', removeTag as RequestHandler);
+
 
 export default mediaItemRouter;
