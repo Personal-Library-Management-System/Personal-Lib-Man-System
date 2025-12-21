@@ -55,7 +55,16 @@ const mediaItemSchema = new Schema<MediaItem>(
         ratingCount: { type: Number, min: 0 },
         categories: [{ type: String, trim: true }],
         description: { type: String },
-        coverPhoto: { type: String },
+        coverPhoto: { 
+            type: String,
+            validate: {
+                validator: (value: string) => {
+                    if (!value) return true; // Allow empty/null
+                    return /^https?:\/\/.+$/.test(value);
+                },
+                message: (props: any) => `"${props.value}" is not a valid URL (expected http:// or https://).`
+            }
+        },
         language: {
             type: String,
             trim: true,

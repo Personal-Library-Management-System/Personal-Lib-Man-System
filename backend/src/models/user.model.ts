@@ -13,7 +13,7 @@ export interface IUser extends Document {
 export type UserDoc = HydratedDocument<IUser>;
 
 export interface IPopulatedUser extends Omit<IUser, 'mediaItems' | 'lists'> {
-    mediaItems: MediaItem[];
+    mediaItems: (MediaItem & { _id: Types.ObjectId })[];
     lists: Omit<MediaList, 'ownerId'>[];
 }
 
