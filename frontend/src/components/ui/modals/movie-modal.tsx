@@ -25,6 +25,10 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
   const initialTags = (movie as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
   
+  // List management
+  const initialLists = (movie as any).lists ?? [];
+  const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
+  
   // localStorage key for personal note
   const noteKey = `movie-note-${movie.id}`;
   const [personalNote, setPersonalNote] = useState<string>(() => {
@@ -34,6 +38,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
   useEffect(() => {
     setCurrentStatus(movie.status);
     setCurrentTags((movie as any).tags ?? []);
+    setCurrentLists((movie as any).lists ?? []);
     // Load note from localStorage or fallback to movie data
     setPersonalNote(localStorage.getItem(`movie-note-${movie.id}`) ?? (movie as any).personalNote ?? '');
   }, [movie]);
@@ -151,6 +156,11 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     console.log('Updated note (movie):', note, 'movie id:', movie.id);
   };
 
+  const handleListsChange = (updated: string[]) => {
+    setCurrentLists(updated);
+    console.log('Updated lists (movie):', updated, 'movie id:', movie.id);
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={movie.title}>
       <Box>
@@ -173,6 +183,11 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
           }}
           personalNote={personalNote}
           onPersonalNoteChange={handleNoteChange}
+          assignedLists={currentLists}
+          onListsChange={handleListsChange}
+          onCreateList={(listName) => {
+            console.log(`List created for movie ${movie.id}: ${listName}`);
+          }}
         />
       </Box>
     </Modal>
