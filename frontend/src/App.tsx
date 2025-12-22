@@ -4,6 +4,8 @@ import AuthPage from './pages/AuthPage';
 import MainPage from './pages/MainPage';
 import LibraryPage from './pages/LibraryPage';
 import MoviesPage from './pages/MoviesPage';
+import MyAccountPage from './pages/MyAccountPage';
+import StatisticsPage from './pages/StatisticsPage';
 // Diğer sayfalar...
 
 function App() {
@@ -18,9 +20,8 @@ function App() {
         <Route path="/main" element={<MainPage />} />
         <Route path="/library" element={<LibraryPage />} />
         <Route path="/movies" element={<MoviesPage />} />
-        {/* İleride eklenecekler:
-        <Route path="/stats" element={<StatsPage />} />
-        <Route path="/account" element={<AccountPage />} /> */}
+        <Route path="/stats" element={<StatisticsPage />} />
+        <Route path="/account" element={<MyAccountPage />} />
       </Routes>
     </Router>
   );

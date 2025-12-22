@@ -72,4 +72,41 @@ const refreshTokenController = async (
         .json({ message: 'Tokens refreshed successfully' });
 };
 
-export { googleLoginController, refreshTokenController };
+const getUserProfileController = async (
+    req: Request,
+    res: Response
+): Promise<Response> => {
+    try {
+        // User is already attached to req by authMiddleware
+        if (!req.user) {
+            return res
+                .status(StatusCodes.UNAUTHORIZED)
+                .json({ error: 'User not authenticated' });
+        }
+
+        const user = await userService.getUserByEmail(req.user.email);
+        if (!user) {
+            return res
+                .status(StatusCodes.NOT_FOUND)
+                .json({ error: 'User not found' });
+        }
+
+        return res.status(StatusCodes.OK).json({
+            user: {
+                id: user._id,
+                googleId: user.googleId,
+                name: user.name,
+                email: user.email,
+                picture: user.picture,
+                createdAt: user.createdAt,
+                updatedAt: user.updatedAt,
+            },
+        });
+    } catch (error) {
+        return res
+            .status(StatusCodes.INTERNAL_SERVER_ERROR)
+            .json({ error: 'Failed to fetch user profile' });
+    }
+};
+
+export { googleLoginController, refreshTokenController, getUserProfileController };

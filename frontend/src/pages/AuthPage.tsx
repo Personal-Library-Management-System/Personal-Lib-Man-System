@@ -1,14 +1,17 @@
 import bookIcon from '../components/icons/image.png';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
+import { useNavigate } from 'react-router-dom';
 
 const AuthPage = () => {
+    const navigate = useNavigate();
 
     const handleLoginSuccess = async (credentialResponse: any) => {
         const idToken = credentialResponse.credential;
         console.log(jwtDecode(idToken));
         const res = await fetch('http://localhost:5000/api/v1/auth/google', {
             method: 'POST',
+            credentials: 'include',
             headers: {
                 'Content-Type': 'application/json',
             },
@@ -16,6 +19,11 @@ const AuthPage = () => {
         });
         const data = await res.json();
         console.log(data);
+        
+        if (res.ok) {
+            // Redirect to main page after successful login
+            navigate('/main');
+        }
     };
 
     return (

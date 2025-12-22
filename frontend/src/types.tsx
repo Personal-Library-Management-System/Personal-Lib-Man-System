@@ -43,3 +43,13 @@ export interface Movie {
   ratings?: Rating[]; // Farklı kaynaklardan puanlar
   status: 'watched' | 'want-to-watch';
 }
+
+export interface User {
+  id: string;
+  googleId: string;
+  name: string;
+  email: string;
+  picture?: string | null;
+  createdAt?: string;
+  updatedAt?: string;
+}

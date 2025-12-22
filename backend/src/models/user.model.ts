@@ -8,6 +8,8 @@ export interface IUser extends Document {
     email: string;
     picture?: string | null;
     mediaItems: Types.ObjectId[];
+    createdAt?: Date;
+    updatedAt?: Date;
     lists: Types.ObjectId[];
 }
 export type UserDoc = HydratedDocument<IUser>;
