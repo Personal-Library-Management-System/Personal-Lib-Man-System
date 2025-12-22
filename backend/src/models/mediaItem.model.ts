@@ -11,6 +11,10 @@ export type ItemStatus = (typeof ITEM_STATUSES)[number];
 export const isValidMediaType = (value: any): value is MediaType =>
     MEDIA_TYPES.includes(value);
 
+export const isValidMediaStatus = (status: any): status is ItemStatus => {
+    return ITEM_STATUSES.includes(status);
+};
+
 export interface Rating {
     source: string;
     value: string;
@@ -55,7 +59,7 @@ const mediaItemSchema = new Schema<MediaItem>(
         ratingCount: { type: Number, min: 0 },
         categories: [{ type: String, trim: true }],
         description: { type: String },
-        coverPhoto: { 
+        coverPhoto: {
             type: String,
             validate: {
                 validator: (value: string) => {

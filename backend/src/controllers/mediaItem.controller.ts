@@ -1,6 +1,6 @@
 import { Response } from 'express';
 import { AuthenticatedRequest } from '../types/express';
-import { isValidMediaType, MEDIA_TYPES } from '../models/mediaItem.model';
+import { isValidMediaStatus, isValidMediaType, ITEM_STATUSES, MEDIA_TYPES } from '../models/mediaItem.model';
 import { StatusCodes } from 'http-status-codes';
 import {
     createMediaItemForUser,
@@ -11,7 +11,8 @@ import {
     getMediaItemsByTypeforUser,
     updateMediaItemForUser,
     addTagsToMediaItem,
-    removeTagFromMediaItem
+    removeTagFromMediaItem,
+    getMediaItemsByStatusForUser,
 } from '../services/mediaItem.service';
 import { handleControllerError } from '../utils/appError';
 
@@ -37,9 +38,7 @@ export const createMediaItem = async (
         });
     } catch (error: any) {
         if (error.name === 'ValidationError') {
-            const messages = Object.values(error.errors).map(
-                (err: any) => err.message
-            );
+            const messages = Object.values(error.errors).map((err: any) => err.message);
             return res.status(StatusCodes.BAD_REQUEST).json({
                 error: 'Validation Error',
                 details: messages,
@@ -93,8 +92,10 @@ export const deleteMultipleMediaItems = async (
             });
         }
 
-        const { deletedIds, notDeletedIds } =
-            await deleteMultipleMediaItemsForUser(googleId, mediaItemIds);
+        const { deletedIds, notDeletedIds } = await deleteMultipleMediaItemsForUser(
+            googleId,
+            mediaItemIds
+        );
 
         return deletedIds.length === 0
             ? res.status(StatusCodes.NOT_FOUND).json({
@@ -115,7 +116,7 @@ export const deleteMultipleMediaItems = async (
     }
 };
 
-export const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+export const getMediaItem = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
         const googleId = req.user.id;
         const mediaItemId = req.params.id;
@@ -127,13 +128,16 @@ export const getMediaItem = async (req: AuthenticatedRequest, res: Response) => 
     }
 };
 
-export const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
+export const getAllMediaItems = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<Response> => {
     try {
         const googleId = req.user.id;
 
         const filters = {
             tagIds: req.query.tagIds as string,
-            match: req.query.match as 'any' | 'all'
+            match: req.query.match as 'any' | 'all',
         };
         const items = await getAllMediaItemsForUser(googleId, filters);
 
@@ -149,7 +153,7 @@ export const getAllMediaItems = async (req: AuthenticatedRequest, res: Response)
 export const getMediaItemsByType = async (
     req: AuthenticatedRequest,
     res: Response
-) => {
+): Promise<Response> => {
     try {
         const googleId = req.user.id;
         const mediaType = req.params.mediaType;
@@ -162,14 +166,10 @@ export const getMediaItemsByType = async (
 
         const filters = {
             tagIds: req.query.tagIds as string,
-            match: req.query.match as 'any' | 'all'
+            match: req.query.match as 'any' | 'all',
         };
 
-        const mediaItems = await getMediaItemsByTypeforUser(
-            googleId,
-            mediaType,
-            filters
-        );
+        const mediaItems = await getMediaItemsByTypeforUser(googleId, mediaType, filters);
         return res.status(StatusCodes.OK).json({
             items: mediaItems,
         });
@@ -178,7 +178,10 @@ export const getMediaItemsByType = async (
     }
 };
 
-export const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+export const updateMediaItem = async (
+    req: AuthenticatedRequest,
+    res: Response
+): Promise<Response> => {
     try {
         const googleId = req.user.id;
         const mediaItemId = req.params.id;
@@ -188,16 +191,16 @@ export const updateMediaItem = async (req: AuthenticatedRequest, res: Response) 
 
         return res.status(StatusCodes.OK).json({
             message: 'Media item updated successfully',
-            item: updatedItem
+            item: updatedItem,
         });
     } catch (err) {
         return handleControllerError(res, err);
     }
 };
 
-export const addTags = async (req: AuthenticatedRequest, res: Response) => {
+export const addTags = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
-        const googleId = req.user.id; 
+        const googleId = req.user.id;
         const { id } = req.params; // Media Item ID
         const { tagIds } = req.body; // Array of Tag IDs
 
@@ -205,11 +208,7 @@ export const addTags = async (req: AuthenticatedRequest, res: Response) => {
             return res.status(StatusCodes.BAD_REQUEST).json({ error: 'tagIds must be an array.' });
         }
 
-        const updatedItem = await addTagsToMediaItem(
-            googleId,
-            id,
-            tagIds
-        );
+        const updatedItem = await addTagsToMediaItem(googleId, id, tagIds);
 
         return res.status(StatusCodes.OK).json(updatedItem);
     } catch (err) {
@@ -217,18 +216,36 @@ export const addTags = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-export const removeTag = async (req: AuthenticatedRequest, res: Response) => {
+export const removeTag = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
     try {
         const googleId = req.user.id;
         const { id, tagId } = req.params; // id=mediaId, tagId=tagToRemove
 
-        const updatedItem = await removeTagFromMediaItem(
-            googleId,
-            id,
-            tagId
-        );
+        const updatedItem = await removeTagFromMediaItem(googleId, id, tagId);
 
         return res.status(StatusCodes.OK).json(updatedItem);
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export const getMediaItemsByStatus = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const userDoc = req.userDoc;
+        const status = req.params.status;
+
+        if(!isValidMediaStatus(status)) {
+            return res.status(StatusCodes.BAD_REQUEST).json({
+                error: `Invalid media item status. Allowed: ${ITEM_STATUSES.join(', ')}`
+            });
+        }
+
+        const mediaItems = await getMediaItemsByStatusForUser(userDoc, status);
+
+        return res.status(StatusCodes.OK).json({
+            message: `Media items of status ${status} retrieved successfully.`,
+            items: mediaItems
+        });
     } catch (err) {
         return handleControllerError(res, err);
     }
