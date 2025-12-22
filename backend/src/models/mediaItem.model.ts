@@ -1,6 +1,5 @@
-import { Schema, model, Model, HydratedDocument } from 'mongoose';
-
-export const MOVIE_SPECIFIC_FIELDS = ['actors', 'awards', 'runtime', 'director', 'imdbID'];
+import { Schema, model, HydratedDocument, Types } from 'mongoose';
+import { Tag } from './tag.model';export const MOVIE_SPECIFIC_FIELDS = ['actors', 'awards', 'runtime', 'director', 'imdbID'];
 export const BOOK_SPECIFIC_FIELDS = ['ISBN', 'pageCount', 'publisher'];
 
 export const MEDIA_TYPES = ['Book', 'Movie'] as const;
@@ -27,7 +26,8 @@ export interface MediaItem {
     coverPhoto?: string | null;
     language?: string | null;
     author?: string | null;
-    //new fields for user media items
+    lists: Types.ObjectId[],
+    tags?: Types.ObjectId[] | null;
     status: ItemStatus;
     myRating?: number | null;
     progress?: number | null;
@@ -37,9 +37,8 @@ export interface MediaItem {
 }
 
 export type MediaItemDoc = HydratedDocument<MediaItem>;
-export interface MediaItemModel extends Model<MediaItem> {}
 
-const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
+const mediaItemSchema = new Schema<MediaItem>(
     {
         title: { type: String, required: true, trim: true },
         publishedDate: { type: Date },
@@ -63,12 +62,22 @@ const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
             set: (value: string) => value?.toUpperCase(),
         },
         author: { type: String, trim: true },
+        lists: {
+            type: [Schema.Types.ObjectId],
+            ref: 'MediaList',
+            default: []
+        },
+        tags: [
+            {
+                type: Schema.Types.ObjectId,
+                ref: 'Tag',
+            },
+        ],
         mediaType: {
             type: String,
             required: true,
             enum: MEDIA_TYPES,
         },
-        //new fields for user media items
         myRating: { type: Number, min: 0, max: 5 },
         personalNotes: { type: String, trim: true ,default: ''},
         progress: { type: Number, min: 0 ,default: 0},
@@ -79,12 +88,16 @@ const mediaItemSchema = new Schema<MediaItem, MediaItemModel>(
             default: 'PLANNED',
         },
     },
-    { discriminatorKey: 'mediaType' }
+    {
+        discriminatorKey: 'mediaType',
+        timestamps: true,
+        strict: true
+    }
 );
 
 mediaItemSchema.index({ mediaType: 1 });
 
-export const MediaItemModel = model<MediaItem, MediaItemModel>(
+export const MediaItemModel = model<MediaItem>(
     'MediaItem',
     mediaItemSchema
 );

@@ -22,6 +22,22 @@
  *           type: string
  *         value:
  *           type: string
+ *     Tag:
+ *       type: object
+ *       required:
+ *         - id
+ *         - name
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Unique identifier for the tag
+ *         name:
+ *           type: string
+ *           description: Name of the tag (unique per user)
+ *         color:
+ *           type: string
+ *           description: Hex color code for the tag
+ *           example: "#FF5733"
  *
  *     MediaItemBase:
  *       type: object
@@ -73,6 +89,18 @@
  *         author:
  *           type: string
  *           nullable: true
+ *
+ *         lists:
+ *           type: array
+ *           description: IDs of media lists that contain this item
+ *           readOnly: true
+ *           items:
+ *             type: string
+ *         tags:
+ *           type: array
+ *           description: List of tags attached to this item
+ *           items:
+ *             $ref: '#/components/schemas/Tag'
  *         status:
  *           type: string
  *           description: User's status for the media item
@@ -147,6 +175,51 @@
  *         mapping:
  *           Book: '#/components/schemas/BookMediaItem'
  *           Movie: '#/components/schemas/MovieMediaItem'
+ *
+ *     MediaListCreate:
+ *       type: object
+ *       required:
+ *         - title
+ *         - mediaType
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Name of the list
+ *         color:
+ *           type: string
+ *           description: Hex color in #RGB or #RRGGBB format
+ *           example: '#FFAA00'
+ *         mediaType:
+ *           $ref: '#/components/schemas/MediaType'
+ *         items:
+ *           type: array
+ *           description: Optional list of media item IDs to include
+ *           items:
+ *             type: string
+ *
+ *     MediaList:
+ *       type: object
+ *       description: A user-defined list of media items
+ *       required:
+ *         - title
+ *         - mediaType
+ *       properties:
+ *         id:
+ *           type: string
+ *           description: Mongo document identifier
+ *           readOnly: true
+ *         title:
+ *           type: string
+ *         color:
+ *           type: string
+ *           description: Hex color in #RGB or #RRGGBB format
+ *         mediaType:
+ *           $ref: '#/components/schemas/MediaType'
+ *         items:
+ *           type: array
+ *           description: Media items contained in this list
+ *           items:
+ *             $ref: '#/components/schemas/MediaItem'
  * 
  *     UserStatistics:
  *       type: object
@@ -207,4 +280,70 @@
  *                 type: string
  *               count:
  *                 type: integer
+ * 
+ *     UserProfile:
+ *       type: object
+ *       description: User profile information
+ *       properties:
+ *         googleId:
+ *           type: string
+ *           description: Google account identifier
+ *         name:
+ *           type: string
+ *           description: User's full name
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           description: URL to user's profile picture
+ * 
+ *     MediaListExport:
+ *       type: object
+ *       description: Media list data for export (without ownerId)
+ *       properties:
+ *         title:
+ *           type: string
+ *           description: Name of the list
+ *         color:
+ *           type: string
+ *           description: Hex color in #RGB or #RRGGBB format
+ *         mediaType:
+ *           $ref: '#/components/schemas/MediaType'
+ *         items:
+ *           type: array
+ *           description: IDs of media items in this list
+ *           items:
+ *             type: string
+ * 
+ *     LibraryExport:
+ *       type: object
+ *       description: Complete user library data export
+ *       properties:
+ *         googleId:
+ *           type: string
+ *           description: Google account identifier
+ *         name:
+ *           type: string
+ *           description: User's full name
+ *         email:
+ *           type: string
+ *           format: email
+ *           description: User's email address
+ *         picture:
+ *           type: string
+ *           nullable: true
+ *           description: URL to user's profile picture
+ *         mediaItems:
+ *           type: array
+ *           description: All media items owned by the user
+ *           items:
+ *             $ref: '#/components/schemas/MediaItem'
+ *         lists:
+ *           type: array
+ *           description: All media lists created by the user
+ *           items:
+ *             $ref: '#/components/schemas/MediaListExport'
  */

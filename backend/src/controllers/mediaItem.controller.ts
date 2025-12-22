@@ -9,11 +9,13 @@ import {
     getAllMediaItemsForUser,
     getMediaItemForUser,
     getMediaItemsByTypeforUser,
-    updateMediaItemForUser
+    updateMediaItemForUser,
+    addTagsToMediaItem,
+    removeTagFromMediaItem
 } from '../services/mediaItem.service';
 import { handleControllerError } from '../utils/appError';
 
-const createMediaItem = async (
+export const createMediaItem = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
@@ -51,7 +53,7 @@ const createMediaItem = async (
     }
 };
 
-const deleteMediaItem = async (
+export const deleteMediaItem = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
@@ -77,7 +79,7 @@ const deleteMediaItem = async (
     }
 };
 
-const deleteMultipleMediaItems = async (
+export const deleteMultipleMediaItems = async (
     req: AuthenticatedRequest,
     res: Response
 ): Promise<Response> => {
@@ -113,7 +115,7 @@ const deleteMultipleMediaItems = async (
     }
 };
 
-const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+export const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
         const mediaItemId = req.params.id;
@@ -125,10 +127,15 @@ const getMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
+export const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
-        const items = await getAllMediaItemsForUser(googleId);
+
+        const filters = {
+            tagIds: req.query.tagIds as string,
+            match: req.query.match as 'any' | 'all'
+        };
+        const items = await getAllMediaItemsForUser(googleId, filters);
 
         return res.status(StatusCodes.OK).json({
             count: items.length,
@@ -139,7 +146,7 @@ const getAllMediaItems = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-const getMediaItemsByType = async (
+export const getMediaItemsByType = async (
     req: AuthenticatedRequest,
     res: Response
 ) => {
@@ -153,9 +160,15 @@ const getMediaItemsByType = async (
             });
         }
 
+        const filters = {
+            tagIds: req.query.tagIds as string,
+            match: req.query.match as 'any' | 'all'
+        };
+
         const mediaItems = await getMediaItemsByTypeforUser(
             googleId,
-            mediaType
+            mediaType,
+            filters
         );
         return res.status(StatusCodes.OK).json({
             items: mediaItems,
@@ -165,7 +178,7 @@ const getMediaItemsByType = async (
     }
 };
 
-const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
+export const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     try {
         const googleId = req.user.id;
         const mediaItemId = req.params.id;
@@ -182,12 +195,41 @@ const updateMediaItem = async (req: AuthenticatedRequest, res: Response) => {
     }
 };
 
-export {
-    createMediaItem,
-    deleteMediaItem,
-    deleteMultipleMediaItems,
-    getMediaItem,
-    getAllMediaItems,
-    getMediaItemsByType,
-    updateMediaItem,
+export const addTags = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const googleId = req.user.id; 
+        const { id } = req.params; // Media Item ID
+        const { tagIds } = req.body; // Array of Tag IDs
+
+        if (!Array.isArray(tagIds)) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ error: 'tagIds must be an array.' });
+        }
+
+        const updatedItem = await addTagsToMediaItem(
+            googleId,
+            id,
+            tagIds
+        );
+
+        return res.status(StatusCodes.OK).json(updatedItem);
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
+};
+
+export const removeTag = async (req: AuthenticatedRequest, res: Response) => {
+    try {
+        const googleId = req.user.id;
+        const { id, tagId } = req.params; // id=mediaId, tagId=tagToRemove
+
+        const updatedItem = await removeTagFromMediaItem(
+            googleId,
+            id,
+            tagId
+        );
+
+        return res.status(StatusCodes.OK).json(updatedItem);
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
 };
