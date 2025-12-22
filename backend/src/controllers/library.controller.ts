@@ -3,6 +3,7 @@ import { AuthenticatedRequest } from '../types/express';
 import { handleControllerError } from '../utils/appError';
 import { StatusCodes } from 'http-status-codes';
 import { getLibraryDataOfUser, importLibraryDataToUser } from '../services/library.service';
+import { validateLibraryData } from '../validators/library.validator';
 
 export const exportLibrary = async (
     req: AuthenticatedRequest,
@@ -28,10 +29,15 @@ export const importLibrary = async (
         const userDoc = req.userDoc;
         const libraryData = req.body;
 
+        const validationErrors = validateLibraryData(libraryData);
+        if (validationErrors) {
+            return res.status(StatusCodes.BAD_REQUEST).json({ errors: validationErrors });
+        }
+
         const updatedUserLibrary = await importLibraryDataToUser(userDoc, libraryData);
         return res.status(StatusCodes.OK).json({
-            message: "",
-            library: updatedUserLibrary
+            message: "Library data imported successfully.",
+            updaedUser: updatedUserLibrary
         });
     } catch(err) {
         return handleControllerError(res, err);

@@ -5,9 +5,10 @@ import {
     MediaItemModel,
     MediaType,
     BOOK_SPECIFIC_FIELDS,
-    MOVIE_SPECIFIC_FIELDS
+    MOVIE_SPECIFIC_FIELDS,
+    ItemStatus,
 } from '../models/mediaItem.model';
-import User from '../models/user.model';
+import User, { UserDoc } from '../models/user.model';
 import { AppError } from '../utils/appError';
 import { StatusCodes } from 'http-status-codes';
 import { MediaListModel } from '../models/mediaList.model';
@@ -19,14 +20,11 @@ interface CreateMediaItemPayload {
 }
 
 export interface MediaFilterOptions {
-    tagIds?: string; 
+    tagIds?: string;
     match?: 'any' | 'all';
 }
 
-export const createMediaItemForUser = async (
-    googleId: string,
-    payload: CreateMediaItemPayload
-) => {
+export const createMediaItemForUser = async (googleId: string, payload: CreateMediaItemPayload) => {
     const newItem = await MediaItemModel.create(payload);
 
     await User.findOneAndUpdate(
@@ -56,42 +54,28 @@ export const deleteMediaItemForUser = async (
     const deletedItem = await MediaItemModel.findByIdAndDelete(mediaItemId);
     if (!deletedItem) return null;
 
-    await MediaListModel.updateMany(
-        { items: itemObjectId },
-        { $pull: { items: itemObjectId } }
-    );
+    await MediaListModel.updateMany({ items: itemObjectId }, { $pull: { items: itemObjectId } });
     return deletedItem;
 };
 
-export const deleteMultipleMediaItemsForUser = async (
-    googleId: string,
-    mediaItemIds: string[]
-) => {
+export const deleteMultipleMediaItemsForUser = async (googleId: string, mediaItemIds: string[]) => {
     const validObjIds = mediaItemIds
         .filter(Types.ObjectId.isValid)
         .map((id) => new Types.ObjectId(id));
 
-    if (!validObjIds.length)
-        return { deletedIds: [], notDeletedIds: mediaItemIds };
+    if (!validObjIds.length) return { deletedIds: [], notDeletedIds: mediaItemIds };
 
     const user = await User.findOne({ googleId }, { mediaItems: 1 }).lean();
-    if (!user?.mediaItems.length)
-        return { deletedIds: [], notDeletedIds: mediaItemIds };
+    if (!user?.mediaItems.length) return { deletedIds: [], notDeletedIds: mediaItemIds };
 
     const userMediaSet = new Set(user.mediaItems.map(String));
 
-    const confirmedObjIds = validObjIds.filter((oid) =>
-        userMediaSet.has(oid.toString())
-    );
-    if (!confirmedObjIds.length)
-        return { deletedIds: [], notDeletedIds: mediaItemIds };
+    const confirmedObjIds = validObjIds.filter((oid) => userMediaSet.has(oid.toString()));
+    if (!confirmedObjIds.length) return { deletedIds: [], notDeletedIds: mediaItemIds };
 
     await Promise.all([
         MediaItemModel.deleteMany({ _id: { $in: confirmedObjIds } }),
-        User.updateOne(
-            { googleId },
-            { $pull: { mediaItems: { $in: confirmedObjIds } } }
-        ),
+        User.updateOne({ googleId }, { $pull: { mediaItems: { $in: confirmedObjIds } } }),
         MediaListModel.updateMany(
             { items: { $in: confirmedObjIds } },
             { $pull: { items: { $in: confirmedObjIds } } }
@@ -119,10 +103,7 @@ export const getMediaItemForUser = async (
     });
 
     if (!hasItem) {
-        throw new AppError(
-            'Media item not found for this user.',
-            StatusCodes.NOT_FOUND
-        );
+        throw new AppError('Media item not found for this user.', StatusCodes.NOT_FOUND);
     }
 
     const item = await MediaItemModel.findById(mediaItemId).populate('tags');
@@ -230,30 +211,30 @@ export const updateMediaItemForUser = async (
     const updateKeys = Object.keys(updates);
 
     if (existingItem.mediaType === 'Book') {
-        const invalidFields = updateKeys.filter(key => MOVIE_SPECIFIC_FIELDS.includes(key));
-        
+        const invalidFields = updateKeys.filter((key) => MOVIE_SPECIFIC_FIELDS.includes(key));
+
         if (invalidFields.length > 0) {
             throw new AppError(
-                `Invalid fields for a Book: ${invalidFields.join(', ')}`, 
+                `Invalid fields for a Book: ${invalidFields.join(', ')}`,
                 StatusCodes.BAD_REQUEST
             );
         }
     }
 
     if (existingItem.mediaType === 'Movie') {
-        const invalidFields = updateKeys.filter(key => BOOK_SPECIFIC_FIELDS.includes(key));
-        
+        const invalidFields = updateKeys.filter((key) => BOOK_SPECIFIC_FIELDS.includes(key));
+
         if (invalidFields.length > 0) {
             throw new AppError(
-                `Invalid fields for a Movie: ${invalidFields.join(', ')}`, 
+                `Invalid fields for a Movie: ${invalidFields.join(', ')}`,
                 StatusCodes.BAD_REQUEST
             );
         }
     }
 
-    delete updates.mediaType; 
-    delete updates._id;      
-    
+    delete updates.mediaType;
+    delete updates._id;
+
     const updatedItem = await MediaItemModel.findByIdAndUpdate(
         mediaItemId,
         { $set: updates },
@@ -271,7 +252,7 @@ export const addTagsToMediaItem = async (
     if (!Types.ObjectId.isValid(mediaItemId)) {
         throw new AppError('Invalid media item ID.', StatusCodes.BAD_REQUEST);
     }
-    
+
     const validTagIds = tagIds
         .filter((id) => Types.ObjectId.isValid(id))
         .map((id) => new Types.ObjectId(id));
@@ -286,9 +267,7 @@ export const addTagsToMediaItem = async (
     }
 
     // Check if the user owns this media item (it must be in their mediaItems array)
-    const hasMediaItem = user.mediaItems.some(
-        (id) => id.toString() === mediaItemId
-    );
+    const hasMediaItem = user.mediaItems.some((id) => id.toString() === mediaItemId);
 
     if (!hasMediaItem) {
         throw new AppError('Media item not found for this user.', StatusCodes.NOT_FOUND);
@@ -333,9 +312,7 @@ export const removeTagFromMediaItem = async (
         throw new AppError('User not found.', StatusCodes.NOT_FOUND);
     }
 
-    const hasMediaItem = user.mediaItems.some(
-        (id) => id.toString() === mediaItemId
-    );
+    const hasMediaItem = user.mediaItems.some((id) => id.toString() === mediaItemId);
 
     if (!hasMediaItem) {
         throw new AppError('Media item not found for this user.', StatusCodes.NOT_FOUND);
@@ -352,4 +329,18 @@ export const removeTagFromMediaItem = async (
     }
 
     return updatedItem;
+};
+
+export const getMediaItemsByStatusForUser = async (
+    user: UserDoc,
+    status: ItemStatus
+): Promise<MediaItemDoc[]> => {
+    if (!user.mediaItems.length) {
+        return [];
+    }
+
+    const mediaItems = await MediaItemModel.find({
+        $and: [{ _id: { $in: user.mediaItems } }, { status: status }],
+    });
+    return mediaItems;
 };

@@ -8,7 +8,8 @@ import {
     getMediaItemsByType,
     updateMediaItem,
     addTags,
-    removeTag
+    removeTag,
+    getMediaItemsByStatus
 } from '../controllers/mediaItem.controller';
 
 const mediaItemRouter = Router();
@@ -363,5 +364,43 @@ mediaItemRouter.post('/:id/tags', addTags as RequestHandler);
  */
 mediaItemRouter.delete('/:id/tags/:tagId', removeTag as RequestHandler);
 
+/**
+ * @openapi
+ * /api/v1/mediaItems/status/{status}:
+ *   get:
+ *     summary: Get media items by status
+ *     description: Retrieves all media items for the authenticated user that match a specific status (PLANNED, IN_PROGRESS, or COMPLETED).
+ *     tags:
+ *       - Media Items
+ *     parameters:
+ *       - in: path
+ *         name: status
+ *         required: true
+ *         schema:
+ *           $ref: '#/components/schemas/ItemStatus'
+ *         description: The status of the media items to retrieve
+ *     responses:
+ *       200:
+ *         description: OK
+ *         content:
+ *           application/json:
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                   example: Media items of status IN_PROGRESS retrieved successfully.
+ *                 items:
+ *                   type: array
+ *                   items:
+ *                     $ref: '#/components/schemas/MediaItem'
+ *       400:
+ *         description: Invalid status provided
+ *       401:
+ *         description: Unauthorized
+ *       500:
+ *         description: Server error
+ */
+mediaItemRouter.get('/status/:status', getMediaItemsByStatus as RequestHandler);
 
 export default mediaItemRouter;
