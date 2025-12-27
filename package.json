@@ -2,7 +2,6 @@
   "name": "plms",
   "version": "1.0.0",
   "description": "## Course Information **Course:** CSE443 – Object Oriented Analysis & Design   **University:** Gebze Technical University (GTU)   **Semester:** Fall 2025   **Project Type:** Term Project   **Group Members:**   - Ahmet Mücahit Gündüz - Enes Korkmaz - Onurhan Talan  - Rümeysa Kalay - Veysel Cemaloğlu",
-  "main": "index.js",
   "scripts": {
     "spellcheck:frontend": "cspell lint \"frontend/src/**/*.{ts,tsx,js,jsx,css,json}\"",
     "spellcheck:backend": "cspell lint \"backend/src/**/*.{ts,js,mts,mjs,cts,cjs,json}\"",
