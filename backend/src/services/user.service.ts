@@ -1,4 +1,5 @@
 import { DEFAULT_MEDIA_LISTS, MediaListModel } from '../models/mediaList.model';
+import { DEFAULT_TAGS,TagModel } from '../models/tag.model';
 import User, { IUser } from '../models/user.model';
 import { IGoogleUserPayload } from '../types/auth.types';
 
@@ -24,6 +25,15 @@ const getOrCreateUser = async (userPayload: IGoogleUserPayload): Promise<IUser> 
             ownerId: newUser._id,
         }))
     );
+
+    await TagModel.insertMany(
+        DEFAULT_TAGS.map((defaultTag) => ({
+            name: defaultTag.name,
+            color: defaultTag.color,
+            userId: newUser._id,
+        }))
+    );
+
     newUser.lists = createdLists.map((list) => list._id);
     await newUser.save();
     return newUser;
