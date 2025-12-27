@@ -34,35 +34,46 @@ const MoviesPage = () => {
 
   // Backend olarak çekilen filmler
   const [items, setItems] = useState<Movie[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
 
   const fetchMovies = async () => {
+    setIsLoading(true);
     try {
-      const res = await fetch('/api/v1/mediaItems/type/Movie');
-      if (!res.ok) throw new Error('Failed to fetch movies');
-      const data = await res.json();
-      
-      const normalizeStatus = (s: any, def: ItemStatus): ItemStatus => {
-        const v = String(s ?? '').toLowerCase().replace('_', '-');
-        const allowed: ItemStatus[] = ['want-to-read','reading','read','want-to-watch','watched'];
-        return allowed.includes(v as ItemStatus) ? (v as ItemStatus) : def;
-      };
+      const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+      const res = await fetch(`${API_BASE}/api/v1/mediaItems/type/Movie`, { credentials: 'include' });
+      if (!res.ok) {
+        const ct = res.headers.get('content-type') ?? '';
+        const body = ct.includes('application/json') ? await res.json() : await res.text();
+        throw new Error(`Failed to fetch movies: ${res.status} ${res.statusText} - ${typeof body === 'string' ? body.slice(0,200) : JSON.stringify(body)}`);
+      }
 
-      // map backend shape -> frontend Movie shape used here
-      const mapped: Movie[] = (data || []).map((m: any) => ({
+      const ct = res.headers.get('content-type') ?? '';
+      if (!ct.includes('application/json')) {
+        const text = await res.text();
+        throw new Error(`Expected JSON response but got: ${text.slice(0,200)}`);
+      }
+
+      const data = await res.json();
+      console.debug('fetchMovies response', data);
+      const list: any[] = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : Array.isArray((data as any).data) ? (data as any).data : [];
+
+      const mapped: Movie[] = list.map((m: any) => ({
         id: m._id ?? m.id,
         title: m.title,
         director: m.director ?? m.author ?? '',
         imageUrl: m.coverPhoto ?? '',
         releaseDate: m.publishedDate ? String(new Date(m.publishedDate).getFullYear()) : '',
         duration: m.runtime ?? 0,
-        // ratings is an array of { source, value }
         ratings: Array.isArray(m.ratings) ? m.ratings : (m.ratings ? [m.ratings] : []),
         status: statusFromBackend(m.status),
         description: m.description ?? '',
+        mediaType: 'Movie'
       }));
       setItems(mapped);
     } catch (err) {
       console.error('Fetch movies error', err);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -127,7 +138,8 @@ const MoviesPage = () => {
                 duration: parseInt(detailData.Runtime) || 0,
                 ratings: detailData.imdbRating ? [{ source: 'imdb', value: String(detailData.imdbRating) }] : [],
                 status: 'want-to-watch' as const,
-                description: detailData.Plot || 'No description available'
+                description: detailData.Plot || 'No description available',
+                mediaType: 'Movie'
               };
             } catch (error) {
               console.error(`Could not fetch movie details: ${movie.Title}`, error);
@@ -185,6 +197,7 @@ const MoviesPage = () => {
             ratings: Array.isArray(item.ratings) ? item.ratings : (item.ratings ? [item.ratings] : []),
             status: statusFromBackend((item as any).status ?? (item as any).status),
             description: item.description ?? '',
+            mediaType: 'Movie'
           };
           setItems(prev => [mapped, ...prev]);
           setSelectedMovie(mapped);

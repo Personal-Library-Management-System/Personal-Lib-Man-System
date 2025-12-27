@@ -200,39 +200,36 @@ const AddMedia = ({
     try {
       const isBook = mediaType === 'book';
       const title = item.title ?? '';
-      const publishedDate = item.publishedDate
-        ? new Date(item.publishedDate).toISOString()
-        : new Date().toISOString();
+      const publishedDate = item.publishedDate ?? new Date().toISOString().split('T')[0];
 
-      const ratingValue = item.ratings && item.ratings.length > 0
-        ? (parseFloat(item.ratings[0].value) || 0)
-        : 0;
-
-      const ratings = ratingValue > 0
-        ? [{ source: item.ratings?.[0]?.source ?? (isBook ? 'google' : 'imdb'), value: String(ratingValue) }]
-        : [];
+      // prefer existing ratings array; if missing and book has averageRating use that
+      let ratings: { source: string; value: string }[] = [];
+      if (Array.isArray(item.ratings) && item.ratings.length) {
+        ratings = item.ratings.map(r => ({ source: r.source ?? 'unknown', value: String(r.value ?? '') }));
+      } else if (isBook && (item as Book).averageRating != null) {
+        ratings = [{ source: 'google', value: String((item as Book).averageRating) }];
+      }
 
       const payload = {
-         title,
-         publishedDate,
-         ratings,
-         ratingCount: item.ratingCount ?? 0,
-         categories: item.categories ?? [],
-         description: item.description ?? '',
-         coverPhoto: item.coverPhoto ?? '',
-         language: item.language ?? '',
-         author: item.author ?? '',
-         tags: [],            // backend expects ObjectId[] — send empty for now
-        // map frontend default -> backend enum
+        title,
+        publishedDate,
+        ratings,
+        ratingCount: item.ratingCount ?? 0,
+        categories: item.categories ?? [],
+        description: item.description ?? '',
+        coverPhoto: item.coverPhoto ?? '',
+        language: item.language ?? '',
+        author: item.author ?? '',
+        tags: [],
         status: statusToBackend(isBook ? 'want-to-read' : 'want-to-watch'),
-         myRating: item.myRating ?? 0,
-         progress: item.progress ?? 0,
-         personalNotes: item.personalNotes ?? '',
-         ISBN: isBook ? ((item as Book).ISBN ?? '') : undefined,
-         pageCount: isBook ? ((item as Book).pageCount ?? 1) : ((item as Movie).runtime ?? 1),
-         publisher: isBook ? ((item as Book).publisher ?? '') : undefined,
-         mediaType: isBook ? 'Book' : 'Movie'
-       };
+        myRating: item.myRating ?? 0,
+        progress: item.progress ?? 0,
+        personalNotes: item.personalNotes ?? '',
+        ISBN: isBook ? ((item as Book).ISBN ?? '') : undefined,
+        pageCount: isBook ? ((item as Book).pageCount ?? 1) : ((item as Movie).runtime ?? 1),
+        publisher: isBook ? ((item as Book).publisher ?? '') : undefined,
+        mediaType: isBook ? 'Book' : 'Movie'
+      };
 
       const res = await fetch('/api/v1/mediaItems', {
         method: 'POST',

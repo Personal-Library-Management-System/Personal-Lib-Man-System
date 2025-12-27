@@ -85,6 +85,9 @@ export interface Book extends MediaItemBase {
   ISBN?: string;
   pageCount?: number;
   publisher?: string;
+  // API'den gelebilecek ortalama puan/ek bilgi için
+  averageRating?: number | null;
+  ratingsCount?: number | null;
 }
 
 export interface Movie extends MediaItemBase {

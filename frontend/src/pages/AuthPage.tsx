@@ -9,7 +9,7 @@ const AuthPage = () => {
     const handleLoginSuccess = async (credentialResponse: any) => {
         const idToken = credentialResponse.credential;
         console.log(jwtDecode(idToken));
-        const res = await fetch('http://localhost:5000/api/v1/auth/google', {
+        const res = await fetch('http://localhost:5001/api/v1/auth/google', {
             method: 'POST',
             credentials: 'include',
             headers: {
