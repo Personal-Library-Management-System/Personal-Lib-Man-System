@@ -2,7 +2,9 @@
   "name": "backend",
   "version": "1.0.0",
   "scripts": {
-    "dev": "cross-env NODE_ENV=development tsnd --rs --respawn src/main.ts"
+    "dev": "cross-env NODE_ENV=development tsnd --rs --respawn src/main.ts",
+    "build": "tsc",
+    "start": "node dist/main.js"
   },
   "keywords": [],
   "author": "",

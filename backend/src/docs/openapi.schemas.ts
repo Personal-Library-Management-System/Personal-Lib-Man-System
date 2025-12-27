@@ -6,7 +6,7 @@
  *       type: string
  *       description: Type of media item
  *       enum: [Book, Movie]
- * 
+ *
  *     ItemStatus:
  *       type: string
  *       description: User's status for the media item
@@ -101,24 +101,23 @@
  *           description: List of tags attached to this item
  *           items:
  *             $ref: '#/components/schemas/Tag'
- *         status:
- *           type: string
- *           description: User's status for the media item
- *           enum: [PLANNED, IN_PROGRESS, COMPLETED]
- * 
+*         status:
+*           $ref: '#/components/schemas/ItemStatus'
+*           description: User's status for the media item
+ *
  *         myRating:
  *           type: number
  *           description: User's personal rating for the media item
  *           nullable: true
  *           minimum: 0
  *           maximum: 5
- * 
+ *
  *         progress:
  *           type: number
  *           description: User's progress for the media item
  *           nullable: true
  *           minimum: 0
- * 
+ *
  *         personalNotes:
  *           type: string
  *           description: User's personal notes for the media item
@@ -220,7 +219,7 @@
  *           description: Media items contained in this list
  *           items:
  *             $ref: '#/components/schemas/MediaItem'
- * 
+ *
  *     UserStatistics:
  *       type: object
  *       description: Aggregated user reading and watching statistics
@@ -280,7 +279,7 @@
  *                 type: string
  *               count:
  *                 type: integer
- * 
+ *
  *     UserProfile:
  *       type: object
  *       description: User profile information
@@ -299,7 +298,7 @@
  *           type: string
  *           nullable: true
  *           description: URL to user's profile picture
- * 
+ *
  *     MediaListExport:
  *       type: object
  *       description: Media list data for export (without ownerId)
@@ -317,7 +316,7 @@
  *           description: IDs of media items in this list
  *           items:
  *             type: string
- * 
+ *
  *     LibraryExport:
  *       type: object
  *       description: Complete user library data export

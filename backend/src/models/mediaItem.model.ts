@@ -11,6 +11,10 @@ export type ItemStatus = (typeof ITEM_STATUSES)[number];
 export const isValidMediaType = (value: any): value is MediaType =>
     MEDIA_TYPES.includes(value);
 
+export const isValidMediaStatus = (status: any): status is ItemStatus => {
+    return ITEM_STATUSES.includes(status);
+};
+
 export interface Rating {
     source: string;
     value: string;
@@ -55,7 +59,16 @@ const mediaItemSchema = new Schema<MediaItem>(
         ratingCount: { type: Number, min: 0 },
         categories: [{ type: String, trim: true }],
         description: { type: String },
-        coverPhoto: { type: String },
+        coverPhoto: {
+            type: String,
+            validate: {
+                validator: (value: string) => {
+                    if (!value) return true; // Allow empty/null
+                    return /^https?:\/\/.+$/.test(value);
+                },
+                message: (props: any) => `"${props.value}" is not a valid URL (expected http:// or https://).`
+            }
+        },
         language: {
             type: String,
             trim: true,
