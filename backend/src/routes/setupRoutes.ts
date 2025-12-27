@@ -8,14 +8,16 @@ import mediaListRouter from './mediaList.routes';
 import tagRouter from './tag.routes';
 import libraryRouter from './library.routes';
 
+export const API_BASE = "/api/v1";
+
 const setupRoutes = (app: express.Application) => {
-    app.use('/api/v1/auth', authRouter);
-    app.use('/api/v1/health', healthRouter);
-    app.use('/api/v1/mediaItems', authMiddleware, mediaItemRouter);
-    app.use('/api/v1/mediaLists', authMiddleware, mediaListRouter);
-    app.use('/api/v1/tags', authMiddleware, tagRouter);
-    app.use('/api/v1/stats', authMiddleware, statsRouter);
-    app.use('/api/v1/library', authMiddleware, libraryRouter);
+    app.use(`${API_BASE}/auth`, authRouter);
+    app.use(`${API_BASE}/health`, healthRouter);
+    app.use(`${API_BASE}/mediaItems`, authMiddleware, mediaItemRouter);
+    app.use(`${API_BASE}/mediaLists`, authMiddleware, mediaListRouter);
+    app.use(`${API_BASE}/tags`, authMiddleware, tagRouter);
+    app.use(`${API_BASE}/stats`, authMiddleware, statsRouter);
+    app.use(`${API_BASE}/library`, authMiddleware, libraryRouter);
 };
 
 export default setupRoutes;
