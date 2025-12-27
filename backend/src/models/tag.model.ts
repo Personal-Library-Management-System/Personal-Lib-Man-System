@@ -12,6 +12,13 @@ export interface Tag {
 export type TagDoc = HydratedDocument<Tag>;
 export interface TagModelType extends Model<Tag> {}
 
+export const DEFAULT_TAGS: Array<Pick<Tag, 'name' | 'color'>> = [
+    { name: 'Favorites', color: '#FF0000' },       // Kırmızı
+    { name: 'Highly Recommended', color: '#00FF00' }, // Yeşil
+    { name: 'Did Not Finish', color: '#000000' },     // Siyah
+    { name: 'Wishlist', color: '#0000FF' }           // Mavi
+];
+
 const tagSchema = new Schema<Tag, TagModelType>(
     {
         userId: {
