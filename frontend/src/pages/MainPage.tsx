@@ -319,34 +319,38 @@ const MainPage = () => {
           <AiRecommendation
             onSubmit={async (data) => {
               try {
-                console.log('Sending to Gemini (request):', data);
-                // start loading UI with flags so 2/3 are included only when requested
+                const schemaInstruction = [
+                  'IMPORTANT: Return ONLY valid JSON (no surrounding text).',
+                  'Return an array of items. Each item must be one of:',
+                  '- Book: { "type": "book", "title": "<book title>", "author": "<author name>" }',
+                  '- Movie: { "type": "movie", "title": "<movie title>", "director": "<director name>" }',
+                  'Do NOT include other fields or explanations.',
+                  'Make sure JSON is parseable.'
+                ].join(' ');
+
+                const llmPrompt = (data.customPrompt ? data.customPrompt.replace(/\r?\n+/g, ' ').trim() + ' ' : '') + schemaInstruction;
+
+                console.log('Sending to Gemini (request):', { ...data, llmPrompt });
                 startLoadingCycle({ useHistory: data.useHistory, useRatings: data.useRatings, useComments: data.useComments });
 
-                const text = await generateWithGemini(data.customPrompt);
+                const text = await generateWithGemini(llmPrompt);
                 console.log('Gemini response (raw):', text);
+
                 const parsed = parseAiResponse(text);
                 const movies = mapAiToMovies(parsed);
 
-               // store results; if we've already reached final loading step, show immediately,
-               // otherwise wait until final step is displayed (prevents abrupt UI jump)
-               pendingResultsRef.current = movies;
-               responseReadyRef.current = true;
+                pendingResultsRef.current = movies;
+                responseReadyRef.current = true;
 
-               const lastIndex = activeLoadingStepsRef.current.length - 1;
-               if (!loading || loadingMessageIndex === lastIndex) {
-                 // no loader running or already at final step -> display immediately
-                 setAiResults(movies);
-                 // stop loading cycle (cleans refs & interval)
-                 stopLoadingCycle();
-                 // smooth scroll to results
-                 setTimeout(() => {
-                   resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                 }, 100);
-               }
-                // otherwise we will finalize when the cycle reaches the final step
+                const lastIndex = activeLoadingStepsRef.current.length - 1;
+                if (!loading || loadingMessageIndex === lastIndex) {
+                  setAiResults(movies);
+                  stopLoadingCycle();
+                  setTimeout(() => {
+                    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 100);
+                }
               } catch (err) {
-                // ensure loader stops on error
                 stopLoadingCycle();
                 console.error('Gemini call failed:', err);
               }
@@ -367,13 +371,13 @@ const MainPage = () => {
         {/* NEW: AI results displayed as detailed list (no CardView) */}
         {aiResults.length > 0 && (
           <Box ref={resultsRef} mt={4} mb={6} textAlign="left">
-            <Heading size="md" mb={4} color={textColor}>AI Recommendations</Heading>
+            <Heading size="md" mb={4} color={textColor}>AI Recommendations</Heading> 
             <Stack spacing={4}>
               {aiResults.map((m, i) => (
                 <Box
                   key={m.id || i}
                   p={4}
-                  borderWidth="1px"
+                  borderWidth="1px" 
                   borderRadius="md"
                   borderColor={cardBorder}
                   bg={cardBg}
@@ -440,23 +444,6 @@ const MainPage = () => {
             </Stack>
           </Box>
         )}
-  
-        {/* Alt Bilgi */}
-        <Box
-          mt={8}
-          p={4}
-          bg={useColorModeValue('blue.50', 'blue.900')}
-          borderRadius="md"
-          border="1px"
-          borderColor={useColorModeValue('blue.200', 'blue.600')}
-        >
-          <Text 
-            fontSize="xs" 
-            color={useColorModeValue('blue.600', 'blue.200')}
-          >
-            🚀 These features will be available soon. PLMS v1.0.0 - Demo Version
-          </Text>
-        </Box>
       </Box>
     </Layout>
   );

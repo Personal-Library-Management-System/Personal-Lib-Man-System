@@ -110,9 +110,6 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
               </Text>
             </Box>
           </HStack>
-          <Badge colorScheme="purple" fontSize="sm" px={3} py={1} borderRadius="full">
-            Beta
-          </Badge>
         </Flex>
 
         <Divider />
