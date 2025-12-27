@@ -1,29 +1,26 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Badge, useDisclosure } from '@chakra-ui/react';
-import { type Book } from '../types';
-import mockBooksData from '../mock-data/book-data.json';
+import { type Book, statusFromBackend } from '../types';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
 import BookModal from '../components/ui/modals/book-modal'; 
 import AddMedia, { type SearchState } from '../components/ui/add-media';
 
 const getStatusBadge = (status: string) => {
-  const statusConfig: Record<Book['status'], { text: string; colorScheme: string }> = {
-    'read': { text: 'Read', colorScheme: 'green' },
-    'reading': { text: 'Reading', colorScheme: 'blue' },
-    'want-to-read': { text: 'Want to Read', colorScheme: 'yellow' }
+  const statusNormalized = String(status ?? '').toLowerCase();
+  const statusConfig: Record<string, { text: string; colorScheme: string }> = {
+    'want-to-read': { text: 'Want to Read', colorScheme: 'yellow' },
+    reading: { text: 'Reading', colorScheme: 'blue' },
+    read: { text: 'Read', colorScheme: 'green' }
   };
-  if (status in statusConfig) {
-    const config = statusConfig[status as Book['status']];
-    return <Badge colorScheme={config.colorScheme} variant="subtle" size="sm">{config.text}</Badge>;
-  }
-  return null;
+  const config = statusConfig[statusNormalized];
+  return config ? <Badge colorScheme={config.colorScheme} variant="subtle" size="sm">{config.text}</Badge> : null;
 };
-
+ 
 const filters = [
   { key: 'all', label: 'All' },
-  { key: 'read', label: 'Read' },
+  { key: 'want-to-read', label: 'Want to Read' },
   { key: 'reading', label: 'Reading' },
-  { key: 'want-to-read', label: 'Want to Read' }
+  { key: 'read', label: 'Read' }
 ];
 
 const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
@@ -33,19 +30,50 @@ const LibraryPage = () => {
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
-  if (!GOOGLE_BOOKS_API_KEY) {
-    console.error(
-      'Google Books API key not found. Please add VITE_GOOGLE_BOOKS_API_KEY to your .env file.'
-    );
-  }
-  const handleBookClick = (book: Book) => {
-    setSelectedBook(book);
-    setModalOpen(true);
-  };
-
   // AddMedia için state yönetimi
   const [searchState, setSearchState] = useState<SearchState>('idle');
   const [searchResults, setSearchResults] = useState<Book[]>([]);
+
+  // Backend olarak çekilen kitaplar
+  const [items, setItems] = useState<Book[]>([]);
+
+  const fetchBooks = async () => {
+    try {
+      const res = await fetch('/api/v1/mediaItems/type/Book');
+      if (!res.ok) throw new Error('Failed to fetch books');
+      const data = await res.json();
+      const normalizeStatus = (s: any, def: ItemStatus): ItemStatus => {
+        const v = String(s ?? '').toLowerCase().replace('_', '-');
+        const allowed: ItemStatus[] = ['want-to-read','reading','read','want-to-watch','watched'];
+        return allowed.includes(v as ItemStatus) ? (v as ItemStatus) : def;
+      };
+
+      const mapped: Book[] = (data || []).map((b: any) => ({
+        id: b._id ?? b.id,
+        title: b.title,
+        authors: b.author ? [b.author] : b.authors ?? [],
+        imageLinks: b.coverPhoto ? { thumbnail: b.coverPhoto, smallThumbnail: b.coverPhoto } : b.imageLinks ?? undefined,
+        publishedDate: b.publishedDate ?? undefined,
+        publisher: b.publisher ?? '',
+        pageCount: b.pageCount ?? undefined,
+        averageRating: b.ratings && b.ratings.length ? parseFloat(b.ratings[0].value) || undefined : undefined,
+        ratingsCount: b.ratingCount ?? undefined,
+        categories: b.categories ?? [],
+        description: b.description ?? '',
+        language: b.language ?? '',
+        ISBN: b.ISBN ?? '',
+        // map backend enum -> frontend ItemStatus
+        status: statusFromBackend(b.status),
+      }));
+      setItems(mapped);
+    } catch (err) {
+      console.error('Fetch books error', err);
+    }
+  };
+
+  useEffect(() => {
+    fetchBooks();
+  }, []);
 
   const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
     if (!GOOGLE_BOOKS_API_KEY) {
@@ -116,7 +144,7 @@ const LibraryPage = () => {
       <ResourcePageLayout
         pageTitle="📚 My Library"
         activeItem="kitaplik"
-        mockData={mockBooksData as Book[]}
+        mockData={items}
         filters={filters}
         getStatusBadge={getStatusBadge}
         itemType="book"
@@ -135,11 +163,25 @@ const LibraryPage = () => {
         searchState={searchState}
         searchResults={searchResults}
         onItemSelect={item => {
-          // Tip kontrolü: item'in Book olduğundan emin ol
-          if ('authors' in item || typeof item.id === 'string') {
-            setSelectedBook(item as Book);
-            setModalOpen(true);
-          }
+          const mapped: Book = {
+            id: (item as any)._id ?? (item as any).id,
+            title: item.title,
+            authors: item.authors ?? (item.author ? [item.author] : []),
+            imageLinks: item.imageLinks ?? (item.coverPhoto ? { thumbnail: item.coverPhoto, smallThumbnail: item.coverPhoto } : undefined),
+            publishedDate: item.publishedDate ?? undefined,
+            publisher: (item as any).publisher ?? '',
+            pageCount: (item as any).pageCount ?? undefined,
+            averageRating: item.ratings && item.ratings.length ? parseFloat(item.ratings[0].value) || undefined : undefined,
+            ratingsCount: item.ratingCount ?? undefined,
+            categories: item.categories ?? [],
+            description: item.description ?? '',
+            language: item.language ?? '',
+            ISBN: (item as any).ISBN ?? '',
+            status: statusFromBackend((item as any).status ?? (item as any).status),
+          };
+          setItems(prev => [mapped, ...prev]);
+          setSelectedBook(mapped);
+          setModalOpen(true);
         }}
         optionalFields={[
           { name: 'author', label: 'Author', placeholder: 'e.g. George Orwell' },

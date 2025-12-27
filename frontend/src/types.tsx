@@ -1,47 +1,98 @@
-export interface Book {
-  id: string; // API'den string geliyor
-  title: string;
-  authors?: string[]; // API'de dizi olarak geliyor
-  imageLinks?: {
-    smallThumbnail?: string;
-    thumbnail?: string;
-  };
-  publishedDate?: string;
-  publisher?: string;
-  pageCount?: number;
-  averageRating?: number;
-  ratingsCount?: number;
-  categories?: string[];
-  description?: string;
-  language?: string;
-  ISBN?: string;
-  currentPage?: number;
-  tags?: string[];
-  status: 'read' | 'reading' | 'want-to-read';
+// Book and Movie specific statuses used in UI/backend mapping
+export type ItemStatus =
+  | 'want-to-read'
+  | 'reading'
+  | 'read'
+  | 'want-to-watch'
+  | 'watched';
+
+export type MediaType = 'Book' | 'Movie';
+
+// Backend enum strings
+export type BackendStatus = 'PLANNED' | 'IN_PROGRESS' | 'COMPLETED';
+
+export const ALLOWED_ITEM_STATUSES: ItemStatus[] = [
+  'want-to-read',
+  'reading',
+  'read',
+  'want-to-watch',
+  'watched',
+];
+
+/** Map backend -> frontend ItemStatus */
+export const statusFromBackend = (raw: any): ItemStatus => {
+  if (!raw && raw !== '') return 'want-to-read';
+  const up = String(raw ?? '').toUpperCase().trim();
+  switch (up) {
+    case 'PLANNED':
+      return 'want-to-read';
+    case 'IN_PROGRESS':
+      return 'reading';
+    case 'COMPLETED':
+      return 'read';
+    default: {
+      const low = String(raw ?? '').toLowerCase().replace(/_/g, '-').trim();
+      return ALLOWED_ITEM_STATUSES.includes(low as ItemStatus) ? (low as ItemStatus) : 'want-to-read';
+    }
+  }
+};
+
+/** Map frontend ItemStatus -> backend enum */
+export const statusToBackend = (s: ItemStatus | string): BackendStatus => {
+  const low = String(s ?? '').toLowerCase().replace(/_/g, '-').trim();
+  switch (low) {
+    case 'want-to-read':
+      return 'PLANNED';
+    case 'reading':
+      return 'IN_PROGRESS';
+    case 'read':
+      return 'COMPLETED';
+    case 'want-to-watch':
+      return 'PLANNED';
+    case 'watched':
+      return 'COMPLETED';
+    default:
+      return String(s).toUpperCase().replace(/-/g, '_') as BackendStatus;
+  }
 }
 
 export interface Rating {
-  Source: string;
-  Value: string;
+  source: string;
+  value: string;
 }
 
-export interface Movie {
-  id: string; // IMDb ID string olarak kullanılıyor (örn: "tt1234567")
+export interface MediaItemBase {
+  id: string;
   title: string;
-  director: string;
-  imageUrl: string; // Poster URL
-  releaseDate: string; // Released date
-  runtime: number; // Dakika cinsinden süre
-  imdbRating: string; // IMDb puanı
-  imdbVotes?: string; // IMDb oy sayısı
-  genre?: string[]; // Film türleri
-  plot: string; // Film açıklaması
-  language?: string;
-  writer?: string;
-  actors?: string[];
-  awards?: string;
-  ratings?: Rating[]; // Farklı kaynaklardan puanlar
-  status: 'watched' | 'want-to-watch';
+  publishedDate?: string | null; // ISO date string
+  ratings?: Rating[] | null;
+  ratingCount?: number | null;
+  categories?: string[];
+  description?: string | null;
+  coverPhoto?: string | null;
+  language?: string | null;
+  author?: string | null;
+  lists?: string[]; // frontend representation of ObjectId[]
+  tags?: string[] | null; // frontend representation of ObjectId[]
+  status: ItemStatus;
+  myRating?: number | null;
+  progress?: number | null;
+  personalNotes?: string | null;
+  mediaType: MediaType;
+}
+
+export interface Book extends MediaItemBase {
+  ISBN?: string;
+  pageCount?: number;
+  publisher?: string;
+}
+
+export interface Movie extends MediaItemBase {
+  actors?: string[] | null;
+  awards?: string | null;
+  runtime?: number | null; // minutes
+  director?: string | null;
+  imdbID?: string | null;
 }
 
 export interface User {

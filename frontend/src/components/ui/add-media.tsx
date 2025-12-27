@@ -27,7 +27,7 @@ import {
   Badge,
 } from '@chakra-ui/react';
 import { SearchIcon, ArrowForwardIcon } from '@chakra-ui/icons';
-import { type Book, type Movie } from '../../types';
+import { type Book, type Movie, statusToBackend } from '../../types';
 
 // -- Tipler --
 interface OptionalField {
@@ -58,29 +58,24 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
   const textColor = useColorModeValue('gray.800', 'white');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
 
-  // Tip kontrolü yaparak doğru alanları al
   const isBook = mediaType === 'book';
-  const thumbnailUrl = isBook 
-    ? (item as Book).imageLinks?.thumbnail 
-    : (item as Movie).imageUrl;
+  const thumbnailUrl = item.coverPhoto;
   
   const subtitle = isBook
-    ? (item as Book).authors?.join(', ') || 'Unknown author'
-    : (item as Movie).director;
+    ? (item as Book).author ?? 'Unknown author'
+    : (item as Movie).director ?? 'Unknown director';
   
-  const year = isBook
-    ? (item as Book).publishedDate
-    : (item as Movie).releaseDate;
+  const yearRaw = item.publishedDate;
+  const yearDisplay = yearRaw ? (() => {
+    try { return String(new Date(yearRaw).getFullYear()); } catch { return String(yearRaw).slice(0,4); }
+  })() : undefined;
 
-  // ensure rating is always a number (fallback to 0)
-  const rating: number = isBook
-    ? ((item as Book).averageRating ?? 0)
-    : (Number.parseFloat((item as Movie).imdbRating ?? '') || 0);
+  const rating: number = (() => {
+    const r = item.ratings && item.ratings.length > 0 ? parseFloat(item.ratings[0].value) : NaN;
+    return Number.isFinite(r) ? r : 0;
+  })();
 
-  const genres = !isBook && (item as Movie).genre 
-    ? (item as Movie).genre?.slice(0, 2) 
-    : [];
-  
+  const genres = item.categories ? item.categories.slice(0, 2) : [];
   const fallbackIcon = isBook ? '📚' : '🎬';
   const hasImage = thumbnailUrl && thumbnailUrl !== 'N/A' && thumbnailUrl !== '';
 
@@ -134,9 +129,9 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
         )}
 
         <HStack spacing={3} fontSize="sm" color={subtextColor}>
-          {year && (
+          {yearDisplay && (
             <Text>
-              📅 {isBook ? new Date(year).getFullYear() : year.split('-')[0]}
+              📅 {yearDisplay}
             </Text>
           )}
           {rating > 0 && (
@@ -200,6 +195,63 @@ const AddMedia = ({
   };
 
   const mainPlaceholder = searchPlaceholder ?? (mediaType === 'book' ? 'Enter book title...' : 'Enter movie title...');
+
+  const createMediaFromItem = async (item: MediaItem) => {
+    try {
+      const isBook = mediaType === 'book';
+      const title = item.title ?? '';
+      const publishedDate = item.publishedDate
+        ? new Date(item.publishedDate).toISOString()
+        : new Date().toISOString();
+
+      const ratingValue = item.ratings && item.ratings.length > 0
+        ? (parseFloat(item.ratings[0].value) || 0)
+        : 0;
+
+      const ratings = ratingValue > 0
+        ? [{ source: item.ratings?.[0]?.source ?? (isBook ? 'google' : 'imdb'), value: String(ratingValue) }]
+        : [];
+
+      const payload = {
+         title,
+         publishedDate,
+         ratings,
+         ratingCount: item.ratingCount ?? 0,
+         categories: item.categories ?? [],
+         description: item.description ?? '',
+         coverPhoto: item.coverPhoto ?? '',
+         language: item.language ?? '',
+         author: item.author ?? '',
+         tags: [],            // backend expects ObjectId[] — send empty for now
+        // map frontend default -> backend enum
+        status: statusToBackend(isBook ? 'want-to-read' : 'want-to-watch'),
+         myRating: item.myRating ?? 0,
+         progress: item.progress ?? 0,
+         personalNotes: item.personalNotes ?? '',
+         ISBN: isBook ? ((item as Book).ISBN ?? '') : undefined,
+         pageCount: isBook ? ((item as Book).pageCount ?? 1) : ((item as Movie).runtime ?? 1),
+         publisher: isBook ? ((item as Book).publisher ?? '') : undefined,
+         mediaType: isBook ? 'Book' : 'Movie'
+       };
+
+      const res = await fetch('/api/v1/mediaItems', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!res.ok) {
+        throw new Error(`Server responded with ${res.status}`);
+      }
+
+      const created = await res.json();
+      onItemSelect(created); // parent'e yeni item'i bildir
+      onClose();
+    } catch (err) {
+      console.error('Failed to create media item', err);
+      alert('Media creation failed');
+    }
+  };
 
   return (
     <Modal 
@@ -346,10 +398,7 @@ const AddMedia = ({
                     key={item.id}
                     item={item}
                     mediaType={mediaType}
-                    onSelect={() => {
-                      console.log('Selected media info:', item);
-                      onItemSelect(item);
-                    }}
+                    onSelect={() => createMediaFromItem(item)}
                   />
                 ))}
               </SimpleGrid>
