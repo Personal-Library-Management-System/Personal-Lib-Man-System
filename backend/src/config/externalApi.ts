@@ -13,7 +13,7 @@ const commonProxyConfig: Options = {
         error(err, req, res) {
             const expressRes = res as Response;
             console.error('Proxy Error encountered:', err.message);
-            if(!expressRes.headersSent){
+            if (!expressRes.headersSent) {
                 expressRes.status(502).json({
                     error: 'Bad Gateway',
                     message: 'The requested external service is currently unavailable.',
@@ -23,6 +23,18 @@ const commonProxyConfig: Options = {
         proxyRes(proxyRes, req, res) {
             delete proxyRes.headers['x-powered-by'];
             delete proxyRes.headers['server'];
+            delete proxyRes.headers['access-control-allow-origin'];
+            delete proxyRes.headers['access-control-allow-credentials'];
+            delete proxyRes.headers['vary'];
+
+            res.setHeader(
+                'Access-Control-Allow-Origin',
+                process.env.CLIENT_URL!
+            );
+            res.setHeader(
+                'Access-Control-Allow-Credentials',
+                'true'
+            );
         },
     },
 };
@@ -31,12 +43,11 @@ const googleBooksProxy = createProxyMiddleware({
     ...commonProxyConfig,
     target: 'https://www.googleapis.com',
     pathRewrite: {
-        [`^${API_BASE}/google-books`]: '/books/v1/volumes',
+        '^/': '/books/v1/volumes',
     },
     on: {
         ...commonProxyConfig.on,
         proxyReq(proxyReq, req) {
-            fixRequestBody(proxyReq, req);
             const apiKey = process.env.GOOGLE_BOOKS_API_KEY!;
             const url = new URL(proxyReq.path, 'https://www.googleapis.com');
             url.searchParams.set('key', apiKey);
@@ -48,9 +59,7 @@ const googleBooksProxy = createProxyMiddleware({
 const omdbProxy = createProxyMiddleware({
     ...commonProxyConfig,
     target: 'https://www.omdbapi.com',
-    pathRewrite: {
-        [`^${API_BASE}/omdb`]: '/',
-    },
+    pathRewrite: { '^/': '/' },
     on: {
         ...commonProxyConfig.on,
         proxyReq(proxyReq, req) {
@@ -74,10 +83,7 @@ const geminiProxy = createProxyMiddleware({
         proxyReq(proxyReq, req) {
             fixRequestBody(proxyReq, req);
             const apiKey = process.env.GEMINI_API_KEY!;
-            const url = new URL(
-                proxyReq.path,
-                'https://generativelanguage.googleapis.com'
-            );
+            const url = new URL(proxyReq.path, 'https://generativelanguage.googleapis.com');
             url.searchParams.set('key', apiKey);
             proxyReq.path = url.pathname + url.search;
         },
