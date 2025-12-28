@@ -43,13 +43,20 @@ const MoviesPage = () => {
     const existingMovieIdsMap = useMemo(() => {
         const map = new Map<string, string>(); // IMDb ID -> Backend ID
         movies.forEach(movie => {
+            console.log('🗺️ Mapping Movie:', {
+                title: movie.title,
+                backendId: movie.id,
+                imdbID: (movie as any).imdbID
+            });
+            
             // Backend ID'yi sakla
             map.set(movie.id, movie.id);
-            // IMDb ID varsa (externalId olarak saklanan)
-            if ((movie as any).externalId) {
-                map.set((movie as any).externalId, movie.id);
+            // IMDb ID varsa (imdbID field'i)
+            if ((movie as any).imdbID) {
+                map.set((movie as any).imdbID, movie.id);
             }
         });
+        console.log('✅ Final existingMovieIds Map:', Array.from(map.keys()));
         return map;
     }, [movies]);
 
@@ -72,23 +79,34 @@ const MoviesPage = () => {
             const moviesArray = Array.isArray(data) ? data : (data.items || data.data || []);
             
             // Backend'den gelen veriyi düzgün formata çevir
-            const mappedMovies: Movie[] = moviesArray.map((movie: any) => ({
-                id: movie._id || movie.id,
-                title: movie.title,
-                director: movie.director || 'Unknown',
-                imageUrl: movie.coverPhoto || '',
-                releaseDate: movie.releaseDate || movie.publishedDate,
-                runtime: movie.runtime || movie.duration || 0,
-                ratings: movie.ratings || [],
-                ratingCount: movie.ratingCount,
-                status: movie.status === 'PLANNED' ? 'want-to-watch' : 
-                        movie.status === 'COMPLETED' ? 'watched' : 'want-to-watch',
-                plot: movie.description || 'No description available',
-                genre: movie.categories || movie.genre || [],
-                imdbRating: movie.ratings?.find((r: any) => r.source === 'IMDb' || r.source === 'Internet Movie Database')?.value,
-                // IMDb ID'sini sakla (eğer varsa)
-                ...(movie.externalId && { externalId: movie.externalId })
-            } as any));
+            const mappedMovies: Movie[] = moviesArray.map((movie: any) => {
+                console.log('🎬 Backend Movie Data:', {
+                    title: movie.title,
+                    backendId: movie._id || movie.id,
+                    imdbID: movie.imdbID,
+                    hasImdbID: !!movie.imdbID
+                });
+                
+                return {
+                    id: movie._id || movie.id,
+                    title: movie.title,
+                    director: movie.director || 'Unknown',
+                    imageUrl: movie.coverPhoto || '',
+                    releaseDate: movie.releaseDate || movie.publishedDate,
+                    runtime: movie.runtime || movie.duration || 0,
+                    ratings: movie.ratings || [],
+                    ratingCount: movie.ratingCount,
+                    status: movie.status === 'PLANNED' ? 'want-to-watch' : 
+                            movie.status === 'COMPLETED' ? 'watched' : 'want-to-watch',
+                    plot: movie.description || 'No description available',
+                    genre: movie.categories || movie.genre || [],
+                    imdbRating: movie.ratings?.find((r: any) => r.source === 'IMDb' || r.source === 'Internet Movie Database')?.value,
+                    // IMDb ID'sini sakla (backend'den gelen imdbID field'i)
+                    ...(movie.imdbID && { 
+                        imdbID: movie.imdbID
+                    })
+                } as any;
+            });
             
             // Duplicate kontrolü
             const uniqueMovies = mappedMovies.reduce((acc: Movie[], current: Movie) => {
@@ -167,6 +185,7 @@ const MoviesPage = () => {
 
                         return {
                             id: movie.imdbID, // IMDb ID
+                            imdbID: movie.imdbID, // OMDb formatı için açıkça ekle
                             title: movie.Title,
                             director: detailData.Director || 'Unknown',
                             imageUrl: movie.Poster !== 'N/A' ? movie.Poster : '',
@@ -244,7 +263,7 @@ const MoviesPage = () => {
             progress: 0,
             personalNotes: "",
             runtime: movie.runtime || 0, // Backend'de "runtime" olarak tutuluyor
-            externalId: movie.id // IMDb ID'sini externalId olarak sakla
+            imdbID: movie.id // IMDb ID'sini imdbID olarak sakla (backend field adı)
         };
 
         console.log('Movie payload:', payload);

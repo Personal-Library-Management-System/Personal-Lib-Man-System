@@ -30,10 +30,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
   const initialLists = (book as any).lists ?? [];
   const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
   
-  const noteKey = `book-note-${book.id}`;
-  const [personalNote, setPersonalNote] = useState<string>(() => {
-    return localStorage.getItem(noteKey) ?? (book as any).personalNote ?? '';
-  });
+  const [personalNote, setPersonalNote] = useState<string>((book as any).personalNote ?? '');
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
