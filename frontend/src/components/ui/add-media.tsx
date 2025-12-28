@@ -25,8 +25,9 @@ import {
   AlertIcon,
   AlertTitle,
   Badge,
+  useToast,
 } from '@chakra-ui/react';
-import { SearchIcon, ArrowForwardIcon } from '@chakra-ui/icons';
+import { SearchIcon, ArrowForwardIcon, AddIcon, CheckIcon } from '@chakra-ui/icons';
 import { type Book, type Movie } from '../../types';
 
 // -- Tipler --
@@ -48,20 +49,34 @@ interface AddMediaProps {
   onSearch: (payload: { query: string; extras: Record<string, string> }) => Promise<void>;
   searchState: SearchState;
   searchResults: MediaItem[];
-  onItemSelect: (item: MediaItem) => void;
+  onItemAdd: (item: MediaItem) => Promise<void>;
   optionalFields: OptionalField[];
   searchPlaceholder?: string;
+  existingItemIds?: Set<string>;
 }
 
-const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSelect: () => void; mediaType: 'book' | 'movie' }) => {
+const SearchResultItem = ({ 
+  item, 
+  onAdd,
+  mediaType,
+  isAdded,
+  isProcessing,
+}: { 
+  item: MediaItem; 
+  onAdd: () => void;
+  mediaType: 'book' | 'movie';
+  isAdded: boolean;
+  isProcessing: boolean;
+}) => {
   const cardBg = useColorModeValue('gray.50', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
 
-  // Tip kontrolü yaparak doğru alanları al
+  const [imageError, setImageError] = useState(false);
+
   const isBook = mediaType === 'book';
   const thumbnailUrl = isBook 
-    ? (item as Book).imageLinks?.thumbnail 
+    ? ((item as any).imageLinks?.thumbnail ?? (item as any).imageLinks?.smallThumbnail ?? '')
     : (item as Movie).imageUrl;
   
   const subtitle = isBook
@@ -72,7 +87,6 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
     ? (item as Book).publishedDate
     : (item as Movie).releaseDate;
 
-  // ensure rating is always a number (fallback to 0)
   const rating: number = isBook
     ? ((item as Book).averageRating ?? 0)
     : (Number.parseFloat((item as Movie).imdbRating ?? '') || 0);
@@ -82,10 +96,11 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
     : [];
   
   const fallbackIcon = isBook ? '📚' : '🎬';
-  const hasImage = thumbnailUrl && thumbnailUrl !== 'N/A' && thumbnailUrl !== '';
+  const hasImage = !imageError && thumbnailUrl && thumbnailUrl !== 'N/A' && thumbnailUrl !== '';
 
   return (
     <HStack
+      position="relative"
       p={4}
       bg={cardBg}
       borderRadius="lg"
@@ -94,10 +109,27 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
       _hover={{
         transform: 'translateY(-2px)',
         shadow: 'md',
-        cursor: 'pointer',
       }}
-      onClick={onSelect}
     >
+      <IconButton
+        aria-label={isAdded ? 'Added to library' : 'Add to library'}
+        icon={isProcessing ? <Spinner size="sm" /> : isAdded ? <CheckIcon /> : <AddIcon />}
+        colorScheme={isAdded ? 'green' : 'blue'}
+        size="sm"
+        position="absolute"
+        top={2}
+        right={2}
+        zIndex={2}
+        isRound
+        onClick={(e) => {
+          e.stopPropagation();
+          if (!isAdded && !isProcessing) {
+            onAdd();
+          }
+        }}
+        isLoading={isProcessing}
+        isDisabled={isAdded || isProcessing}
+      />
       <Box w="100px" h="140px" bg="gray.200" borderRadius="md" flexShrink={0} display="flex" alignItems="center" justifyContent="center">
         {hasImage ? (
           <Image
@@ -110,6 +142,10 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
             borderRadius="md"
             shadow="sm"
             bg="white"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+              setImageError(true);
+            }}
           />
         ) : (
           <Text fontSize="4xl">{fallbackIcon}</Text>
@@ -157,14 +193,19 @@ const AddMedia = ({
   onSearch,
   searchState,
   searchResults,
-  onItemSelect,
+  onItemAdd,
   optionalFields,
-  searchPlaceholder
+  searchPlaceholder,
+  existingItemIds = new Set()
 }: AddMediaProps) => {
   const bgMain = useColorModeValue('gray.100', 'gray.900');
   const bgSearchSection = useColorModeValue('white', 'gray.800');
   const inputPlaceholderColor = useColorModeValue('gray.400', 'gray.500');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+  const toast = useToast();
+
+  const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
+  const [processingItems, setProcessingItems] = useState<Set<string>>(new Set());
 
   const defaultValues = useMemo(() => {
     return optionalFields.reduce<Record<string, string>>((acc, field) => {
@@ -181,7 +222,8 @@ const AddMedia = ({
       setSearchTerm('');
       setExtraValues(defaultValues);
     }
-  }, [isOpen, defaultValues]);
+    setAddedItems(new Set(existingItemIds));
+  }, [isOpen, defaultValues, existingItemIds]);
 
   const handleFieldChange = (field: string, value: string) => {
     setExtraValues(prev => ({ ...prev, [field]: value }));
@@ -200,6 +242,41 @@ const AddMedia = ({
   };
 
   const mainPlaceholder = searchPlaceholder ?? (mediaType === 'book' ? 'Enter book title...' : 'Enter movie title...');
+
+  const handleAddClick = async (item: MediaItem) => {
+    const isBook = mediaType === 'book';
+    const checkId = isBook ? ((item as Book).ISBN ?? item.id) : item.id;
+    
+    setProcessingItems(prev => new Set(prev).add(item.id));
+    
+    try {
+      await onItemAdd(item);
+      setAddedItems(prev => new Set(prev).add(item.id).add(checkId));
+      
+      toast({
+        title: 'Added successfully',
+        description: `"${item.title}" has been added to your library`,
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Failed to add item:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to add item to library',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    } finally {
+      setProcessingItems(prev => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
+    }
+  };
 
   return (
     <Modal 
@@ -341,17 +418,26 @@ const AddMedia = ({
 
             {searchState === 'success' && (
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                {searchResults.map(item => (
-                  <SearchResultItem
-                    key={item.id}
-                    item={item}
-                    mediaType={mediaType}
-                    onSelect={() => {
-                      console.log('Selected media info:', item);
-                      onItemSelect(item);
-                    }}
-                  />
-                ))}
+                {searchResults.map(item => {
+                  const isBook = mediaType === 'book';
+                  const itemExternalId = isBook 
+                    ? ((item as Book).ISBN ?? item.id)
+                    : item.id;
+                  
+                  const alreadyExists = addedItems.has(item.id) || addedItems.has(itemExternalId);
+                  const isProcessing = processingItems.has(item.id);
+                  
+                  return (
+                    <SearchResultItem
+                      key={item.id}
+                      item={item}
+                      mediaType={mediaType}
+                      onAdd={() => handleAddClick(item)}
+                      isAdded={alreadyExists}
+                      isProcessing={isProcessing}
+                    />
+                  );
+                })}
               </SimpleGrid>
             )}
           </Box>

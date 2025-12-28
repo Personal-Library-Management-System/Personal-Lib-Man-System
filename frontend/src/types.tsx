@@ -1,7 +1,7 @@
 export interface Book {
-  id: string; // API'den string geliyor
+  id: string;
   title: string;
-  authors?: string[]; // API'de dizi olarak geliyor
+  authors?: string[];
   imageLinks?: {
     smallThumbnail?: string;
     thumbnail?: string;
@@ -18,29 +18,32 @@ export interface Book {
   currentPage?: number;
   tags?: string[];
   status: 'read' | 'reading' | 'want-to-read';
+  ratings?: Rating[]; // Backend'den gelen ratings
+  ratingCount?: number | null;
 }
 
 export interface Rating {
-  Source: string;
-  Value: string;
+  source: string; // Backend'de "source" olarak geliyor
+  value: string;  // Backend'de "value" olarak geliyor
 }
 
 export interface Movie {
-  id: string; // IMDb ID string olarak kullanılıyor (örn: "tt1234567")
+  id: string;
   title: string;
   director: string;
-  imageUrl: string; // Poster URL
-  releaseDate: string; // Released date
-  runtime: number; // Dakika cinsinden süre
-  imdbRating: string; // IMDb puanı
-  imdbVotes?: string; // IMDb oy sayısı
-  genre?: string[]; // Film türleri
-  plot: string; // Film açıklaması
+  imageUrl: string;
+  releaseDate: string;
+  runtime: number; // Backend'de "runtime" olarak tutuluyor
+  imdbRating?: string;
+  imdbVotes?: string;
+  genre?: string[];
+  plot: string;
   language?: string;
   writer?: string;
   actors?: string[];
   awards?: string;
-  ratings?: Rating[]; // Farklı kaynaklardan puanlar
+  ratings?: Rating[]; // Backend'den gelen ratings
+  ratingCount?: number | null; // IMDb vote count
   status: 'watched' | 'want-to-watch';
 }
 

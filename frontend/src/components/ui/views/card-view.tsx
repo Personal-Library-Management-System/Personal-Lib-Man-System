@@ -85,7 +85,7 @@ const CardView: React.FC<CardViewProps> = ({
             
             const rating = type === 'book'
               ? (item as Book).averageRating || 0
-              : (item as Movie).ratings?.at(0)?.Value || 0;
+              : (item as Movie).ratings?.at(0)?.value || 0;
             
             const additionalInfo = type === 'book'
               ? `${(item as Book).pageCount || 0}p`

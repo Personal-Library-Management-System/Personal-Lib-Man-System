@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, Image, Flex, Text, HStack, useToast } from '@chakra-ui/react';
+import { Box, IconButton, Image, Flex, Text, HStack, Button, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, useDisclosure, useToast } from '@chakra-ui/react';
 import { FiCalendar, FiTag, FiClock, FiStar } from 'react-icons/fi';
 import Modal from './modal';
 import BookDetailCard, { type InfoBlock, type StatusOption } from './media-detail-card';
@@ -8,6 +8,7 @@ import ImdbIcon from '../../icons/imdb.png';
 import RottenIcon from '../../icons/rotten-tomatoes.jpeg';
 import MetacriticIcon from '../../icons/metacritic.png';
 import StarRating from '../star-rating';
+import { apiFetch } from '../../../lib/apiFetch';
 import * as mediaItemApi from '../../../services/mediaItem.service';
 
 const movieStatusOptions: StatusOption[] = [
@@ -19,9 +20,10 @@ interface MovieModalProps {
   isOpen: boolean;
   onClose: () => void;
   movie: Movie;
+  onDelete?: (movieId: string) => void;
 }
 
-const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
+const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelete }) => {
   const toast = useToast();
   const [currentStatus, setCurrentStatus] = useState<Movie['status']>(movie.status);
   const initialTags = (movie as any).tags ?? [];
@@ -31,8 +33,11 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
   const initialLists = (movie as any).lists ?? [];
   const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
   
-  // Personal note - use movie data from backend
+  // localStorage key for personal note
   const [personalNote, setPersonalNote] = useState<string>((movie as any).personalNote ?? '');
+
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   useEffect(() => {
     setCurrentStatus(movie.status);
@@ -42,8 +47,13 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     setUserRating((movie as any).rating ?? 0);
   }, [movie]);
 
-  const getRatingBySource = (source: string) =>
-    (movie.ratings || []).find((r: any) => r.Source === source)?.Value;
+  const getRatingBySource = (source: string) => {
+    // Hem Source (OMDb) hem source (Backend) formatını destekle
+    const rating = (movie.ratings || []).find(
+      (r: any) => r.source === source || r.Source === source
+    );
+    return rating?.value || rating?.value;
+  };
 
   // User rating state
   const [userRating, setUserRating] = useState<number>((movie as any).rating ?? 0);
@@ -65,10 +75,44 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     }
   };
 
-  const imdbScore = movie.imdbRating ?? getRatingBySource('Internet Movie Database') ?? '-';
-  const rottenScore = getRatingBySource('Rotten Tomatoes') ?? '-';
-  const metacriticScore = getRatingBySource('Metacritic') ?? '-';
-  const imdbVotes = movie.imdbVotes ?? '';
+  const handleDelete = async () => {
+    try {
+      const response = await apiFetch(`/mediaItems/${movie.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete movie');
+      }
+
+      toast({
+        title: 'Movie deleted',
+        description: `"${movie.title}" has been removed from your library`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onDeleteClose();
+      onClose();
+      onDelete?.(movie.id);
+    } catch (error) {
+      console.error('Error deleting movie:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete movie',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Backend'den gelen ratings array'inden değerleri al
+  const imdbScore = movie.imdbRating || getRatingBySource('Internet Movie Database') || '-';
+  const rottenScore = getRatingBySource('Rotten Tomatoes') || '-';
+  const metacriticScore = getRatingBySource('Metacritic') || '-';
+  const imdbVotes = movie.ratingCount ? movie.ratingCount.toLocaleString() + ' votes' : (movie.imdbVotes || '');
 
   // My Rating display with interactive stars
   const myRatingValue = (
@@ -83,8 +127,11 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     </HStack>
   );
 
+  // Published year - sadece yıl
+  const publishYear = movie.releaseDate ? movie.releaseDate.split('-')[0] : 'Unknown';
+
   const infoBlocks: InfoBlock[] = [
-    { label: 'Release Year', value: movie.releaseDate, icon: FiCalendar },
+    { label: 'Release Year', value: publishYear, icon: FiCalendar },
     { label: 'Genre', value: movie.genre?.join(', ') || 'Movie', icon: FiTag },
 
     // Duration
@@ -144,6 +191,10 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     { label: 'My Rating', value: myRatingValue, icon: FiStar },
   ];
 
+  const handleEdit = () => {
+    console.log('Edit movie:', movie.title);
+  };
+
   const handleRemove = () => {
     console.log('Remove movie:', movie.title);
   };
@@ -193,29 +244,58 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={movie.title}>
-      <Box>
-        <BookDetailCard
-          imageUrl={movie.imageUrl}
-          title={movie.title}
-          subtitle={`Director: ${movie.director}`}
-          description={movie.plot}
-          infoBlocks={infoBlocks}
-          addedDate={movie.releaseDate}
-          status={currentStatus}
-          statusOptions={movieStatusOptions}
-          onStatusChange={handleStatusChange}
-          onRemove={handleRemove}
-          assignedTags={currentTags}
-          onTagsChange={handleTagsChange}
-          personalNote={personalNote}
-          onPersonalNoteChange={handleNoteChange}
-          assignedLists={currentLists}
-          onListsChange={handleListsChange}
-          itemType="movie"
-        />
-      </Box>
-    </Modal>
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} title={movie.title}>
+        <Box>
+          <BookDetailCard
+            imageUrl={movie.imageUrl}
+            title={movie.title}
+            subtitle={`Director: ${movie.director}`}
+            description={movie.plot}
+            infoBlocks={infoBlocks}
+            addedDate={movie.releaseDate}
+            status={currentStatus}
+            statusOptions={movieStatusOptions}
+            onStatusChange={handleStatusChange}
+            onRemove={onDeleteOpen}
+            assignedTags={currentTags}
+            onTagsChange={handleTagsChange}
+            personalNote={personalNote}
+            onPersonalNoteChange={handleNoteChange}
+            assignedLists={currentLists}
+            onListsChange={handleListsChange}
+            itemType="movie"
+          />
+        </Box>
+      </Modal>
+
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Movie
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete "{movie.title}"? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
   );
 };
 

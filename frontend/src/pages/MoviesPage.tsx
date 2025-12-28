@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
+import { apiFetch } from '../lib/apiFetch';
 import { Badge, useDisclosure, useToast } from '@chakra-ui/react';
 import { type Movie } from '../types';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
@@ -35,64 +36,86 @@ const MoviesPage = () => {
     const [isMovieModalOpen, setMovieModalOpen] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
-
-    // Backend'den gelen filmler
     const [movies, setMovies] = useState<Movie[]>([]);
-    const [isLoadingMovies, setIsLoadingMovies] = useState(true);
+    const [isLoading, setIsLoading] = useState(true);
 
-    // Backend'den filmleri çek
-    useEffect(() => {
-        const fetchMovies = async () => {
-            try {
-                setIsLoadingMovies(true);
-                const library = await libraryApi.exportLibrary();
-                
-                // MediaItems'dan sadece Movie olanları filtrele ve Movie tipine dönüştür
-                const movieItems = library.mediaItems
-                    .filter((item: any) => item.mediaType === 'Movie')
-                    .map((item: any) => ({
-                        id: item._id,
-                        title: item.title,
-                        director: item.author || 'Unknown',
-                        imageUrl: item.coverPhoto || '',
-                        releaseDate: item.publishedDate ? new Date(item.publishedDate).getFullYear().toString() : '',
-                        runtime: item.progress || 0,
-                        genre: item.categories || [],
-                        plot: item.description || '',
-                        imdbRating: item.ratings?.find((r: any) => r.source === 'IMDB' || r.source === 'FakeIMDB')?.value,
-                        ratings: item.ratings || [],
-                        status: mapBackendStatus(item.status),
-                        rating: item.myRating,
-                        personalNote: item.personalNotes,
-                    }));
-                
-                setMovies(movieItems);
-            } catch (error) {
-                console.error('Error fetching movies:', error);
-                toast({
-                    title: 'Error loading movies',
-                    description: 'Could not load your movies. Please try again.',
-                    status: 'error',
-                    duration: 5000,
-                    isClosable: true,
-                });
-            } finally {
-                setIsLoadingMovies(false);
+    // Mevcut film ID'lerini Map olarak hazırla (IMDb ID -> Backend ID mapping)
+    const existingMovieIdsMap = useMemo(() => {
+        const map = new Map<string, string>(); // IMDb ID -> Backend ID
+        movies.forEach(movie => {
+            // Backend ID'yi sakla
+            map.set(movie.id, movie.id);
+            // IMDb ID varsa (externalId olarak saklanan)
+            if ((movie as any).externalId) {
+                map.set((movie as any).externalId, movie.id);
             }
-        };
+        });
+        return map;
+    }, [movies]);
 
-        fetchMovies();
-    }, [toast]);
+    const existingMovieIds = useMemo(() => {
+        return new Set(existingMovieIdsMap.keys());
+    }, [existingMovieIdsMap]);
 
-    // Backend status'unu frontend status'una dönüştür
-    const mapBackendStatus = (status: string): Movie['status'] => {
-        const statusMap: Record<string, Movie['status']> = {
-            'COMPLETED': 'watched',
-            'IN_PROGRESS': 'watched',
-            'PLANNED': 'want-to-watch',
-        };
-        return statusMap[status] || 'want-to-watch';
+    // Filmleri fetch et
+    const fetchMovies = async () => {
+        setIsLoading(true);
+        try {
+            const response = await apiFetch('/mediaItems/type/Movie');
+            if (!response.ok) {
+                throw new Error('Failed to fetch movies');
+            }
+            const data = await response.json();
+            
+            console.log('Fetched movies:', data);
+            
+            const moviesArray = Array.isArray(data) ? data : (data.items || data.data || []);
+            
+            // Backend'den gelen veriyi düzgün formata çevir
+            const mappedMovies: Movie[] = moviesArray.map((movie: any) => ({
+                id: movie._id || movie.id,
+                title: movie.title,
+                director: movie.director || 'Unknown',
+                imageUrl: movie.coverPhoto || '',
+                releaseDate: movie.releaseDate || movie.publishedDate,
+                runtime: movie.runtime || movie.duration || 0,
+                ratings: movie.ratings || [],
+                ratingCount: movie.ratingCount,
+                status: movie.status === 'PLANNED' ? 'want-to-watch' : 
+                        movie.status === 'COMPLETED' ? 'watched' : 'want-to-watch',
+                plot: movie.description || 'No description available',
+                genre: movie.categories || movie.genre || [],
+                imdbRating: movie.ratings?.find((r: any) => r.source === 'IMDb' || r.source === 'Internet Movie Database')?.value,
+                // IMDb ID'sini sakla (eğer varsa)
+                ...(movie.externalId && { externalId: movie.externalId })
+            } as any));
+            
+            // Duplicate kontrolü
+            const uniqueMovies = mappedMovies.reduce((acc: Movie[], current: Movie) => {
+                if (!acc.find(movie => movie.id === current.id)) {
+                    acc.push(current);
+                }
+                return acc;
+            }, []);
+            
+            if (mappedMovies.length !== uniqueMovies.length) {
+                console.warn(`Removed ${mappedMovies.length - uniqueMovies.length} duplicate movies`);
+            }
+            
+            console.log('Unique movies with IDs:', uniqueMovies.map(m => ({ id: m.id, title: m.title })));
+            
+            setMovies(uniqueMovies);
+        } catch (error) {
+            console.error('Error fetching movies:', error);
+            setMovies([]);
+        } finally {
+            setIsLoading(false);
+        }
     };
+
+    useEffect(() => {
+        fetchMovies();
+    }, []);
 
     const handleMovieClick = (movie: Movie) => {
         setSelectedMovie(movie);
@@ -103,7 +126,6 @@ const MoviesPage = () => {
     const [searchResults, setSearchResults] = useState<Movie[]>([]);
 
     const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
-
         setSearchState('loading');
         setSearchResults([]);
 
@@ -144,15 +166,19 @@ const MoviesPage = () => {
                         const detailData = await detailResponse.json();
 
                         return {
-                            id: movie.imdbID, // IMDb ID'yi doğrudan string olarak kullan
+                            id: movie.imdbID, // IMDb ID
                             title: movie.Title,
                             director: detailData.Director || 'Unknown',
                             imageUrl: movie.Poster !== 'N/A' ? movie.Poster : '',
                             releaseDate: movie.Year,
-                            duration: parseInt(detailData.Runtime) || 0,
-                            rating: parseFloat(detailData.imdbRating) || 0,
+                            runtime: detailData.Runtime ? parseInt(detailData.Runtime) : 0,
                             status: 'want-to-watch' as const,
-                            description: detailData.Plot || 'No description available',
+                            plot: detailData.Plot || 'No description available',
+                            genre: detailData.Genre ? detailData.Genre.split(', ') : [],
+                            imdbRating: detailData.imdbRating || '0',
+                            imdbVotes: detailData.imdbVotes || '',
+                            ratings: detailData.Ratings || [],
+                            ratingCount: detailData.imdbVotes ? parseInt(detailData.imdbVotes.replace(/,/g, '')) : 0,
                         };
                     } catch (error) {
                         console.error(`Could not fetch movie details: ${movie.Title}`, error);
@@ -174,6 +200,74 @@ const MoviesPage = () => {
             console.error('OMDb Search Error:', error);
             setSearchState('error');
         }
+    };
+
+    const handleAddMovie = async (item: Movie | any) => {
+        // Type guard: Sadece Movie tipinde itemları kabul et
+        if (!('director' in item)) {
+            console.error('Invalid item type for movie addition');
+            return;
+        }
+        
+        const movie = item as Movie;
+        
+        // OMDb'den gelen ratings array'ini backend formatına çevir
+        const ratings: { source: string; value: string }[] = [];
+        
+        // OMDb Ratings array'i varsa (Source, Value formatında)
+        if (movie.ratings && Array.isArray(movie.ratings)) {
+            movie.ratings.forEach((rating: any) => {
+                if (rating.Source && rating.Value) {
+                    ratings.push({
+                        source: rating.Source, // "Internet Movie Database", "Rotten Tomatoes", "Metacritic"
+                        value: rating.Value
+                    });
+                }
+            });
+        }
+
+        const payload = {
+            mediaType: "Movie",
+            title: movie.title,
+            director: movie.director,
+            publishedDate: movie.releaseDate || new Date().toISOString().split('T')[0],
+            releaseDate: movie.releaseDate,
+            ratings: ratings,
+            ratingCount: movie.ratingCount || 0,
+            categories: movie.genre || [],
+            description: movie.plot || "",
+            coverPhoto: movie.imageUrl || "",
+            language: "en",
+            tags: [],
+            status: "PLANNED", // want-to-watch = PLANNED
+            myRating: 0,
+            progress: 0,
+            personalNotes: "",
+            runtime: movie.runtime || 0, // Backend'de "runtime" olarak tutuluyor
+            externalId: movie.id // IMDb ID'sini externalId olarak sakla
+        };
+
+        console.log('Movie payload:', payload);
+
+        const response = await apiFetch('/mediaItems', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(payload),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            console.error('API Error:', errorData);
+            throw new Error(errorData.message || 'Failed to add movie');
+        }
+
+        const result = await response.json();
+        console.log('Movie added successfully:', result);
+
+        // Arka planda listeyi güncelle
+        await fetchMovies();
     };
 
     return (
@@ -199,20 +293,14 @@ const MoviesPage = () => {
                 onSearch={handleAddSearch}
                 searchState={searchState}
                 searchResults={searchResults}
-                onItemSelect={(item) => {
-                    // Tip kontrolü: item'in Movie olduğundan emin ol
-                    if ('director' in item || typeof item.id === 'string') {
-                        setSelectedMovie(item as Movie);
-                        setMovieModalOpen(true);
-                    }
-                }}
+                onItemAdd={handleAddMovie}
                 optionalFields={[
                     { name: 'director', label: 'Director', placeholder: 'e.g. Christopher Nolan' },
                     { name: 'year', label: 'Release Year', placeholder: 'e.g. 2021' },
                 ]}
+                existingItemIds={existingMovieIds}
             />
 
-            {/* Movie Details Modal */}
             {selectedMovie && (
                 <MovieModal
                     isOpen={isMovieModalOpen}
@@ -221,6 +309,11 @@ const MoviesPage = () => {
                         setSelectedMovie(null);
                     }}
                     movie={selectedMovie}
+                    onDelete={(movieId) => {
+                        setMovies(prev => prev.filter(m => m.id !== movieId));
+                        setMovieModalOpen(false);
+                        setSelectedMovie(null);
+                    }}
                 />
             )}
         </>
