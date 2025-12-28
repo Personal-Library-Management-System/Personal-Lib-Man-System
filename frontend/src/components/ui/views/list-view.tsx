@@ -79,7 +79,7 @@ const ListView: React.FC<ListViewProps> = ({
           ))
         : items.map(item => {
             const imageUrl = type === 'book' 
-              ? (item as Book).imageLinks?.thumbnail || '' 
+              ? (item as Book).imageLinks?.thumbnail || ''
               : (item as Movie).imageUrl;
             
             const subtitle = type === 'book' 
@@ -88,7 +88,7 @@ const ListView: React.FC<ListViewProps> = ({
             
             const rating = type === 'book'
               ? (item as Book).averageRating || 0
-              : (item as Movie).ratings?.at(0)?.Value || 0;
+              : (item as Movie).ratings?.at(0)?.value || 0;
             
             const date = type === 'book'
               ? (item as Book).publishedDate || 'Unknown'

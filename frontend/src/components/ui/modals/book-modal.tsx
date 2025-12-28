@@ -1,11 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { FiCalendar, FiTag, FiBookOpen, FiStar} from 'react-icons/fi';
-import { Box, IconButton, HStack } from '@chakra-ui/react';
+import { Box, HStack, Button, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, useDisclosure, useToast } from '@chakra-ui/react';
 import Modal from './modal';
 import BookDetailCard, { type InfoBlock, type StatusOption } from './media-detail-card';
 import { type Book } from '../../../types';
 import ReadingProgressCircle from '../helpers/reading-progress-circle';
 import StarRating from '../star-rating';
+import { apiFetch } from '../../../lib/apiFetch';
 
 const bookStatusOptions: StatusOption[] = [
   { label: 'Read', value: 'read' },
@@ -17,35 +18,34 @@ interface BookModalProps {
   isOpen: boolean;
   onClose: () => void;
   book: Book;
+  onDelete?: (bookId: string) => void;
 }
 
-const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
+const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }) => {
   const [currentStatus, setCurrentStatus] = useState<Book['status']>(book.status);
   const initialTags = (book as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
-  
-  // List management
   const initialLists = (book as any).lists ?? [];
   const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
   
-  // localStorage key for personal note
   const noteKey = `book-note-${book.id}`;
   const [personalNote, setPersonalNote] = useState<string>(() => {
     return localStorage.getItem(noteKey) ?? (book as any).personalNote ?? '';
   });
 
+  const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
+  const toast = useToast();
+
   useEffect(() => {
     setCurrentStatus(book.status);
     setCurrentTags((book as any).tags ?? []);
     setCurrentLists((book as any).lists ?? []);
-    // Load note from localStorage or fallback to book data
     setPersonalNote(localStorage.getItem(`book-note-${book.id}`) ?? (book as any).personalNote ?? '');
-    // Load user rating from localStorage
     const storedRating = localStorage.getItem(`book-rating-${book.id}`);
     if (storedRating) setUserRating(parseFloat(storedRating));
   }, [book]);
 
-  // User rating state (stored in localStorage)
   const [userRating, setUserRating] = useState<number>(() => {
     const stored = localStorage.getItem(`book-rating-${book.id}`);
     return stored ? parseFloat(stored) : 0;
@@ -57,7 +57,42 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
     console.log('Updated rating (book):', newRating, 'book id:', book.id);
   };
 
-  // Build page count display with optional progress circle
+  const handleDelete = async () => {
+    try {
+      const response = await apiFetch(`/mediaItems/${book.id}`, {
+        method: 'DELETE',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete book');
+      }
+
+      toast({
+        title: 'Book deleted',
+        description: `"${book.title}" has been removed from your library`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+
+      onDeleteClose();
+      onClose();
+      onDelete?.(book.id);
+    } catch (error) {
+      console.error('Error deleting book:', error);
+      toast({
+        title: 'Error',
+        description: 'Failed to delete book',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Published date - sadece yıl
+  const publishYear = book.publishedDate ? new Date(book.publishedDate).getFullYear().toString() : 'Unknown';
+
   const pageCountValue = book.pageCount ? (
     <HStack w="100%" align="center" justify="space-between" px={3}>
       <Box fontWeight="bold">{book.pageCount} pages</Box>
@@ -75,7 +110,6 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
     </HStack>
   ) : 'Unknown';
 
-  // Average rating display (from book data)
   const ratingValue = book.averageRating ? (
     <HStack spacing={2}>
       <StarRating rating={book.averageRating} size="sm" />
@@ -83,7 +117,6 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
     </HStack>
   ) : 'Not rated';
 
-  // My Rating display with interactive stars
   const myRatingValue = (
     <HStack spacing={2}>
       <StarRating 
@@ -97,7 +130,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   );
 
   const infoBlocks: InfoBlock[] = [
-    { label: 'Published', value: book.publishedDate || 'Unknown', icon: FiCalendar },
+    { label: 'Published', value: publishYear, icon: FiCalendar },
     { label: 'Category', value: book.categories?.join(', ') || 'Unknown', icon: FiTag },
     { label: 'Pages', value: pageCountValue, icon: FiBookOpen },
     { label: 'Average Rating', value: ratingValue, icon: FiStar },
@@ -106,10 +139,6 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
 
   const handleEdit = () => {
     console.log('Edit book request:', book.title);
-  };
-
-  const handleRemove = () => {
-    console.log('Remove book request:', book.title);
   };
 
   const handleTagsChange = (updated: string[]) => {
@@ -129,36 +158,65 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   };
 
   return (
-    <Modal isOpen={isOpen} onClose={onClose} title={book.title}>
-      <BookDetailCard
-        imageUrl={book.imageLinks?.thumbnail || ''}
-        title={book.title}
-        subtitle={book.authors ? `Author: ${book.authors.join(', ')}` : 'Author: Unknown'}
-        description={book.description || 'No description available.'}
-        infoBlocks={infoBlocks}
-        addedDate={book.publishedDate || ''}
-        status={currentStatus}
-        statusOptions={bookStatusOptions}
-        onStatusChange={(value) => setCurrentStatus(value as Book['status'])}
-        onEdit={handleEdit}
-        onRemove={handleRemove}
-        assignedTags={currentTags}
-        onTagsChange={handleTagsChange}
-        onCreateTag={(tag) => {
-          console.log(`Tag added for book ${book.id}: ${tag}`);
-        }}
-        currentPage={book.currentPage}
-        pageCount={book.pageCount}
-        personalNote={personalNote}
-        onPersonalNoteChange={handleNoteChange}
-        assignedLists={currentLists}
-        onListsChange={handleListsChange}
-        onCreateList={(listName) => {
-          console.log(`List created for book ${book.id}: ${listName}`);
-        }}
-        itemType="book"
-      />
-    </Modal>
+    <>
+      <Modal isOpen={isOpen} onClose={onClose} title={book.title}>
+        <BookDetailCard
+          imageUrl={book.imageLinks?.thumbnail || ''}
+          title={book.title}
+          subtitle={book.authors ? `Author: ${book.authors.join(', ')}` : 'Author: Unknown'}
+          description={book.description || 'No description available.'}
+          infoBlocks={infoBlocks}
+          addedDate={book.publishedDate || ''}
+          status={currentStatus}
+          statusOptions={bookStatusOptions}
+          onStatusChange={(value) => setCurrentStatus(value as Book['status'])}
+          onEdit={handleEdit}
+          onRemove={onDeleteOpen}
+          assignedTags={currentTags}
+          onTagsChange={handleTagsChange}
+          onCreateTag={(tag) => {
+            console.log(`Tag added for book ${book.id}: ${tag}`);
+          }}
+          currentPage={book.currentPage}
+          pageCount={book.pageCount}
+          personalNote={personalNote}
+          onPersonalNoteChange={handleNoteChange}
+          assignedLists={currentLists}
+          onListsChange={handleListsChange}
+          onCreateList={(listName) => {
+            console.log(`List created for book ${book.id}: ${listName}`);
+          }}
+          itemType="book"
+        />
+      </Modal>
+
+      <AlertDialog
+        isOpen={isDeleteOpen}
+        leastDestructiveRef={cancelRef}
+        onClose={onDeleteClose}
+      >
+        <AlertDialogOverlay>
+          <AlertDialogContent>
+            <AlertDialogHeader fontSize="lg" fontWeight="bold">
+              Delete Book
+            </AlertDialogHeader>
+
+            <AlertDialogBody>
+              Are you sure you want to delete "{book.title}"? This action cannot be undone.
+            </AlertDialogBody>
+
+            <AlertDialogFooter>
+              <Button ref={cancelRef} onClick={onDeleteClose}>
+                Cancel
+              </Button>
+              <Button colorScheme="red" onClick={handleDelete} ml={3}>
+                Delete
+              </Button>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialogOverlay>
+      </AlertDialog>
+    </>
   );
 };
 
