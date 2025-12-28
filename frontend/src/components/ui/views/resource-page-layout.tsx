@@ -20,16 +20,19 @@ import {
   Checkbox,
   Badge,
   Divider,
+  Input,
+  useToast,
 } from '@chakra-ui/react';
 import { BsGrid3X3Gap, BsList } from 'react-icons/bs';
 import { FaTags, FaList, FaChevronDown } from 'react-icons/fa';
+import { FiPlus, FiEdit, FiCheck, FiX } from 'react-icons/fi';
 import Layout from '../layout';
 import CardView from './card-view';
 import ListView from './list-view';
 import Pagination from './pagination';
 import { Filters, type FilterState, type ListItem } from '../filters';
 import { type Book, type Movie } from '../../../types';
-import listData from '../../../mock-data/list-data.json';
+import * as mediaListApi from '../../../services/mediaList.service';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -78,6 +81,13 @@ const ResourcePageLayout = <T extends Item>({
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [newListName, setNewListName] = useState('');
+  const [editingListId, setEditingListId] = useState<string | null>(null);
+  const [editedListName, setEditedListName] = useState('');
+  const [availableLists, setAvailableLists] = useState<ListItem[]>([]);
+  const [isLoadingLists, setIsLoadingLists] = useState(false);
+
+  const toast = useToast();
 
   const bg = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -105,13 +115,177 @@ const ResourcePageLayout = <T extends Item>({
     return Array.from(tags).sort();
   }, [items]);
 
-  // Mevcut listeleri al (itemType'a göre filtrele)
-  const availableLists = useMemo(() => {
-    const typeKey = itemType === 'book' ? 'book' : 'movie';
-    return (listData as ListItem[]).filter((list) =>
-      list.items.some((item) => item.type === typeKey)
-    );
-  }, [itemType]);
+  // Fetch available lists from API
+  const fetchLists = async () => {
+    setIsLoadingLists(true);
+    try {
+      const lists = await mediaListApi.getAllMediaLists();
+      
+      // Filter lists by itemType and transform to ListItem format
+      const filtered = lists.filter((list) => list.mediaType === (itemType === 'book' ? 'Book' : 'Movie'));
+      const transformed: ListItem[] = filtered.map((list) => ({
+        id: list._id,
+        name: list.title,
+        color: list.color,
+        items: list.items.map((itemId) => ({ type: itemType, id: itemId })),
+      }));
+      setAvailableLists(transformed);
+    } catch (error) {
+      console.error('Error fetching lists:', error);
+      // Set empty array on error
+      setAvailableLists([]);
+    } finally {
+      setIsLoadingLists(false);
+    }
+  };
+
+  // Create new list handler
+  const handleCreateList = async () => {
+    const name = newListName.trim();
+    if (!name) return;
+    
+    try {
+      await mediaListApi.createMediaList({
+        title: name,
+        mediaType: itemType === 'book' ? 'Book' : 'Movie',
+        items: [],
+      });
+      
+      toast({
+        title: 'List created',
+        description: `"${name}" has been created successfully`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      setNewListName('');
+      await fetchLists(); // Refresh the list
+    } catch (error) {
+      console.error('Error creating list:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to create lists',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error creating list',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  // Edit list handlers
+  const handleStartEditList = (listId: string, currentName: string) => {
+    setEditingListId(listId);
+    setEditedListName(currentName);
+  };
+
+  const handleSaveEditList = async () => {
+    const name = editedListName.trim();
+    if (!name || !editingListId) return;
+    
+    try {
+      await mediaListApi.updateMediaList(editingListId, { title: name });
+      
+      toast({
+        title: 'List updated',
+        description: 'List name has been updated successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      setEditingListId(null);
+      setEditedListName('');
+      await fetchLists(); // Refresh the list
+    } catch (error) {
+      console.error('Error updating list:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      
+      setEditingListId(null);
+      setEditedListName('');
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to update lists',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error updating list',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  const handleCancelEditList = () => {
+    setEditingListId(null);
+    setEditedListName('');
+  };
+
+  // Delete list handler
+  const handleDeleteList = async (listId: string) => {
+    try {
+      await mediaListApi.deleteMediaList(listId);
+      
+      toast({
+        title: 'List deleted',
+        description: 'List has been deleted successfully',
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      // If the deleted list was selected, clear the filter
+      if (filterState.lists?.includes(listId)) {
+        setFilterState({ ...filterState, lists: [] });
+      }
+      
+      await fetchLists(); // Refresh the list
+    } catch (error) {
+      console.error('Error deleting list:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to delete lists',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error deleting list',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  };
 
   useEffect(() => {
     const loadItems = async () => {
@@ -127,6 +301,7 @@ const ResourcePageLayout = <T extends Item>({
     };
 
     loadItems();
+    fetchLists(); // Fetch lists when component mounts or itemType changes
   }, [mockData, itemType]);
 
   // Filtreleme ve sıralama mantığı
@@ -236,16 +411,13 @@ const ResourcePageLayout = <T extends Item>({
 
     // 8. List filtresi
     if (filterState.lists && filterState.lists.length > 0) {
-      const typeKey = itemType === 'book' ? 'book' : 'movie';
       const selectedListItems = new Set<string>();
       
-      (listData as ListItem[])
+      availableLists
         .filter((list) => filterState.lists!.includes(list.id))
         .forEach((list) => {
           list.items.forEach((listItem) => {
-            if (listItem.type === typeKey) {
-              selectedListItems.add(listItem.id);
-            }
+            selectedListItems.add(listItem.id);
           });
         });
 
@@ -452,43 +624,130 @@ const ResourcePageLayout = <T extends Item>({
             )}
 
             {/* Listeler Dropdown - Tekli Seçim */}
-            {availableLists.length > 0 && (
-              <Menu>
-                <MenuButton
-                  as={Button}
-                  size="sm"
-                  variant="outline"
-                  leftIcon={<FaList />}
-                  rightIcon={<FaChevronDown />}
-                >
-                  {filterState.lists && filterState.lists.length > 0
-                    ? availableLists.find((l) => l.id === filterState.lists![0])?.name || 'List'
-                    : 'Lists'}
-                </MenuButton>
-                <MenuList maxH="300px" overflowY="auto">
-                  <MenuItem
-                    onClick={() => setFilterState({ ...filterState, lists: [] })}
-                    fontWeight={filterState.lists?.length === 0 ? 'bold' : 'normal'}
-                    bg={filterState.lists?.length === 0 ? 'blue.50' : undefined}
-                    _dark={{ bg: filterState.lists?.length === 0 ? 'blue.900' : undefined }}
-                  >
-                    All
-                  </MenuItem>
-                  <MenuDivider />
-                  {availableLists.map((list) => (
+            <Menu>
+              <MenuButton
+                as={Button}
+                size="sm"
+                variant="outline"
+                leftIcon={<FaList />}
+                rightIcon={<FaChevronDown />}
+              >
+                {filterState.lists && filterState.lists.length > 0
+                  ? availableLists.find((l) => l.id === filterState.lists![0])?.name || 'List'
+                  : 'Lists'}
+              </MenuButton>
+              <MenuList maxH="300px" overflowY="auto">
+                {availableLists.length > 0 && (
+                  <>
+                    <MenuItem
+                      onClick={() => setFilterState({ ...filterState, lists: [] })}
+                      fontWeight={filterState.lists?.length === 0 ? 'bold' : 'normal'}
+                      bg={filterState.lists?.length === 0 ? 'blue.50' : undefined}
+                      _dark={{ bg: filterState.lists?.length === 0 ? 'blue.900' : undefined }}
+                    >
+                      All
+                    </MenuItem>
+                    <MenuDivider />
+                  </>
+                )}
+                {availableLists.map((list) => (
                     <MenuItem
                       key={list.id}
-                      onClick={() => setFilterState({ ...filterState, lists: [list.id] })}
                       fontWeight={filterState.lists?.includes(list.id) ? 'bold' : 'normal'}
                       bg={filterState.lists?.includes(list.id) ? 'purple.50' : undefined}
                       _dark={{ bg: filterState.lists?.includes(list.id) ? 'purple.900' : undefined }}
+                      closeOnSelect={false}
                     >
-                      {list.name}
+                      {editingListId === list.id ? (
+                        <HStack spacing={2} width="100%">
+                          <Input
+                            value={editedListName}
+                            onChange={(e) => setEditedListName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleSaveEditList();
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault();
+                                handleCancelEditList();
+                              }
+                            }}
+                            size="sm"
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <IconButton
+                            aria-label="Save"
+                            icon={<Icon as={FiCheck} />}
+                            size="sm"
+                            colorScheme="green"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveEditList();
+                            }}
+                          />
+                        </HStack>
+                      ) : (
+                        <Flex justify="space-between" align="center" width="100%">
+                          <Text
+                            onClick={() => setFilterState({ ...filterState, lists: [list.id] })}
+                            flex="1"
+                          >
+                            {list.name}
+                          </Text>
+                          <HStack spacing={1}>
+                            <IconButton
+                              aria-label="Edit list name"
+                              icon={<Icon as={FiEdit} />}
+                              size="xs"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStartEditList(list.id, list.name);
+                              }}
+                            />
+                            <IconButton
+                              aria-label="Delete list"
+                              icon={<Icon as={FiX} />}
+                              size="xs"
+                              variant="ghost"
+                              colorScheme="red"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteList(list.id);
+                              }}
+                            />
+                          </HStack>
+                        </Flex>
+                      )}
                     </MenuItem>
                   ))}
+                  <MenuDivider />
+                  <Box px={3} py={2}>
+                    <HStack spacing={2}>
+                      <Input
+                        value={newListName}
+                        onChange={(e) => setNewListName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleCreateList();
+                          }
+                        }}
+                        placeholder="New list name"
+                        size="sm"
+                      />
+                      <IconButton
+                        aria-label="Create list"
+                        icon={<Icon as={FiPlus} />}
+                        size="sm"
+                        colorScheme="teal"
+                        onClick={handleCreateList}
+                      />
+                    </HStack>
+                  </Box>
                 </MenuList>
               </Menu>
-            )}
           </Flex>
         </Box>
 

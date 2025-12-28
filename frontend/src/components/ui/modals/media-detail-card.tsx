@@ -28,6 +28,7 @@ import {
 import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
 import TagSelector from '../tag-selector';
+import ListSelector from '../list-selector';
 import PersonalNote from '../personal-note';
 
 export interface InfoBlock {
@@ -65,9 +66,15 @@ export interface BookDetailCardProps {
   onCreateTag?: (tagName: string) => void;
   // callback when tags change (used by TagSelector)
   onTagsChange?: (tags: string[]) => void;
+  // List management
+  assignedLists?: string[];
+  onListsChange?: (lists: string[]) => void;
+  onCreateList?: (listName: string) => void;
   // Personal note
   personalNote?: string;
   onPersonalNoteChange?: (note: string) => void;
+  // Item type for filtering lists
+  itemType?: 'book' | 'movie';
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -87,8 +94,12 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   assignedTags = [],
   onTagsChange,
   onCreateTag,
+  assignedLists = [],
+  onListsChange,
+  onCreateList,
   personalNote = '',
   onPersonalNoteChange,
+  itemType,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const blockBg = useColorModeValue('gray.50', 'whiteAlpha.100');
@@ -212,15 +223,12 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
             onCreateTag={onCreateTag}
           />
 
-          <Tooltip label="Add to List" aria-label="Add to List">
-            <IconButton
-              aria-label="Add to List"
-              icon={<FiPlus />}
-              colorScheme="teal"
-              variant="outline"
-              onClick={onAddToList}
-            />
-          </Tooltip>
+          <ListSelector
+            assignedLists={assignedLists}
+            onChange={onListsChange || (() => {})}
+            onCreateList={onCreateList}
+            itemType={itemType}
+          />
         </HStack>
 
         {/* Change Status */}

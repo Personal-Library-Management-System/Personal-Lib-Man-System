@@ -24,6 +24,10 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   const initialTags = (book as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
   
+  // List management
+  const initialLists = (book as any).lists ?? [];
+  const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
+  
   // localStorage key for personal note
   const noteKey = `book-note-${book.id}`;
   const [personalNote, setPersonalNote] = useState<string>(() => {
@@ -33,6 +37,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   useEffect(() => {
     setCurrentStatus(book.status);
     setCurrentTags((book as any).tags ?? []);
+    setCurrentLists((book as any).lists ?? []);
     // Load note from localStorage or fallback to book data
     setPersonalNote(localStorage.getItem(`book-note-${book.id}`) ?? (book as any).personalNote ?? '');
     // Load user rating from localStorage
@@ -118,6 +123,11 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
     console.log('Updated note:', note, 'book id:', book.id);
   };
 
+  const handleListsChange = (updated: string[]) => {
+    setCurrentLists(updated);
+    console.log('Updated lists:', updated, 'book id:', book.id);
+  };
+
   return (
     <Modal isOpen={isOpen} onClose={onClose} title={book.title}>
       <BookDetailCard
@@ -141,6 +151,12 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
         pageCount={book.pageCount}
         personalNote={personalNote}
         onPersonalNoteChange={handleNoteChange}
+        assignedLists={currentLists}
+        onListsChange={handleListsChange}
+        onCreateList={(listName) => {
+          console.log(`List created for book ${book.id}: ${listName}`);
+        }}
+        itemType="book"
       />
     </Modal>
   );

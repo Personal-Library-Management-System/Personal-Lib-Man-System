@@ -61,11 +61,12 @@ export const createMediaListForUser = async (
     const existingList = await MediaListModel.findOne({
         ownerId: user._id,
         title: mediaListPayload.title.trim(),
+        mediaType: mediaListPayload.mediaType,
     });
 
     if (existingList) {
         throw new AppError(
-            `A list named "${mediaListPayload.title}" already exists.`,
+            `A ${mediaListPayload.mediaType} list named "${mediaListPayload.title}" already exists.`,
             StatusCodes.CONFLICT
         );
     }
@@ -117,6 +118,49 @@ export const getMediaListOfUser = async (
         throw new AppError(`Media list ${mediaListId} not found.`, StatusCodes.NOT_FOUND);
     }
     return mediaList;
+};
+
+export const updateMediaListOfUser = async (
+    user: UserDoc,
+    mediaListId: Types.ObjectId,
+    updateData: { title?: string; color?: string }
+): Promise<MediaListDoc> => {
+    ensureUserOwnsMediaList(user, mediaListId);
+
+    const existingMediaList = await MediaListModel.findById(mediaListId);
+    if (!existingMediaList) {
+        throw new AppError(`Media list ${mediaListId} not found.`, StatusCodes.NOT_FOUND);
+    }
+
+    // Check if a list with the new title already exists (if title is being updated)
+    if (updateData.title && updateData.title.trim() !== existingMediaList.title) {
+        const duplicateList = await MediaListModel.findOne({
+            ownerId: user._id,
+            title: updateData.title.trim(),
+            mediaType: existingMediaList.mediaType,
+            _id: { $ne: mediaListId },
+        });
+
+        if (duplicateList) {
+            throw new AppError(
+                `A ${existingMediaList.mediaType} list named "${updateData.title}" already exists.`,
+                StatusCodes.CONFLICT
+            );
+        }
+    }
+
+    // Update allowed fields
+    if (updateData.title !== undefined) {
+        existingMediaList.title = updateData.title.trim();
+    }
+    if (updateData.color !== undefined) {
+        existingMediaList.color = updateData.color;
+    }
+
+    await existingMediaList.save();
+    await existingMediaList.populate('items');
+
+    return existingMediaList;
 };
 
 export const deleteSingleMediaListOfUser = async (user: UserDoc, mediaListId: Types.ObjectId) => {

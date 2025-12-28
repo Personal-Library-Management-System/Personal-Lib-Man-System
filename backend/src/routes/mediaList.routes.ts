@@ -209,7 +209,7 @@ mediaListRouter.delete('/', deleteMultipleLists as RequestHandler);
  * @openapi
  * /api/v1/mediaLists/{id}:
  *   patch:
- *     summary: Update a media list (not implemented yet)
+ *     summary: Update a media list (title and/or color)
  *     tags:
  *       - Media Lists
  *     parameters:
@@ -218,13 +218,47 @@ mediaListRouter.delete('/', deleteMultipleLists as RequestHandler);
  *         required: true
  *         schema:
  *           type: string
+ *         description: Media list ID
+ *     requestBody:
+ *       required: true
+ *       content:
+ *         application/json:
+ *           schema:
+ *             type: object
+ *             properties:
+ *               title:
+ *                 type: string
+ *                 description: New title for the list
+ *               color:
+ *                 type: string
+ *                 description: New color for the list (hex format)
+ *           example:
+ *             title: "My Updated List"
+ *             color: "#FF5733"
  *     responses:
- *       501:
- *         description: Not implemented
+ *       200:
+ *         description: List updated successfully
  *         content:
  *           application/json:
- *             example:
- *               error: update list not implemented yet
+ *             schema:
+ *               type: object
+ *               properties:
+ *                 message:
+ *                   type: string
+ *                 list:
+ *                   $ref: '#/components/schemas/MediaList'
+ *       400:
+ *         description: Invalid media list ID or invalid color format
+ *       401:
+ *         description: Unauthorized
+ *       403:
+ *         description: List does not belong to the user
+ *       404:
+ *         description: Media list not found
+ *       409:
+ *         description: A list with the new title already exists
+ *       500:
+ *         description: Server error
  */
 mediaListRouter.patch('/:id', updateList as RequestHandler);
 

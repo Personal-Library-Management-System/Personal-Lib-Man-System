@@ -10,7 +10,8 @@ import {
     deleteSingleMediaListOfUser,
     getAllMediaListsOfUser,
     getMediaListOfUser,
-    reorderMediaItemsOfListOfUser
+    reorderMediaItemsOfListOfUser,
+    updateMediaListOfUser
 } from '../services/mediaList.service';
 import { AppError, handleControllerError } from '../utils/appError';
 import {
@@ -113,9 +114,25 @@ export const deleteMultipleLists = async (
 };
 
 export const updateList = async (req: AuthenticatedRequest, res: Response): Promise<Response> => {
-    return res
-        .status(StatusCodes.NOT_IMPLEMENTED)
-        .json({ error: 'update list not implemented yet' });
+    try {
+        const userDoc = req.userDoc;
+        const mediaListId = req.params.id;
+        const { title, color } = req.body;
+
+        const mediaListObjectId = validateAndConvertObjectId(mediaListId, 'Media list');
+        
+        const updatedMediaList = await updateMediaListOfUser(userDoc, mediaListObjectId, {
+            title,
+            color,
+        });
+
+        return res.status(StatusCodes.OK).json({
+            message: `Media list "${updatedMediaList.title}" has been updated successfully.`,
+            list: updatedMediaList,
+        });
+    } catch (err) {
+        return handleControllerError(res, err);
+    }
 };
 
 export const addMediaItemsToList = async (
