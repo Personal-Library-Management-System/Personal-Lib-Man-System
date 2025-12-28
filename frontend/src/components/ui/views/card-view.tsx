@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   SimpleGrid,
   Card,
@@ -10,10 +10,10 @@ import {
   HStack,
   Skeleton,
   SkeletonText,
-  useColorModeValue
+  useColorModeValue,
+  Stack
 } from '@chakra-ui/react';
 import { type Book, type Movie } from '../../../types';
-
 type CardItem = Book | Movie;
 
 interface CardViewProps {
@@ -65,35 +65,31 @@ const CardView: React.FC<CardViewProps> = ({
   const textColor = useColorModeValue('gray.800', 'white');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
   
+  const [imageErrors, setImageErrors] = useState<Set<string>>(new Set());
+  
+  const handleImageError = (itemId: string) => {
+    setImageErrors(prev => new Set(prev).add(itemId));
+  };
+  
   const imageHeight = type === 'book' ? '360px' : '400px';
   const fallbackIcon = type === 'book' ? '📚' : '🎬';
 
   return (
-    <SimpleGrid columns={{ base: 1, sm: 2, md: 3, lg: 4 }} spacing={6}>
+    <SimpleGrid columns={[1, 2, 3, 4]} spacing={4}>
       {isLoading
         ? Array.from({ length: itemsPerPage }).map((_, index) => (
             <CardSkeleton key={index} type={type} />
           ))
-        : items.map(item => {
+        : items.map((it, i) => {
+            const itemId = it.id ?? (it as any)._id ?? `item-${i}`;
+            const hasImageError = imageErrors.has(itemId);
             const imageUrl = type === 'book' 
-              ? (item as Book).imageLinks?.thumbnail || '' 
-              : (item as Movie).imageUrl;
-            
-            const subtitle = type === 'book' 
-              ? (item as Book).authors?.join(', ') || 'Unknown author'
-              : (item as Movie).director;
-            
-            const rating = type === 'book'
-              ? (item as Book).averageRating || 0
-              : (item as Movie).ratings?.at(0)?.Value || 0;
-            
-            const additionalInfo = type === 'book'
-              ? `${(item as Book).pageCount || 0}p`
-              : `${(item as Movie).runtime}min`;
+              ? (it as Book).coverPhoto ?? '' 
+              : (it as Movie).coverPhoto ?? '';
 
             return (
               <Card
-                key={item.id}
+                key={`${itemId}-${i}`}
                 bg={cardBg}
                 cursor="pointer"
                 transition="all 0.3s ease"
@@ -103,49 +99,51 @@ const CardView: React.FC<CardViewProps> = ({
                 }}
                 overflow="hidden"
                 h="auto"
-                maxW="280px"
-                mx="auto"
-                onClick={() => onItemClick && onItemClick(item)}
+                onClick={() => onItemClick && onItemClick(it)}
               >
                 <CardBody p={0}>
                   <Box position="relative">
-                    <Image
-                      src={imageUrl}
-                      alt={item.title}
-                      w="full"
-                      h={imageHeight}
-                      objectFit="cover"
-                      objectPosition="center top"
-                      fallback={
-                        <Box 
-                          w="full" 
-                          h={imageHeight} 
-                          bg="gray.200" 
-                          display="flex" 
-                          alignItems="center" 
-                          justifyContent="center"
-                        >
-                          <Text color="gray.500" fontSize="xl">{fallbackIcon}</Text>
-                        </Box>
-                      }
-                    />
+                    {!hasImageError && imageUrl ? (
+                      <Image
+                        src={imageUrl}
+                        alt={it.title}
+                        w="full"
+                        h={imageHeight}
+                        objectFit="cover"
+                        objectPosition="center top"
+                        onError={() => handleImageError(itemId)}
+                      />
+                    ) : (
+                      <Box
+                        w="full"
+                        h={imageHeight}
+                        bg="gray.200"
+                        display="flex"
+                        alignItems="center"
+                        justifyContent="center"
+                      >
+                        <Text color="gray.500" fontSize="xl">{fallbackIcon}</Text>
+                      </Box>
+                    )}
                   </Box>
                   <Box p={4}>
                     <Heading size="sm" color={textColor} noOfLines={2} mb={2} minH="40px">
-                      {item.title}
+                      {it.title}
                     </Heading>
                     <Text color={subtextColor} fontSize="sm" mb={2} noOfLines={1}>
-                      {subtitle}
+                      {type === 'book' ? ((it as Book).author ?? 'Unknown author') : ((it as Movie).director ?? 'Unknown director')}
                     </Text>
                     <HStack justify="space-between" align="center">
                       <HStack spacing={1}>
                         <Text fontSize="sm">⭐</Text>
-                        <Text fontSize="sm" color={subtextColor}>{parseFloat(String(rating)).toFixed(1)}</Text>
+                        <Text fontSize="sm" color={subtextColor}>
+                          {Number((it as any).ratings?.[0]?.value ?? (type === 'book' ? (it as Book).averageRating : 0) ?? 0).toFixed(1)}
+                        </Text>
                         <Text fontSize="xs" color={subtextColor}>
-                          • {additionalInfo}
+                          • {type === 'book' ? `${(it as Book).pageCount ?? 0}p` : `${(it as Movie).runtime ?? 0}min`}
                         </Text>
                       </HStack>
-                      {getStatusBadge(item.status)}
+                      {getStatusBadge(it.status)}
                     </HStack>
                   </Box>
                 </CardBody>

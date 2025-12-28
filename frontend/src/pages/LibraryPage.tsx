@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Book, statusFromBackend } from '../types';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
@@ -26,7 +26,7 @@ const filters = [
 const GOOGLE_BOOKS_API_KEY = import.meta.env.VITE_GOOGLE_BOOKS_API_KEY;
 
 const LibraryPage = () => {
-  const [isModalOpen, setModalOpen] = useState(false);
+  const [isBookModalOpen, setBookModalOpen] = useState(false);
   const [selectedBook, setSelectedBook] = useState<Book | null>(null);
   const { isOpen, onOpen, onClose } = useDisclosure();
 
@@ -37,6 +37,32 @@ const LibraryPage = () => {
   // Backend olarak çekilen kitaplar
   const [items, setItems] = useState<Book[]>([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  // Mevcut kitap ID'lerini Set olarak hazırla (O(n) - sadece bir kez)
+  const existingBookIds = useMemo(() => {
+    const ids = new Set<string>();
+    items.forEach(book => {
+      // ID bazlı kontrol
+      ids.add(book.id);
+      if ((book as any).externalId) ids.add((book as any).externalId);
+      if (book.ISBN) ids.add(book.ISBN);
+      
+      // İçerik bazlı kontrol: başlık + yazar + yıl (normalize edilmiş)
+      const normalizedTitle = book.title.toLowerCase().trim().replace(/[^\w\s]/g, '');
+      const author = (book.author ?? '').toLowerCase().trim();
+      const year = book.publishedDate ? (() => {
+        try { return String(new Date(book.publishedDate).getFullYear()); }
+        catch { return String(book.publishedDate).match(/\d{4}/)?.[0] ?? ''; }
+      })() : '';
+      
+      if (normalizedTitle) {
+        // Format: "title|author|year"
+        const contentKey = `${normalizedTitle}|${author}|${year}`;
+        ids.add(contentKey);
+      }
+    });
+    return ids;
+  }, [items]);
 
   const fetchBooks = async () => {
     setIsLoading(true);
@@ -93,6 +119,18 @@ const LibraryPage = () => {
         status: statusFromBackend(b.status),
         mediaType: 'Book'
       }));
+      
+     // Debug: duplicateleri kontrol et
+     const idCounts = mapped.reduce((acc, book) => {
+       acc[book.id] = (acc[book.id] || 0) + 1;
+       return acc;
+     }, {} as Record<string, number>);
+     const duplicates = Object.entries(idCounts).filter(([_, count]) => count > 1);
+     if (duplicates.length > 0) {
+       console.warn('Duplicate book IDs found:', duplicates);
+       console.table(mapped.filter(b => duplicates.some(([id]) => id === b.id)));
+     }
+     
       setItems(mapped);
     } catch (err: any) {
       console.error('Fetch books error', err);
@@ -108,7 +146,7 @@ const LibraryPage = () => {
 
   const handleBookClick = (book: Book) => {
     setSelectedBook(book);
-    setModalOpen(true);
+    setBookModalOpen(true);
   };
 
   const handleAddSearch = async (payload: { query: string; extras: Record<string, string> }) => {
@@ -172,6 +210,11 @@ const LibraryPage = () => {
     }
   };
 
+  const handleCloseAddMedia = () => {
+    onClose();
+    fetchBooks(); // Listeyi yenile
+  };
+
   return (
     <>
       <ResourcePageLayout
@@ -191,56 +234,29 @@ const LibraryPage = () => {
       <AddMedia
         mediaType="book"
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleCloseAddMedia}
         onSearch={handleAddSearch}
         searchState={searchState}
         searchResults={searchResults}
-        onItemSelect={item => {
-          const mapped: Book = {
-            id: (item as any)._id ?? (item as any).id,
-            title: item.title,
-            // keep single-string author / coverPhoto
-            author: (item as any).author ?? (Array.isArray((item as any).authors) ? (item as any).authors[0] : (item as any).authors) ?? '',
-            coverPhoto: (item as any).coverPhoto ?? (item as any).imageLinks?.thumbnail ?? (item as any).imageLinks?.smallThumbnail ?? '',
-            publishedDate: item.publishedDate ?? undefined,
-            publisher: (item as any).publisher ?? '',
-            pageCount: (item as any).pageCount ?? undefined,
-            averageRating: (() => {
-              if ((item as any).averageRating != null) return Number((item as any).averageRating);
-              if (Array.isArray((item as any).ratings) && (item as any).ratings.length) {
-                const raw = (item as any).ratings[0];
-                const val = typeof raw === 'object' ? raw?.value : raw;
-                const n = parseFloat(val ?? '');
-                return Number.isFinite(n) ? n : undefined;
-              }
-              return undefined;
-            })(),
-            ratingsCount: item.ratingCount ?? undefined,
-            categories: item.categories ?? [],
-            description: item.description ?? '',
-            language: item.language ?? '',
-            ISBN: (item as any).ISBN ?? '',
-            status: statusFromBackend((item as any).status ?? (item as any).status),
-            mediaType: 'Book'
-          };
-          setItems(prev => [mapped, ...prev]);
-          setSelectedBook(mapped);
-          setModalOpen(true);
-        }}
+        onItemSelect={() => {}}
         optionalFields={[
-          { name: 'author', label: 'Author', placeholder: 'e.g. George Orwell' },
-          { name: 'publisher', label: 'Publisher', placeholder: 'e.g. Penguin Books' },
+          { name: 'author', label: 'Author', placeholder: 'e.g. J.K. Rowling' },
+          { name: 'isbn', label: 'ISBN', placeholder: 'e.g. 9780439708180' }
         ]}
+        existingItemIds={existingBookIds}
       />
 
       {selectedBook && (
         <BookModal
-          book={selectedBook}
-          isOpen={isModalOpen}
+          isOpen={isBookModalOpen}
           onClose={() => {
-            setModalOpen(false);
+            setBookModalOpen(false);
             setSelectedBook(null);
           }}
+          book={selectedBook}
+          onDelete={(bookId) => {
+           setItems(prev => prev.filter(b => b.id !== bookId));
+         }}
         />
       )}
     </>

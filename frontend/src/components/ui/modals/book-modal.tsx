@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { FiCalendar, FiTag, FiBookOpen, FiStar} from 'react-icons/fi';
-import { Box, IconButton, HStack } from '@chakra-ui/react';
+import { Box, IconButton, HStack, useDisclosure, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, Button } from '@chakra-ui/react';
 import Modal from './modal';
 import BookDetailCard, { type InfoBlock, type StatusOption } from './media-detail-card';
 import { type Book } from '../../../types';
@@ -17,12 +17,15 @@ interface BookModalProps {
   isOpen: boolean;
   onClose: () => void;
   book: Book;
+  onDelete?: (bookId: string) => void; // callback to parent to remove from list
 }
 
-const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
+const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }) => {
   const [currentStatus, setCurrentStatus] = useState<Book['status']>(book.status);
   const initialTags = (book as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
+  const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
   
   // localStorage key for personal note
   const noteKey = `book-note-${book.id}`;
@@ -59,7 +62,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
       {currentStatus === 'reading' && book.pageCount ? (
         <Box display="flex" alignItems="center" justifyContent="center">
           <ReadingProgressCircle
-            currentPage={book.currentPage}
+            currentPage={book.progress ?? 0}
             pageCount={book.pageCount}
             title={book.title}
             size="50px"
@@ -104,7 +107,29 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   };
 
   const handleRemove = () => {
-    console.log('Remove book request:', book.title);
+    onAlertOpen();
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+      const res = await fetch(`${API_BASE}/api/v1/mediaItems/${book.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+  
+      if (!res.ok) {
+        throw new Error(`Failed to delete: ${res.status}`);
+      }
+  
+      console.log('Book deleted:', book.id);
+      onAlertClose();
+      onClose(); // modal'ı kapat
+      if (onDelete) onDelete(book.id); // parent'a bildir (liste güncellensin)
+    } catch (err) {
+      console.error('Delete book error:', err);
+      alert('Failed to delete book');
+    }
   };
 
   const handleTagsChange = (updated: string[]) => {
@@ -119,11 +144,12 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
   };
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} title={book.title}>
       <BookDetailCard
-        imageUrl={book.imageLinks?.thumbnail || ''}
+        imageUrl={book.coverPhoto || ''}
         title={book.title}
-        subtitle={book.authors ? `Author: ${book.authors.join(', ')}` : 'Author: Unknown'}
+        subtitle={book.author ? `Author: ${book.author}` : 'Author: Unknown'}
         description={book.description || 'No description available.'}
         infoBlocks={infoBlocks}
         addedDate={book.publishedDate || ''}
@@ -137,12 +163,40 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
         onCreateTag={(tag) => {
           console.log(`Tag added for book ${book.id}: ${tag}`);
         }}
-        currentPage={book.currentPage}
+        currentPage={book.pageCount}
         pageCount={book.pageCount}
         personalNote={personalNote}
         onPersonalNoteChange={handleNoteChange}
       />
     </Modal>
+
+    <AlertDialog
+      isOpen={isAlertOpen}
+      leastDestructiveRef={cancelRef}
+      onClose={onAlertClose}
+    >
+      <AlertDialogOverlay>
+        <AlertDialogContent>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            Delete Book
+          </AlertDialogHeader>
+
+          <AlertDialogBody>
+            Are you sure you want to delete "{book.title}"? This action cannot be undone.
+          </AlertDialogBody>
+
+          <AlertDialogFooter>
+            <Button ref={cancelRef} onClick={onAlertClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+              Delete
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogOverlay>
+    </AlertDialog>
+    </>
   );
 };
 

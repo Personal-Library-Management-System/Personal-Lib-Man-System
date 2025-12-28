@@ -25,8 +25,16 @@ import {
   AlertIcon,
   AlertTitle,
   Badge,
+  Button,
+  useDisclosure,
+  AlertDialog,
+  AlertDialogBody,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogContent,
+  AlertDialogOverlay,
 } from '@chakra-ui/react';
-import { SearchIcon, ArrowForwardIcon } from '@chakra-ui/icons';
+import { SearchIcon, ArrowForwardIcon, AddIcon, CheckIcon } from '@chakra-ui/icons';
 import { type Book, type Movie, statusToBackend } from '../../types';
 
 // -- Tipler --
@@ -51,19 +59,44 @@ interface AddMediaProps {
   onItemSelect: (item: MediaItem) => void;
   optionalFields: OptionalField[];
   searchPlaceholder?: string;
+  existingItemIds?: Set<string>; // Mevcut kütüphanedeki item ID'leri
 }
 
-const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSelect: () => void; mediaType: 'book' | 'movie' }) => {
+const SearchResultItem = ({ 
+  item, 
+  onSelect, 
+  onAdd,
+  mediaType,
+  isAdded,
+  checkId
+}: { 
+  item: MediaItem; 
+  onSelect: () => void; 
+  onAdd: () => void;
+  mediaType: 'book' | 'movie';
+  isAdded: boolean;
+  checkId: string;
+}) => {
   const cardBg = useColorModeValue('gray.50', 'gray.700');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
 
+  const [imageError, setImageError] = useState(false);
+
   const isBook = mediaType === 'book';
-  const thumbnailUrl = item.coverPhoto;
+  // Google Books returns imageLinks object, fallback to coverPhoto
+  const thumbnailUrl = isBook 
+    ? ((item as any).imageLinks?.thumbnail ?? (item as any).imageLinks?.smallThumbnail ?? item.coverPhoto ?? '')
+    : (item.coverPhoto ?? '');
   
+  // Google Books returns authors array
   const subtitle = isBook
-    ? (item as Book).author ?? 'Unknown author'
-    : (item as Movie).director ?? 'Unknown director';
+    ? (() => {
+        const authors = (item as any).authors;
+        if (Array.isArray(authors) && authors.length > 0) return authors[0];
+        return (item as Book).author ?? 'Unknown author';
+      })()
+    : ((item as Movie).director ?? 'Unknown director');
   
   const yearRaw = item.publishedDate;
   const yearDisplay = yearRaw ? (() => {
@@ -71,16 +104,22 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
   })() : undefined;
 
   const rating: number = (() => {
+    // Google Books has averageRating directly
+    if (isBook && (item as any).averageRating != null) {
+      const r = parseFloat(String((item as any).averageRating));
+      return Number.isFinite(r) ? r : 0;
+    }
     const r = item.ratings && item.ratings.length > 0 ? parseFloat(item.ratings[0].value) : NaN;
     return Number.isFinite(r) ? r : 0;
   })();
 
   const genres = item.categories ? item.categories.slice(0, 2) : [];
   const fallbackIcon = isBook ? '📚' : '🎬';
-  const hasImage = thumbnailUrl && thumbnailUrl !== 'N/A' && thumbnailUrl !== '';
+  const hasImage = !imageError && thumbnailUrl && thumbnailUrl !== 'N/A' && thumbnailUrl !== '';
 
   return (
     <HStack
+     position="relative"
       p={4}
       bg={cardBg}
       borderRadius="lg"
@@ -91,8 +130,24 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
         shadow: 'md',
         cursor: 'pointer',
       }}
-      onClick={onSelect}
+     onClick={onSelect}
     >
+     <IconButton
+       aria-label={isAdded ? 'Added' : 'Add to library'}
+       icon={isAdded ? <CheckIcon /> : <AddIcon />}
+       colorScheme={isAdded ? 'green' : 'blue'}
+       size="sm"
+       position="absolute"
+       top={2}
+       right={2}
+       zIndex={2}
+       isRound
+       onClick={(e) => {
+         e.stopPropagation();
+         if (!isAdded) onAdd();
+       }}
+       isDisabled={isAdded}
+     />
       <Box w="100px" h="140px" bg="gray.200" borderRadius="md" flexShrink={0} display="flex" alignItems="center" justifyContent="center">
         {hasImage ? (
           <Image
@@ -105,12 +160,19 @@ const SearchResultItem = ({ item, onSelect, mediaType }: { item: MediaItem; onSe
             borderRadius="md"
             shadow="sm"
             bg="white"
+            onError={() => setImageError(true)}
           />
         ) : (
           <Text fontSize="4xl">{fallbackIcon}</Text>
         )}
       </Box>
-      <VStack align="start" spacing={2} flex={1}>
+     <VStack 
+       align="start" 
+       spacing={2} 
+       flex={1}
+       cursor="pointer"
+       onClick={onSelect}
+     >
         <Text fontWeight="bold" fontSize="md" color={textColor} noOfLines={2}>
           {item.title}
         </Text>
@@ -154,12 +216,18 @@ const AddMedia = ({
   searchResults,
   onItemSelect,
   optionalFields,
-  searchPlaceholder
+  searchPlaceholder,
+  existingItemIds = new Set()
 }: AddMediaProps) => {
   const bgMain = useColorModeValue('gray.100', 'gray.900');
   const bgSearchSection = useColorModeValue('white', 'gray.800');
   const inputPlaceholderColor = useColorModeValue('gray.400', 'gray.500');
   const borderColor = useColorModeValue('gray.200', 'gray.700');
+
+ const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
+ const [selectedItem, setSelectedItem] = useState<MediaItem | null>(null);
+ const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
+ const cancelRef = React.useRef<HTMLButtonElement>(null);
 
   const defaultValues = useMemo(() => {
     return optionalFields.reduce<Record<string, string>>((acc, field) => {
@@ -175,8 +243,12 @@ const AddMedia = ({
     if (!isOpen) {
       setSearchTerm('');
       setExtraValues(defaultValues);
+     setAddedItems(new Set(existingItemIds)); // Mevcut item'ları işaretle
+    } else {
+     // Modal açıldığında mevcut item'ları ekle
+     setAddedItems(new Set(existingItemIds));
     }
-  }, [isOpen, defaultValues]);
+  }, [isOpen, defaultValues, existingItemIds]);
 
   const handleFieldChange = (field: string, value: string) => {
     setExtraValues(prev => ({ ...prev, [field]: value }));
@@ -202,13 +274,30 @@ const AddMedia = ({
       const title = item.title ?? '';
       const publishedDate = item.publishedDate ?? new Date().toISOString().split('T')[0];
 
-      // prefer existing ratings array; if missing and book has averageRating use that
+      const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+      const checkId = isBook ? ((item as Book).ISBN ?? item.id) : item.id;
+
+      // ratings build
       let ratings: { source: string; value: string }[] = [];
       if (Array.isArray(item.ratings) && item.ratings.length) {
         ratings = item.ratings.map(r => ({ source: r.source ?? 'unknown', value: String(r.value ?? '') }));
       } else if (isBook && (item as Book).averageRating != null) {
         ratings = [{ source: 'google', value: String((item as Book).averageRating) }];
       }
+
+      // Extract coverPhoto (Google Books uses imageLinks.thumbnail/smallThumbnail)
+      const coverPhoto = isBook
+        ? ((item as any).imageLinks?.thumbnail ?? (item as any).imageLinks?.smallThumbnail ?? item.coverPhoto ?? '')
+        : (item.coverPhoto ?? '');
+
+      // Extract author (Google Books uses authors array)
+      const author = isBook
+        ? (() => {
+            const authors = (item as any).authors;
+            if (Array.isArray(authors) && authors.length > 0) return authors[0];
+            return item.author ?? '';
+          })()
+        : (item.author ?? '');
 
       const payload = {
         title,
@@ -217,40 +306,88 @@ const AddMedia = ({
         ratingCount: item.ratingCount ?? 0,
         categories: item.categories ?? [],
         description: item.description ?? '',
-        coverPhoto: item.coverPhoto ?? '',
+        coverPhoto,
         language: item.language ?? '',
-        author: item.author ?? '',
+        author,
+        externalId: checkId,
         tags: [],
         status: statusToBackend(isBook ? 'want-to-read' : 'want-to-watch'),
         myRating: item.myRating ?? 0,
         progress: item.progress ?? 0,
         personalNotes: item.personalNotes ?? '',
         ISBN: isBook ? ((item as Book).ISBN ?? '') : undefined,
-        pageCount: isBook ? ((item as Book).pageCount ?? 1) : ((item as Movie).runtime ?? 1),
+        pageCount: isBook ? ((item as Book).pageCount ?? 1) : undefined,
+        runtime: !isBook ? ((item as Movie).runtime ?? 1) : undefined,
         publisher: isBook ? ((item as Book).publisher ?? '') : undefined,
+        director: !isBook ? ((item as Movie).director ?? '') : undefined,
         mediaType: isBook ? 'Book' : 'Movie'
       };
 
-      const res = await fetch('/api/v1/mediaItems', {
+      console.debug('Create media payload:', payload);
+
+      const res = await fetch(`${API_BASE}/api/v1/mediaItems`, {
         method: 'POST',
+        credentials: 'include',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
       });
 
+      console.debug('Create media response status:', res.status, res.statusText);
+      
       if (!res.ok) {
+        if (res.status === 409) {
+          alert('This item already exists in your library!');
+          setAddedItems(prev => new Set(prev).add(item.id).add(checkId));
+          return;
+        }
+        
+        const ct = res.headers.get('content-type') ?? '';
+        let errorBody: any = null;
+        if (ct.includes('application/json')) {
+          errorBody = await res.json();
+        } else {
+          errorBody = await res.text();
+        }
+        console.error('Failed create response body:', errorBody);
         throw new Error(`Server responded with ${res.status}`);
       }
 
-      const created = await res.json();
-      onItemSelect(created); // parent'e yeni item'i bildir
-      onClose();
+      const ct = res.headers.get('content-type') ?? '';
+      let created: any = null;
+      if (ct.includes('application/json')) {
+        created = await res.json();
+      } else {
+        const text = await res.text();
+        console.warn('Create media returned non-json:', text.slice(0, 500));
+      }
+
+      console.debug('Created media object:', created);
+      
+      // Sadece eklendiğini işaretle, modal açma
+     setAddedItems(prev => new Set(prev).add(item.id).add(checkId));
+      console.log('Item successfully added to library:', item.title);
+     
     } catch (err) {
       console.error('Failed to create media item', err);
-      alert('Media creation failed');
+      alert('Media creation failed — check console / network tab for details.');
     }
   };
 
+ const handleAddClick = (item: MediaItem) => {
+   setSelectedItem(item);
+   onAlertOpen();
+ };
+
+ const handleConfirmAdd = async () => {
+   if (selectedItem) {
+     await createMediaFromItem(selectedItem);
+   }
+   onAlertClose();
+   setSelectedItem(null);
+ };
+
   return (
+   <>
     <Modal 
       isOpen={isOpen} 
       onClose={onClose} 
@@ -390,20 +527,88 @@ const AddMedia = ({
 
             {searchState === 'success' && (
               <SimpleGrid columns={{ base: 1, md: 2 }} spacing={4}>
-                {searchResults.map(item => (
-                  <SearchResultItem
-                    key={item.id}
-                    item={item}
-                    mediaType={mediaType}
-                    onSelect={() => createMediaFromItem(item)}
-                  />
-                ))}
+                {searchResults
+                  .filter((item, index, self) => 
+                    index === self.findIndex(t => t.id === item.id)
+                  )
+                  .map(item => {
+                   const isBook = mediaType === 'book';
+                   
+                   // External ID kontrolü
+                   const itemExternalId = isBook 
+                     ? ((item as Book).ISBN ?? item.id)
+                     : item.id;
+                   
+                   // İçerik bazlı anahtar oluştur
+                   const normalizedTitle = item.title.toLowerCase().trim().replace(/[^\w\s]/g, '');
+                   const creator = isBook
+                     ? (() => {
+                         const authors = (item as any).authors;
+                         if (Array.isArray(authors) && authors.length > 0) return authors[0].toLowerCase().trim();
+                         return ((item as Book).author ?? '').toLowerCase().trim();
+                       })()
+                     : ((item as Movie).director ?? '').toLowerCase().trim();
+                   const year = item.publishedDate ? (() => {
+                     try { return String(new Date(item.publishedDate).getFullYear()); }
+                     catch { return String(item.publishedDate).match(/\d{4}/)?.[0] ?? ''; }
+                   })() : '';
+                   
+                   const contentKey = `${normalizedTitle}|${creator}|${year}`;
+                   
+                   // ID veya içerik ile eşleşme kontrolü
+                   const alreadyExists = addedItems.has(item.id) || 
+                                        addedItems.has(itemExternalId) || 
+                                        addedItems.has(contentKey);
+                   
+                    return (
+                      <SearchResultItem
+                        key={item.id}
+                        item={item}
+                        mediaType={mediaType}
+                        onSelect={() => {
+                          console.log('View details:', item.title);
+                        }}
+                        onAdd={() => handleAddClick(item)}
+                        isAdded={alreadyExists}
+                        checkId={itemExternalId}
+                      />
+                    );
+                  })
+                }
               </SimpleGrid>
             )}
           </Box>
         </ModalBody>
       </ModalContent>
     </Modal>
+
+   <AlertDialog
+     isOpen={isAlertOpen}
+     leastDestructiveRef={cancelRef}
+     onClose={onAlertClose}
+   >
+     <AlertDialogOverlay>
+       <AlertDialogContent>
+         <AlertDialogHeader fontSize="lg" fontWeight="bold">
+           Add to Library
+         </AlertDialogHeader>
+
+         <AlertDialogBody>
+           Are you sure you want to add "{selectedItem?.title}" to your library?
+         </AlertDialogBody>
+
+         <AlertDialogFooter>
+           <Button ref={cancelRef} onClick={onAlertClose}>
+             Cancel
+           </Button>
+           <Button colorScheme="blue" onClick={handleConfirmAdd} ml={3}>
+             Add
+           </Button>
+         </AlertDialogFooter>
+       </AlertDialogContent>
+     </AlertDialogOverlay>
+   </AlertDialog>
+   </>
   );
 };
 

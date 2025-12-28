@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Box, IconButton, Image, Flex, Text, HStack } from '@chakra-ui/react';
+import { Box, IconButton, Image, Flex, Text, HStack, useDisclosure, AlertDialog, AlertDialogBody, AlertDialogFooter, AlertDialogHeader, AlertDialogContent, AlertDialogOverlay, Button } from '@chakra-ui/react';
 import { FiCalendar, FiTag, FiClock, FiStar } from 'react-icons/fi';
 import Modal from './modal';
 import BookDetailCard, { type InfoBlock, type StatusOption } from './media-detail-card';
@@ -18,12 +18,15 @@ interface MovieModalProps {
   isOpen: boolean;
   onClose: () => void;
   movie: Movie;
+  onDelete?: (movieId: string) => void;
 }
 
-const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
+const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelete }) => {
   const [currentStatus, setCurrentStatus] = useState<Movie['status']>(movie.status);
   const initialTags = (movie as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
+  const { isOpen: isAlertOpen, onOpen: onAlertOpen, onClose: onAlertClose } = useDisclosure();
+  const cancelRef = React.useRef<HTMLButtonElement>(null);
   
   // localStorage key for personal note
   const noteKey = `movie-note-${movie.id}`;
@@ -38,8 +41,15 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     setPersonalNote(localStorage.getItem(`movie-note-${movie.id}`) ?? (movie as any).personalNote ?? '');
   }, [movie]);
 
-  const getRatingBySource = (source: string) =>
-    (movie.ratings || []).find((r: any) => r.Source === source)?.Value;
+  // Helper: ratings array'den source'a göre değer çek
+  const getRatingBySource = (source: string): string => {
+    if (!Array.isArray(movie.ratings) || movie.ratings.length === 0) return '-';
+    const found = movie.ratings.find((r: any) => {
+      const src = String(r.source ?? '').toLowerCase();
+      return src.includes(source.toLowerCase());
+    });
+    return found ? String(found.value ?? '-') : '-';
+  };
 
   // User rating state (stored in localStorage)
   const [userRating, setUserRating] = useState<number>(() => {
@@ -53,10 +63,9 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     console.log('Updated rating (movie):', newRating, 'movie id:', movie.id);
   };
 
-  const imdbScore = movie.imdbRating ?? getRatingBySource('Internet Movie Database') ?? '-';
-  const rottenScore = getRatingBySource('Rotten Tomatoes') ?? '-';
-  const metacriticScore = getRatingBySource('Metacritic') ?? '-';
-  const imdbVotes = movie.imdbVotes ?? '';
+  const imdbScore = getRatingBySource('imdb');
+  const rottenScore = getRatingBySource('rotten');
+  const metacriticScore = getRatingBySource('metacritic');
 
   // My Rating display with interactive stars
   const myRatingValue = (
@@ -71,12 +80,24 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
     </HStack>
   );
 
+  // Parse year from publishedDate
+  const releaseYear = movie.publishedDate 
+    ? (() => {
+        try {
+          const match = String(movie.publishedDate).match(/\d{4}/);
+          return match ? match[0] : movie.publishedDate;
+        } catch {
+          return String(movie.publishedDate).slice(0, 4);
+        }
+      })()
+    : 'Unknown';
+
   const infoBlocks: InfoBlock[] = [
-    { label: 'Release Year', value: movie.releaseDate, icon: FiCalendar },
-    { label: 'Genre', value: movie.categories?.join(', ') || 'Movie', icon: FiTag },
+    { label: 'Release Year', value: releaseYear, icon: FiCalendar },
+    { label: 'Genre', value: movie.categories && movie.categories.length > 0 ? movie.categories.join(', ') : 'Unknown', icon: FiTag },
 
     // Duration
-    { label: 'Duration', value: `${movie.runtime} min`, icon: FiClock },
+    { label: 'Duration', value: movie.runtime ? `${movie.runtime} min` : 'Unknown', icon: FiClock },
 
     // Ratings: three vertical columns
     {
@@ -92,13 +113,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
                 <Text fontWeight="bold" fontSize="sm" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
                   {imdbScore}
                 </Text>
-                {imdbVotes ? (
-                  <Text fontSize="xs" color="gray.500" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
-                    {imdbVotes}
-                  </Text>
-                ) : (
-                  <Box height="14px" />
-                )}
+                <Box height="14px" />
               </Flex>
             </Box>
 
@@ -109,7 +124,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
                 <Text fontWeight="bold" fontSize="sm" whiteSpace="nowrap" overflow="hidden" textOverflow="ellipsis">
                   {rottenScore}
                 </Text>
-                <Box height="14px" /> {/* empty space for alignment */}
+                <Box height="14px" />
               </Flex>
             </Box>
 
@@ -137,7 +152,29 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
   };
 
   const handleRemove = () => {
-    console.log('Remove movie:', movie.title);
+    onAlertOpen();
+  };
+
+  const confirmDelete = async () => {
+    try {
+      const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+      const res = await fetch(`${API_BASE}/api/v1/mediaItems/${movie.id}`, {
+        method: 'DELETE',
+        credentials: 'include',
+      });
+  
+      if (!res.ok) {
+        throw new Error(`Failed to delete: ${res.status}`);
+      }
+  
+      console.log('Movie deleted:', movie.id);
+      onAlertClose();
+      onClose();
+      if (onDelete) onDelete(movie.id);
+    } catch (err) {
+      console.error('Delete movie error:', err);
+      alert('Failed to delete movie');
+    }
   };
 
   const handleTagsChange = (updated: string[]) => {
@@ -152,15 +189,16 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
   };
 
   return (
+    <>
     <Modal isOpen={isOpen} onClose={onClose} title={movie.title}>
       <Box>
         <BookDetailCard
-          imageUrl={movie.imageUrl}
+          imageUrl={movie.coverPhoto ?? ''}
           title={movie.title}
           subtitle={`Director: ${movie.director}`}
-          description={movie.plot}
+          description={movie.description ?? 'No description available.'}
           infoBlocks={infoBlocks}
-          addedDate={movie.releaseDate}
+          addedDate={releaseYear}
           status={currentStatus}
           statusOptions={movieStatusOptions}
           onStatusChange={(value) => setCurrentStatus(value as Movie['status'])}
@@ -176,6 +214,34 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
         />
       </Box>
     </Modal>
+
+    <AlertDialog
+      isOpen={isAlertOpen}
+      leastDestructiveRef={cancelRef}
+      onClose={onAlertClose}
+    >
+      <AlertDialogOverlay>
+        <AlertDialogContent>
+          <AlertDialogHeader fontSize="lg" fontWeight="bold">
+            Delete Movie
+          </AlertDialogHeader>
+
+          <AlertDialogBody>
+            Are you sure you want to delete "{movie.title}"? This action cannot be undone.
+          </AlertDialogBody>
+
+          <AlertDialogFooter>
+            <Button ref={cancelRef} onClick={onAlertClose}>
+              Cancel
+            </Button>
+            <Button colorScheme="red" onClick={confirmDelete} ml={3}>
+              Delete
+            </Button>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialogOverlay>
+    </AlertDialog>
+    </>
   );
 };
 

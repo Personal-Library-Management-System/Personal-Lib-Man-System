@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { Badge, useDisclosure } from '@chakra-ui/react';
 import { type Movie, statusFromBackend } from '../types';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
@@ -36,6 +36,30 @@ const MoviesPage = () => {
   const [items, setItems] = useState<Movie[]>([]);
   const [isLoading, setIsLoading] = useState(false);
 
+  const existingMovieIds = useMemo(() => {
+    const ids = new Set<string>();
+    items.forEach(movie => {
+      // ID bazlı kontrol
+      ids.add(movie.id);
+      if ((movie as any).externalId) ids.add((movie as any).externalId);
+      
+      // İçerik bazlı kontrol: başlık + yönetmen + yıl (normalize edilmiş)
+      const normalizedTitle = movie.title.toLowerCase().trim().replace(/[^\w\s]/g, '');
+      const director = (movie.director ?? '').toLowerCase().trim();
+      const year = movie.publishedDate ? (() => {
+        try { return String(new Date(movie.publishedDate).getFullYear()); }
+        catch { return String(movie.publishedDate).match(/\d{4}/)?.[0] ?? ''; }
+      })() : '';
+      
+      if (normalizedTitle) {
+        // Format: "title|director|year"
+        const contentKey = `${normalizedTitle}|${director}|${year}`;
+        ids.add(contentKey);
+      }
+    });
+    return ids;
+  }, [items]);
+
   const fetchMovies = async () => {
     setIsLoading(true);
     try {
@@ -61,14 +85,28 @@ const MoviesPage = () => {
         id: m._id ?? m.id,
         title: m.title,
         director: m.director ?? m.author ?? '',
-        imageUrl: m.coverPhoto ?? '',
-        releaseDate: m.publishedDate ? String(new Date(m.publishedDate).getFullYear()) : '',
-        duration: m.runtime ?? 0,
+        coverPhoto: m.coverPhoto ?? '',
+        publishedDate: m.publishedDate ?? undefined,
+        runtime: m.runtime ?? 0,
         ratings: Array.isArray(m.ratings) ? m.ratings : (m.ratings ? [m.ratings] : []),
         status: statusFromBackend(m.status),
         description: m.description ?? '',
+        categories: m.categories ?? [],
+        language: m.language ?? '',
         mediaType: 'Movie'
       }));
+     
+     // Debug: duplicateleri kontrol et
+     const idCounts = mapped.reduce((acc, movie) => {
+       acc[movie.id] = (acc[movie.id] || 0) + 1;
+       return acc;
+     }, {} as Record<string, number>);
+     const duplicates = Object.entries(idCounts).filter(([_, count]) => count > 1);
+     if (duplicates.length > 0) {
+       console.warn('Duplicate movie IDs found:', duplicates);
+       console.table(mapped.filter(m => duplicates.some(([id]) => id === m.id)));
+     }
+     
       setItems(mapped);
     } catch (err) {
       console.error('Fetch movies error', err);
@@ -128,17 +166,36 @@ const MoviesPage = () => {
                 `https://www.omdbapi.com/?apikey=${OMDb_API_KEY}&i=${movie.imdbID}`
               );
               const detailData = await detailResponse.json();
+              console.log('OMDb detail response for', movie.Title, ':', detailData);
+
+              // Extract ratings from OMDb
+              const ratings: { source: string; value: string }[] = [];
+              if (detailData.imdbRating && detailData.imdbRating !== 'N/A') {
+                ratings.push({ source: 'imdb', value: detailData.imdbRating });
+              }
+              if (Array.isArray(detailData.Ratings)) {
+                detailData.Ratings.forEach((r: any) => {
+                  const source = String(r.Source ?? '').toLowerCase();
+                  if (source.includes('rotten')) {
+                    ratings.push({ source: 'rotten tomatoes', value: r.Value });
+                  } else if (source.includes('metacritic')) {
+                    ratings.push({ source: 'metacritic', value: r.Value });
+                  }
+                });
+              }
 
               return {
-                id: movie.imdbID, // IMDb ID'yi doğrudan string olarak kullan
+                id: movie.imdbID,
                 title: movie.Title,
                 director: detailData.Director || 'Unknown',
-                imageUrl: movie.Poster !== 'N/A' ? movie.Poster : '',
-                releaseDate: movie.Year,
-                duration: parseInt(detailData.Runtime) || 0,
-                ratings: detailData.imdbRating ? [{ source: 'imdb', value: String(detailData.imdbRating) }] : [],
+                coverPhoto: movie.Poster !== 'N/A' ? movie.Poster : '',
+                publishedDate: movie.Year,
+                runtime: parseInt(detailData.Runtime) || 0,
+                ratings,
                 status: 'want-to-watch' as const,
                 description: detailData.Plot || 'No description available',
+                categories: detailData.Genre ? detailData.Genre.split(', ') : [],
+                language: detailData.Language || '',
                 mediaType: 'Movie'
               };
             } catch (error) {
@@ -161,6 +218,11 @@ const MoviesPage = () => {
     }
   };
 
+  const handleCloseAddMedia = () => {
+    onClose();
+    fetchMovies(); // Listeyi yenile
+  };
+
   return (
     <>
       <ResourcePageLayout
@@ -180,33 +242,16 @@ const MoviesPage = () => {
       <AddMedia
         mediaType="movie"
         isOpen={isOpen}
-        onClose={onClose}
+        onClose={handleCloseAddMedia}
         onSearch={handleAddSearch}
         searchState={searchState}
         searchResults={searchResults}
-        onItemSelect={item => {
-          // backend'den create edilen item geldiğinde mediaType Book/Movie olacak
-          // add to local list and open modal
-          const mapped: Movie = {
-            id: (item as any)._id ?? (item as any).id,
-            title: item.title,
-            director: (item as any).director ?? (item as any).author ?? '',
-            coverPhoto: (item as any).coverPhoto ?? '',
-            publishedDate: item.publishedDate ? String(new Date(item.publishedDate).getFullYear()) : '',
-            runtime: (item as any).runtime ?? 0,
-            ratings: Array.isArray(item.ratings) ? item.ratings : (item.ratings ? [item.ratings] : []),
-            status: statusFromBackend((item as any).status ?? (item as any).status),
-            description: item.description ?? '',
-            mediaType: 'Movie'
-          };
-          setItems(prev => [mapped, ...prev]);
-          setSelectedMovie(mapped);
-          setMovieModalOpen(true);
-        }}
+        onItemSelect={() => {}}
         optionalFields={[
           { name: 'director', label: 'Director', placeholder: 'e.g. Christopher Nolan' },
           { name: 'year', label: 'Release Year', placeholder: 'e.g. 2021' }
         ]}
+        existingItemIds={existingMovieIds}
       />
 
       {/* Movie Details Modal */}
@@ -218,6 +263,9 @@ const MoviesPage = () => {
             setSelectedMovie(null);
           }}
           movie={selectedMovie}
+         onDelete={(movieId) => {
+           setItems(prev => prev.filter(m => m.id !== movieId));
+         }}
         />
       )}
     </>

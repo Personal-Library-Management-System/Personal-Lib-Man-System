@@ -31,9 +31,38 @@ import { Filters, type FilterState, type ListItem } from '../filters';
 import { type Book, type Movie } from '../../../types';
 import listData from '../../../mock-data/list-data.json';
 
-const ITEMS_PER_PAGE = 12;
+const ITEMS_PER_PAGE = 16;
 
 type Item = Book | Movie;
+
+// helper: extract numeric rating from ratings array (prefer imdb for movies, google for books)
+const getRatingValue = (item: Item, itemType: 'book' | 'movie'): number => {
+  if (!Array.isArray(item.ratings) || item.ratings.length === 0) {
+    // fallback: book averageRating
+    if (itemType === 'book' && 'averageRating' in item && item.averageRating != null) {
+      return Number(item.averageRating);
+    }
+    return 0;
+  }
+  
+  // movie: prefer imdb
+  if (itemType === 'movie') {
+    const imdb = item.ratings.find(r => r.source && String(r.source).toLowerCase().includes('imdb'));
+    if (imdb && imdb.value != null) {
+      const n = parseFloat(String(imdb.value));
+      return Number.isFinite(n) ? n : 0;
+    }
+  }
+  
+  // fallback: first rating
+  const first = item.ratings[0];
+  if (first && first.value != null) {
+    const n = parseFloat(String(first.value));
+    return Number.isFinite(n) ? n : 0;
+  }
+  
+  return 0;
+};
 
 interface ResourcePageLayoutProps<T extends Item> {
   pageTitle: string;
@@ -139,38 +168,18 @@ const ResourcePageLayout = <T extends Item>({
     }
 
     // 2. Puan filtresi
-    if (itemType === 'movie' && filterState.imdbRating && filterState.imdbRating > 0) {
-      result = result.filter(item => {
-        if ('imdbRating' in item) {
-          const rating = parseFloat(item.imdbRating || '0');
-          return rating >= filterState.imdbRating!;
-        }
-        return true;
-      });
-    } else if (itemType === 'book' && filterState.rating && filterState.rating > 0) {
-      result = result.filter(item => {
-        if ('averageRating' in item) {
-          return (item.averageRating || 0) >= filterState.rating!;
-        }
-        return true;
-      });
+    const minRating = itemType === 'movie' ? (filterState.imdbRating ?? 0) : (filterState.rating ?? 0);
+    if (minRating > 0) {
+      result = result.filter(item => getRatingValue(item, itemType) >= minRating);
     }
 
     // 3. Yıl filtresi
     if (filterState.yearRange && filterState.yearRange !== 'all') {
       result = result.filter(item => {
         let year: number;
-        if ('releaseDate' in item) {
-          // Film: "14 Oct 1994" formatından yılı çıkar
-          const match = item.releaseDate?.match(/\d{4}/);
-          year = match ? parseInt(match[0]) : 0;
-        } else if ('publishedDate' in item) {
-          // Kitap: "1949" veya "2020-01-15" formatından yılı çıkar
-          const match = item.publishedDate?.match(/\d{4}/);
-          year = match ? parseInt(match[0]) : 0;
-        } else {
-          return true;
-        }
+        const dateStr = item.publishedDate ?? '';
+        const match = String(dateStr).match(/\d{4}/);
+        year = match ? parseInt(match[0]) : 0;
 
         switch (filterState.yearRange) {
           case '2020s': return year >= 2020;
@@ -185,39 +194,33 @@ const ResourcePageLayout = <T extends Item>({
     // 4. Süre filtresi (sadece filmler)
     if (itemType === 'movie' && filterState.durationRange && filterState.durationRange !== 'all') {
       result = result.filter(item => {
-        if ('runtime' in item) {
-          const duration = item.runtime || 0;
-          switch (filterState.durationRange) {
-            case 'short': return duration < 90;
-            case 'medium': return duration >= 90 && duration <= 150;
-            case 'long': return duration > 150;
-            default: return true;
-          }
+        const duration = (item as Movie).runtime ?? 0;
+        switch (filterState.durationRange) {
+          case 'short': return duration < 90;
+          case 'medium': return duration >= 90 && duration <= 150;
+          case 'long': return duration > 150;
+          default: return true;
         }
-        return true;
       });
     }
 
     // 5. Sayfa sayısı filtresi (sadece kitaplar)
     if (itemType === 'book' && filterState.pageCountRange && filterState.pageCountRange !== 'all') {
       result = result.filter(item => {
-        if ('pageCount' in item) {
-          const pages = item.pageCount || 0;
-          switch (filterState.pageCountRange) {
-            case 'short': return pages < 200;
-            case 'medium': return pages >= 200 && pages <= 400;
-            case 'long': return pages > 400;
-            default: return true;
-          }
+        const pages = (item as Book).pageCount ?? 0;
+        switch (filterState.pageCountRange) {
+          case 'short': return pages < 200;
+          case 'medium': return pages >= 200 && pages <= 400;
+          case 'long': return pages > 400;
+          default: return true;
         }
-        return true;
       });
     }
 
-    // 6. Kategori filtresi (kitaplar ve filmler için)
+    // 6. Kategori filtresi
     if (filterState.categories && filterState.categories.length > 0) {
       result = result.filter(item => {
-        if ('categories' in item && item.categories) {
+        if (item.categories && item.categories.length > 0) {
           return filterState.categories!.some((cat: string) => item.categories!.includes(cat));
         }
         return false;
@@ -227,14 +230,14 @@ const ResourcePageLayout = <T extends Item>({
     // 7. Tag filtresi
     if (filterState.tags && filterState.tags.length > 0) {
       result = result.filter(item => {
-        if ('tags' in item && (item as any).tags) {
-          return filterState.tags!.some((tag: string) => ((item as any).tags as string[]).includes(tag));
+        if (item.tags && item.tags.length > 0) {
+          return filterState.tags!.some((tag: string) => item.tags!.includes(tag));
         }
         return false;
       });
     }
 
-    // 8. List filtresi
+    // 8. List filtresi (mevcut halini koru)
     if (filterState.lists && filterState.lists.length > 0) {
       const typeKey = itemType === 'book' ? 'book' : 'movie';
       const selectedListItems = new Set<string>();
@@ -257,40 +260,19 @@ const ResourcePageLayout = <T extends Item>({
       result.sort((a, b) => {
         switch (filterState.sortBy) {
           case 'title-asc':
-            return a.title.localeCompare(b.title, 'tr');
+            return String(a.title ?? '').localeCompare(String(b.title ?? ''), 'tr');
           case 'title-desc':
-            return b.title.localeCompare(a.title, 'tr');
+            return String(b.title ?? '').localeCompare(String(a.title ?? ''), 'tr');
           case 'rating-high':
-            if (itemType === 'movie') {
-              const rA = 'imdbRating' in a ? parseFloat(a.imdbRating || '0') : 0;
-              const rB = 'imdbRating' in b ? parseFloat(b.imdbRating || '0') : 0;
-              return rB - rA;
-            } else {
-              const rA = 'averageRating' in a ? (a.averageRating || 0) : 0;
-              const rB = 'averageRating' in b ? (b.averageRating || 0) : 0;
-              return rB - rA;
-            }
+            return getRatingValue(b, itemType) - getRatingValue(a, itemType);
           case 'rating-low':
-            if (itemType === 'movie') {
-              const rA = 'imdbRating' in a ? parseFloat(a.imdbRating || '0') : 0;
-              const rB = 'imdbRating' in b ? parseFloat(b.imdbRating || '0') : 0;
-              return rA - rB;
-            } else {
-              const rA = 'averageRating' in a ? (a.averageRating || 0) : 0;
-              const rB = 'averageRating' in b ? (b.averageRating || 0) : 0;
-              return rA - rB;
-            }
+            return getRatingValue(a, itemType) - getRatingValue(b, itemType);
           case 'year-new':
           case 'year-old': {
             const getYear = (item: Item): number => {
-              if ('releaseDate' in item) {
-                const match = item.releaseDate?.match(/\d{4}/);
-                return match ? parseInt(match[0]) : 0;
-              } else if ('publishedDate' in item) {
-                const match = item.publishedDate?.match(/\d{4}/);
-                return match ? parseInt(match[0]) : 0;
-              }
-              return 0;
+              const dateStr = item.publishedDate ?? '';
+              const match = String(dateStr).match(/\d{4}/);
+              return match ? parseInt(match[0]) : 0;
             };
             const yearA = getYear(a);
             const yearB = getYear(b);
@@ -298,14 +280,14 @@ const ResourcePageLayout = <T extends Item>({
           }
           case 'duration-short':
           case 'duration-long': {
-            const dA = 'runtime' in a ? (a.runtime || 0) : 0;
-            const dB = 'runtime' in b ? (b.runtime || 0) : 0;
+            const dA = (a as Movie).runtime ?? 0;
+            const dB = (b as Movie).runtime ?? 0;
             return filterState.sortBy === 'duration-short' ? dA - dB : dB - dA;
           }
           case 'pages-short':
           case 'pages-long': {
-            const pA = 'pageCount' in a ? (a.pageCount || 0) : 0;
-            const pB = 'pageCount' in b ? (b.pageCount || 0) : 0;
+            const pA = (a as Book).pageCount ?? 0;
+            const pB = (b as Book).pageCount ?? 0;
             return filterState.sortBy === 'pages-short' ? pA - pB : pB - pA;
           }
           default:
