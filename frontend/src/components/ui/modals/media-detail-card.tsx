@@ -73,6 +73,8 @@ export interface BookDetailCardProps {
   // Personal note
   personalNote?: string;
   onPersonalNoteChange?: (note: string) => void;
+  // Item type for filtering lists
+  itemType?: 'book' | 'movie';
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -97,6 +99,7 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   onCreateList,
   personalNote = '',
   onPersonalNoteChange,
+  itemType,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const blockBg = useColorModeValue('gray.50', 'whiteAlpha.100');
@@ -224,6 +227,7 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
             assignedLists={assignedLists}
             onChange={onListsChange || (() => {})}
             onCreateList={onCreateList}
+            itemType={itemType}
           />
         </HStack>
 

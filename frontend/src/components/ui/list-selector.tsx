@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useEffect, useState } from 'react';
 import {
   Popover,
   PopoverTrigger,
@@ -9,14 +9,12 @@ import {
   TagLabel,
   IconButton,
   Icon,
-  Input,
-  HStack,
-  Button,
-  Box,
+  Spinner,
+  Text,
 } from '@chakra-ui/react';
 import { FiPlus } from 'react-icons/fi';
 import { FaList, FaHeart, FaCalendarAlt, FaStar, FaRocket, FaBook, FaUsers } from 'react-icons/fa';
-import listDataJson from '../../mock-data/list-data.json';
+import { getAllMediaLists, type MediaListResponse } from '../../services/mediaList.service';
 
 export interface ListItem {
   id: string;
@@ -24,11 +22,10 @@ export interface ListItem {
   description?: string;
   color?: string;
   icon?: string;
+  mediaType?: 'book' | 'movie';
   items: { type: 'book' | 'movie'; id: string }[];
   createdAt?: string;
 }
-
-export const ALL_LISTS = listDataJson as ListItem[];
 
 interface ListSelectorProps {
   allLists?: ListItem[];
@@ -36,8 +33,7 @@ interface ListSelectorProps {
   onChange: (updated: string[]) => void;
   buttonLabel?: string;
   trigger?: React.ReactNode;
-  // callback when a new list is created (parent handles persistence)
-  onCreateList?: (listName: string) => void;
+  itemType?: 'book' | 'movie'; // Filter lists by media type
 }
 
 const localeCompare = (a: string, b: string) => a.localeCompare(b, 'tr');
@@ -72,15 +68,49 @@ const ListSelector: React.FC<ListSelectorProps> = ({
   onChange,
   buttonLabel = 'Add to List',
   trigger,
-  onCreateList,
+  itemType,
 }) => {
-  const [newListName, setNewListName] = useState('');
+  const [fetchedLists, setFetchedLists] = useState<ListItem[]>([]);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  // Source list: alphabetically sorted by name
+  useEffect(() => {
+    // Only fetch if no lists provided via props
+    if (!allLists) {
+      const fetchLists = async () => {
+        setIsLoading(true);
+        setError(null);
+        try {
+          const lists = await getAllMediaLists();
+          // Transform API response to ListItem format and filter by itemType
+          const transformedLists: ListItem[] = lists
+            .filter((list) => !itemType || list.mediaType === (itemType === 'book' ? 'Book' : 'Movie'))
+            .map((list: MediaListResponse) => ({
+              id: list._id,
+              name: list.title,
+              color: list.color,
+              mediaType: list.mediaType.toLowerCase() as 'book' | 'movie',
+              items: list.items.map((itemId) => ({ type: list.mediaType.toLowerCase() as 'book' | 'movie', id: itemId })),
+            }));
+          setFetchedLists(transformedLists);
+        } catch (err) {
+          setError(err instanceof Error ? err.message : 'Failed to fetch lists');
+        } finally {
+          setIsLoading(false);
+        }
+      };
+      fetchLists();
+    }
+  }, [allLists, itemType]);
+
+  // Source list: alphabetically sorted by name, filtered by itemType if provided
   const sourceLists = useMemo(() => {
-    const list = allLists ? [...allLists] : [...ALL_LISTS];
-    return list.sort((a, b) => localeCompare(a.name, b.name));
-  }, [allLists]);
+    const list = allLists ?? fetchedLists;
+    const filtered = itemType 
+      ? list.filter(l => l.mediaType === itemType)
+      : list;
+    return [...filtered].sort((a, b) => localeCompare(a.name, b.name));
+  }, [allLists, fetchedLists, itemType]);
 
   // Fast lookup for assigned lists
   const assignedSet = useMemo(() => new Set(assignedLists ?? []), [assignedLists]);
@@ -94,14 +124,6 @@ const ListSelector: React.FC<ListSelectorProps> = ({
       updated = [...assignedLists, listId];
     }
     onChange(updated);
-  };
-
-  const handleCreate = () => {
-    const name = newListName.trim();
-    if (!name) return;
-    // notify parent (for now parent will console.log, later backend call)
-    onCreateList?.(name);
-    setNewListName('');
   };
 
   return (
@@ -121,50 +143,37 @@ const ListSelector: React.FC<ListSelectorProps> = ({
       </PopoverTrigger>
       <PopoverContent width="320px" _focus={{ boxShadow: 'md' }}>
         <PopoverBody>
-          <Wrap spacing={2}>
-            {sourceLists.map((list) => {
-              const active = assignedSet.has(list.id);
-              const IconComponent = getListIcon(list.icon);
-              const colorScheme = getListColor(list.color);
-              
-              return (
-                <Tag
-                  key={list.id}
-                  size="md"
-                  variant={active ? 'solid' : 'subtle'}
-                  colorScheme={active ? colorScheme : 'gray'}
-                  opacity={active ? 1 : 0.45}
-                  cursor="pointer"
-                  onClick={() => toggle(list.id)}
-                  _hover={{ opacity: active ? 0.9 : 0.7 }}
-                >
-                  <Icon as={IconComponent} mr={1} boxSize={3} />
-                  <TagLabel>{list.name}</TagLabel>
-                </Tag>
-              );
-            })}
-          </Wrap>
-
-          {/* + create list area */}
-          <Box mt={3} px={1}>
-            <HStack spacing={2}>
-              <Input
-                value={newListName}
-                onChange={(e) => setNewListName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleCreate();
-                  }
-                }}
-                placeholder="+ create list"
-                size="sm"
-              />
-              <Button size="sm" onClick={handleCreate}>
-                + Add
-              </Button>
-            </HStack>
-          </Box>
+          {isLoading ? (
+            <Spinner size="sm" color="teal.500" />
+          ) : error ? (
+            <Text fontSize="sm" color="red.500">{error}</Text>
+          ) : sourceLists.length === 0 ? (
+            <Text fontSize="sm" color="gray.500">No lists available</Text>
+          ) : (
+            <Wrap spacing={2}>
+              {sourceLists.map((list) => {
+                const active = assignedSet.has(list.id);
+                const IconComponent = getListIcon(list.icon);
+                const colorScheme = getListColor(list.color);
+                
+                return (
+                  <Tag
+                    key={list.id}
+                    size="md"
+                    variant={active ? 'solid' : 'subtle'}
+                    colorScheme={active ? colorScheme : 'gray'}
+                    opacity={active ? 1 : 0.45}
+                    cursor="pointer"
+                    onClick={() => toggle(list.id)}
+                    _hover={{ opacity: active ? 0.9 : 0.7 }}
+                  >
+                    <Icon as={IconComponent} mr={1} boxSize={3} />
+                    <TagLabel>{list.name}</TagLabel>
+                  </Tag>
+                );
+              })}
+            </Wrap>
+          )}
         </PopoverBody>
       </PopoverContent>
     </Popover>

@@ -156,6 +156,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book }) => {
         onCreateList={(listName) => {
           console.log(`List created for book ${book.id}: ${listName}`);
         }}
+        itemType="book"
       />
     </Modal>
   );

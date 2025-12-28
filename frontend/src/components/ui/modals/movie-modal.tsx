@@ -188,6 +188,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie }) => {
           onCreateList={(listName) => {
             console.log(`List created for movie ${movie.id}: ${listName}`);
           }}
+          itemType="movie"
         />
       </Box>
     </Modal>
