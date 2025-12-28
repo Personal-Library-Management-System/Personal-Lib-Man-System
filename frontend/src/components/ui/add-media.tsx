@@ -222,8 +222,10 @@ const AddMedia = ({
       setSearchTerm('');
       setExtraValues(defaultValues);
     }
-    setAddedItems(new Set(existingItemIds));
-  }, [isOpen, defaultValues, existingItemIds]);
+    const itemsSet = new Set(existingItemIds);
+    console.log(`📦 [${mediaType}] Setting addedItems:`, Array.from(itemsSet));
+    setAddedItems(itemsSet);
+  }, [isOpen, defaultValues, existingItemIds, mediaType]);
 
   const handleFieldChange = (field: string, value: string) => {
     setExtraValues(prev => ({ ...prev, [field]: value }));
@@ -245,7 +247,9 @@ const AddMedia = ({
 
   const handleAddClick = async (item: MediaItem) => {
     const isBook = mediaType === 'book';
-    const checkId = isBook ? ((item as Book).ISBN ?? item.id) : item.id;
+    const checkId = isBook 
+      ? ((item as Book).ISBN ?? item.id) 
+      : ((item as any).imdbID ?? item.id); // Movie için IMDb ID kontrol et
     
     setProcessingItems(prev => new Set(prev).add(item.id));
     
@@ -422,7 +426,17 @@ const AddMedia = ({
                   const isBook = mediaType === 'book';
                   const itemExternalId = isBook 
                     ? ((item as Book).ISBN ?? item.id)
-                    : item.id;
+                    : ((item as any).imdbID ?? item.id); // Movie için IMDb ID kontrol et
+                  
+                  console.log(`🔍 [${mediaType}] Checking item:`, {
+                    title: item.title,
+                    itemId: item.id,
+                    itemExternalId: itemExternalId,
+                    imdbID: (item as any).imdbID,
+                    hasInSetById: addedItems.has(item.id),
+                    hasInSetByExternalId: addedItems.has(itemExternalId),
+                    addedItemsArray: Array.from(addedItems)
+                  });
                   
                   const alreadyExists = addedItems.has(item.id) || addedItems.has(itemExternalId);
                   const isProcessing = processingItems.has(item.id);
