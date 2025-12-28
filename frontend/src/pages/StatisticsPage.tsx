@@ -64,9 +64,10 @@ const StatisticsPage = () => {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:5000/api/v1/stats', {
+        const BACKEND_STATS_URL = import.meta.env.VITE_BACKEND_URL + '/stats';
+      const response = await fetch(BACKEND_STATS_URL, {
         method: 'GET',
-        credentials: 'include', // Important: include cookies
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
