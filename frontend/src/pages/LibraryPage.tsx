@@ -1,10 +1,10 @@
-import React, { useState } from 'react';
-import { Badge, useDisclosure } from '@chakra-ui/react';
+import React, { useState, useEffect } from 'react';
+import { Badge, useDisclosure, useToast } from '@chakra-ui/react';
 import { type Book } from '../types';
-import mockBooksData from '../mock-data/book-data.json';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
 import BookModal from '../components/ui/modals/book-modal';
 import AddMedia, { type SearchState } from '../components/ui/add-media';
+import * as libraryApi from '../services/library.service';
 
 const getStatusBadge = (status: string) => {
     const statusConfig: Record<Book['status'], { text: string; colorScheme: string }> = {
@@ -33,9 +33,68 @@ const filters = [
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const LibraryPage = () => {
+    const toast = useToast();
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
+    
+    // Backend'den gelen kitaplar
+    const [books, setBooks] = useState<Book[]>([]);
+    const [isLoadingBooks, setIsLoadingBooks] = useState(true);
+
+    // Backend'den kitapları çek
+    useEffect(() => {
+        const fetchBooks = async () => {
+            try {
+                setIsLoadingBooks(true);
+                const library = await libraryApi.exportLibrary();
+                
+                // MediaItems'dan sadece Book olanları filtrele ve Book tipine dönüştür
+                const bookItems = library.mediaItems
+                    .filter((item: any) => item.mediaType === 'Book')
+                    .map((item: any) => ({
+                        id: item._id,
+                        title: item.title,
+                        authors: item.author ? [item.author] : [],
+                        imageLinks: item.coverPhoto ? { thumbnail: item.coverPhoto } : undefined,
+                        publishedDate: item.publishedDate,
+                        pageCount: item.progress || 0,
+                        averageRating: item.ratings?.[0]?.value ? parseFloat(item.ratings[0].value) : undefined,
+                        categories: item.categories || [],
+                        description: item.description || '',
+                        language: item.language,
+                        status: mapBackendStatus(item.status),
+                        rating: item.myRating,
+                        personalNote: item.personalNotes,
+                    }));
+                
+                setBooks(bookItems);
+            } catch (error) {
+                console.error('Error fetching books:', error);
+                toast({
+                    title: 'Error loading books',
+                    description: 'Could not load your library. Please try again.',
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            } finally {
+                setIsLoadingBooks(false);
+            }
+        };
+
+        fetchBooks();
+    }, [toast]);
+
+    // Backend status'unu frontend status'una dönüştür
+    const mapBackendStatus = (status: string): Book['status'] => {
+        const statusMap: Record<string, Book['status']> = {
+            'COMPLETED': 'read',
+            'IN_PROGRESS': 'reading',
+            'PLANNED': 'want-to-read',
+        };
+        return statusMap[status] || 'want-to-read';
+    };
 
     const handleBookClick = (book: Book) => {
         setSelectedBook(book);
@@ -110,7 +169,7 @@ const LibraryPage = () => {
             <ResourcePageLayout
                 pageTitle="📚 My Library"
                 activeItem="kitaplik"
-                mockData={mockBooksData as Book[]}
+                mockData={books}
                 filters={filters}
                 getStatusBadge={getStatusBadge}
                 itemType="book"

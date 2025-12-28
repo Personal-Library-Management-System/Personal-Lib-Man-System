@@ -1,0 +1,103 @@
+{
+  "mediaItems": [
+    {
+      "_id": "aaaa1111bbbb2222cccc3333",
+      "title": "TEST BOOK - Uzay Kedileri Macerası",
+      "author": "Fake Author 123",
+      "publishedDate": "2099-01-01",
+      "categories": ["TEST", "FAKE", "Import Test"],
+      "description": "Bu bir TEST kitabıdır. Import özelliğini test etmek için oluşturuldu. Silmekte özgürsünüz!",
+      "coverPhoto": "https://via.placeholder.com/300x400?text=TEST+BOOK",
+      "language": "TR",
+      "mediaType": "Book",
+      "status": "COMPLETED",
+      "myRating": 4.5,
+      "personalNotes": "Bu bir import test notudur - SİLİNEBİLİR",
+      "progress": 100,
+      "ratings": [
+        { "source": "FakeRatings", "value": "9.9/10" }
+      ],
+      "lists": [],
+      "tags": []
+    },
+    {
+      "_id": "dddd4444eeee5555ffff6666",
+      "title": "TEST BOOK - Yapay Zeka ve Tost Makinesi",
+      "author": "Test Yazarı XYZ",
+      "publishedDate": "2077-12-31",
+      "categories": ["TEST", "Sci-Fi Test"],
+      "description": "Import testi için fake kitap. Başarılı import edildi mi diye kontrol et!",
+      "coverPhoto": "https://via.placeholder.com/300x400?text=FAKE+BOOK+2",
+      "language": "TR",
+      "mediaType": "Book",
+      "status": "IN_PROGRESS",
+      "myRating": 3,
+      "personalNotes": "Okuyorum gibi yapıyorum - TEST",
+      "progress": 42,
+      "ratings": [
+        { "source": "TestSource", "value": "7/10" }
+      ],
+      "lists": [],
+      "tags": []
+    },
+    {
+      "_id": "111122223333444455556666",
+      "title": "TEST MOVIE - Robotlar Mars'ta Piknik",
+      "author": "Fake Director ABC",
+      "publishedDate": "2050-06-15",
+      "categories": ["TEST", "Comedy Test", "Sci-Fi Test"],
+      "description": "Bu bir TEST filmidir. Import başarılı mı kontrol etmek için kullan!",
+      "coverPhoto": "https://via.placeholder.com/300x400?text=TEST+MOVIE",
+      "language": "TR",
+      "mediaType": "Movie",
+      "status": "COMPLETED",
+      "myRating": 5,
+      "personalNotes": "En iyi test filmi! - SİLİNEBİLİR",
+      "progress": 100,
+      "ratings": [
+        { "source": "FakeIMDB", "value": "10/10" },
+        { "source": "FakeRT", "value": "100%" }
+      ],
+      "lists": [],
+      "tags": []
+    },
+    {
+      "_id": "777788889999aaaabbbbcccc",
+      "title": "TEST MOVIE - Kediler vs Köpekler: Final Savaş",
+      "author": "Test Yönetmeni 999",
+      "publishedDate": "2088-08-08",
+      "categories": ["TEST", "Action Test"],
+      "description": "İzlemeyi planlıyorum - TEST film import kontrolü.",
+      "coverPhoto": "https://via.placeholder.com/300x400?text=FAKE+MOVIE+2",
+      "language": "TR",
+      "mediaType": "Movie",
+      "status": "PLANNED",
+      "myRating": 0,
+      "personalNotes": "",
+      "progress": 0,
+      "ratings": [
+        { "source": "TestRating", "value": "N/A" }
+      ],
+      "lists": [],
+      "tags": []
+    }
+  ],
+  "lists": [
+    {
+      "_id": "list111222333444555666",
+      "title": "TEST LİSTE - Silinebilir Kitaplar",
+      "color": "#FF00FF",
+      "mediaType": "Book",
+      "items": ["aaaa1111bbbb2222cccc3333"]
+    },
+    {
+      "_id": "list777888999aaabbbccc",
+      "title": "TEST LİSTE - Fake Filmler",
+      "color": "#00FF00",
+      "mediaType": "Movie",
+      "items": ["777788889999aaaabbbbcccc"]
+    }
+  ],
+  "exportedAt": "2025-12-28T12:00:00.000Z",
+  "exportedFrom": "Personal Library Management System - TEST DATA"
+}
