@@ -345,4 +345,53 @@
  *           description: All media lists created by the user
  *           items:
  *             $ref: '#/components/schemas/MediaListExport'
+ *
+ *     RecommendationOptions:
+ *       type: object
+ *       description: Options for generating AI recommendations. At least one option must be enabled.
+ *       properties:
+ *         useHistory:
+ *           type: boolean
+ *           default: false
+ *           description: Use user's media item history for recommendations
+ *         useRatings:
+ *           type: boolean
+ *           default: false
+ *           description: Consider user's ratings for recommendations
+ *         useComments:
+ *           type: boolean
+ *           default: false
+ *           description: Consider user's personal notes/comments for recommendations
+ *         customPrompt:
+ *           type: string
+ *           default: ""
+ *           description: Custom text provided by the user to guide recommendations
+ *
+ *     RecommendationResult:
+ *       type: object
+ *       oneOf:
+ *         - type: object
+ *           required: [type, title, director, releaseDate]
+ *           properties:
+ *             type:
+ *               type: string
+ *               enum: [movie]
+ *             title:
+ *               type: string
+ *             director:
+ *               type: string
+ *             releaseDate:
+ *               type: string
+ *         - type: object
+ *           required: [type, title, writer, releasedDate]
+ *           properties:
+ *             type:
+ *               type: string
+ *               enum: [book]
+ *             title:
+ *               type: string
+ *             writer:
+ *               type: string
+ *             releasedDate:
+ *               type: string
  */
