@@ -5,11 +5,12 @@ import { useNavigate } from 'react-router-dom';
 
 const AuthPage = () => {
     const navigate = useNavigate();
+    const BACKEND_AUTH_URL = import.meta.env.VITE_BACKEND_URL + '/auth';
 
     const handleLoginSuccess = async (credentialResponse: any) => {
         const idToken = credentialResponse.credential;
         console.log(jwtDecode(idToken));
-        const res = await fetch('http://localhost:5000/api/v1/auth/google', {
+        const res = await fetch(`${BACKEND_AUTH_URL}/google`, {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -19,9 +20,8 @@ const AuthPage = () => {
         });
         const data = await res.json();
         console.log(data);
-        
+
         if (res.ok) {
-            // Redirect to main page after successful login
             navigate('/main');
         }
     };
@@ -66,8 +66,7 @@ const AuthPage = () => {
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'center',
-                                boxShadow:
-                                    '0 10px 25px rgba(59, 130, 246, 0.3)',
+                                boxShadow: '0 10px 25px rgba(59, 130, 246, 0.3)',
                                 border: '3px solid #3b82f6', // İsteğe bağlı border
                             }}
                         >
@@ -95,8 +94,7 @@ const AuthPage = () => {
                                 style={{
                                     fontSize: '48px',
                                     fontWeight: 'bold',
-                                    background:
-                                        'linear-gradient(135deg, #374151, #111827)',
+                                    background: 'linear-gradient(135deg, #374151, #111827)',
                                     backgroundClip: 'text',
                                     WebkitBackgroundClip: 'text',
                                     WebkitTextFillColor: 'transparent',
@@ -144,11 +142,7 @@ const AuthPage = () => {
                                     marginTop: '2px',
                                 }}
                             >
-                                <span
-                                    style={{ color: 'white', fontSize: '12px' }}
-                                >
-                                    ℹ
-                                </span>
+                                <span style={{ color: 'white', fontSize: '12px' }}>ℹ</span>
                             </div>
                             <div>
                                 <div
@@ -173,9 +167,7 @@ const AuthPage = () => {
                         </div>
 
                         {/* Google Giriş Butonu */}
-                        <GoogleLogin
-                            onSuccess={handleLoginSuccess}
-                        ></GoogleLogin>
+                        <GoogleLogin onSuccess={handleLoginSuccess}></GoogleLogin>
 
                         {/* Alt Bilgi */}
                         <div
@@ -194,8 +186,7 @@ const AuthPage = () => {
                                     textAlign: 'center',
                                 }}
                             >
-                                📚 Organize your books, enhance your reading
-                                experience
+                                📚 Organize your books, enhance your reading experience
                             </p>
                             <p
                                 style={{

@@ -43,11 +43,11 @@ const MyAccountPage: React.FC = () => {
     try {
       setLoading(true);
       setError(null);
-      
-      // Call the backend API to get user info
-      const response = await fetch('http://localhost:5000/api/v1/auth/me', {
+
+      const BACKEND_AUTH_URL = import.meta.env.VITE_BACKEND_URL + '/auth';
+      const response = await fetch(`${BACKEND_AUTH_URL}/me`, {
         method: 'GET',
-        credentials: 'include', // Important: include cookies
+        credentials: 'include',
         headers: {
           'Content-Type': 'application/json',
         },
