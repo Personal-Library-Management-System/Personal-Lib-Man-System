@@ -48,7 +48,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
     const stored = localStorage.getItem(`book-rating-${book.id}`);
     return stored ? parseFloat(stored) : 0;
   });
-
+  
   const handleRatingChange = (newRating: number) => {
     setUserRating(newRating);
     localStorage.setItem(`book-rating-${book.id}`, newRating.toString());
@@ -94,8 +94,16 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
     </HStack>
   );
 
+  const formatYear = (d?: string | null) => {
+    if (!d) return 'Unknown';
+    const parsed = Date.parse(String(d));
+    if (!isNaN(parsed)) return String(new Date(parsed).getFullYear());
+    const m = String(d).match(/\d{4}/);
+    return m ? m[0] : String(d);
+  };
+
   const infoBlocks: InfoBlock[] = [
-    { label: 'Published', value: book.publishedDate || 'Unknown', icon: FiCalendar },
+    { label: 'Published', value: formatYear(book.publishedDate), icon: FiCalendar },
     { label: 'Category', value: book.categories?.join(', ') || 'Unknown', icon: FiTag },
     { label: 'Pages', value: pageCountValue, icon: FiBookOpen },
     { label: 'Average Rating', value: ratingValue, icon: FiStar },

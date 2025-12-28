@@ -29,7 +29,7 @@ import ListView from './list-view';
 import Pagination from './pagination';
 import { Filters, type FilterState, type ListItem } from '../filters';
 import { type Book, type Movie } from '../../../types';
-import listData from '../../../mock-data/list-data.json';
+// removed mock list data; will fetch user's media lists from backend
 
 const ITEMS_PER_PAGE = 16;
 
@@ -107,6 +107,7 @@ const ResourcePageLayout = <T extends Item>({
   const [viewMode, setViewMode] = useState<'card' | 'list'>('card');
   const [currentPage, setCurrentPage] = useState(1);
   const [isLoading, setIsLoading] = useState(true);
+  const [fetchedLists, setFetchedLists] = useState<ListItem[]>([]);
 
   const bg = useColorModeValue('gray.50', 'gray.900');
   const cardBg = useColorModeValue('white', 'gray.800');
@@ -137,10 +138,35 @@ const ResourcePageLayout = <T extends Item>({
   // Mevcut listeleri al (itemType'a göre filtrele)
   const availableLists = useMemo(() => {
     const typeKey = itemType === 'book' ? 'book' : 'movie';
-    return (listData as ListItem[]).filter((list) =>
+    return fetchedLists.filter((list) =>
       list.items.some((item) => item.type === typeKey)
     );
-  }, [itemType]);
+  }, [itemType, fetchedLists]);
+
+  // Fetch user's custom media lists from backend
+  useEffect(() => {
+    let mounted = true;
+    const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+    const url = `${API_BASE}/api/v1/mediaLists`;
+    fetch(url, { method: 'GET', credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!mounted) return;
+        const lists = Array.isArray(data) ? data as ListItem[] : [];
+        // sort alphabetically by name
+        lists.sort((a, b) => String(a.name ?? '').localeCompare(String(b.name ?? ''), 'tr'));
+        setFetchedLists(lists);
+      })
+      .catch((err) => {
+        if (!mounted) return;
+        console.error('Failed to load media lists:', err);
+        setFetchedLists([]);
+      });
+    return () => { mounted = false; };
+  }, []);
 
   useEffect(() => {
     const loadItems = async () => {
@@ -242,7 +268,7 @@ const ResourcePageLayout = <T extends Item>({
       const typeKey = itemType === 'book' ? 'book' : 'movie';
       const selectedListItems = new Set<string>();
       
-      (listData as ListItem[])
+      fetchedLists
         .filter((list) => filterState.lists!.includes(list.id))
         .forEach((list) => {
           list.items.forEach((listItem) => {

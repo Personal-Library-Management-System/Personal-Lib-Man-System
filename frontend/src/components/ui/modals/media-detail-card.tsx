@@ -24,6 +24,7 @@ import {
   PopoverArrow,
   PopoverBody,
   useDisclosure,
+  AspectRatio, // <-- added
 } from '@chakra-ui/react';
 import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
@@ -108,22 +109,26 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
     >
       <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 4, md: 6 }}>
         <Box flex="0 0 260px" alignSelf="center">
-          <Box
-            borderRadius="xl"
-            border="6px solid"
-            borderColor={borderColor}
-            overflow="hidden"
-            bg="black"
-            boxShadow="xl"
-          >
-            <Image
-              src={imageUrl}
-              alt={title}
-              objectFit="cover"
-              w="full"
-              h="min(420px, 70vh)"
-            />
-          </Box>
+          <AspectRatio ratio={2/3} maxW="260px" maxH="420px" w="full">
+            <Box
+              borderRadius="xl"
+              border="6px solid"
+              borderColor={borderColor}
+              overflow="hidden"
+              bg="gray.900"
+              boxShadow="xl"
+            >
+              <Image
+                src={imageUrl || ''}
+                alt={title}
+                objectFit="cover"
+                w="100%"
+                h="100%"
+                display="block" // remove inline whitespace
+                objectPosition="center"
+              />
+            </Box>
+          </AspectRatio>
         </Box>
 
         <Flex direction="column" flex="1" gap={4}>

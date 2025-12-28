@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Popover,
   PopoverTrigger,
@@ -15,9 +15,6 @@ import {
   Box,
 } from '@chakra-ui/react';
 import { FiTag } from 'react-icons/fi';
-import ALL_TAGS_FROM_DATA from '../../mock-data/all-tags.json';
-
-export const ALL_TAGS = ALL_TAGS_FROM_DATA as string[];
 
 interface TagSelectorProps {
   allTags?: string[];
@@ -42,12 +39,39 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   onCreateTag,
 }) => {
   const [newTag, setNewTag] = useState('');
+  const [fetchedTags, setFetchedTags] = useState<string[]>([]);
+  const [fetchError, setFetchError] = useState(false);
+
+  useEffect(() => {
+    let mounted = true;
+    const API_BASE = import.meta.env.VITE_API_BASE ?? '';
+    const url = `${API_BASE}/api/v1/tags`;
+    fetch(url, { method: 'GET', credentials: 'include' })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`Status ${res.status}`);
+        return res.json();
+      })
+      .then((data) => {
+        if (!mounted) return;
+        // expect an array of strings
+        const list = Array.isArray(data) ? data.map(String) : [];
+        setFetchedTags(list.sort(localeCompare));
+      })
+      .catch(() => {
+        if (!mounted) return;
+        setFetchError(true);
+        setFetchedTags([]); // fallback empty
+      });
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   // Source list: alphabetically sorted once (recomputed only when allTags changes)
   const sourceTags = useMemo(() => {
-    const list = allTags ? [...allTags] : [...ALL_TAGS];
+    const list = allTags ? [...allTags] : [...fetchedTags];
     return list.sort(localeCompare);
-  }, [allTags]);
+  }, [allTags, fetchedTags]);
 
   // Fast lookup for assigned tags
   const assignedSet = useMemo(() => new Set(assignedTags ?? []), [assignedTags]);
