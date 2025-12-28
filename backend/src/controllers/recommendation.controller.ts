@@ -16,7 +16,7 @@ export const validateRecommendationOptions = (input: unknown): RecommendationOpt
     const parsed = recommendationOptionsSchema.safeParse(input);
     if (!parsed.success) {
         throw new AppError(
-            parsed.error.issues.map((i) => i.message).join(', '),
+            parsed.error.issues.map((i: { message: string }) => i.message).join(', '),
             StatusCodes.BAD_REQUEST
         );
     }

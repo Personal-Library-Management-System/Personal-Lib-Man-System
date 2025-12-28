@@ -6,7 +6,7 @@ export const recommendationOptionsSchema = z.object({
     useComments: z.boolean().default(false),
     customPrompt: z.string().trim().default(''),
 }).refine(
-    data =>
+    (data: { useHistory: boolean; useRatings: boolean; useComments: boolean; customPrompt: string }) =>
         data.useHistory ||
         data.useRatings ||
         data.useComments ||

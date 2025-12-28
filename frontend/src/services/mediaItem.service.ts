@@ -1,4 +1,31 @@
-const API_BASE_URL = 'http://localhost:5000/api/v1';
+const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api/v1';
+
+// Update a media item (rating, status, personalNote, etc.)
+export const updateMediaItem = async (
+  mediaItemId: string,
+  updates: {
+    rating?: number;
+    status?: string;
+    personalNote?: string;
+    [key: string]: any;
+  }
+): Promise<any> => {
+  const response = await fetch(`${API_BASE_URL}/mediaItems/${mediaItemId}`, {
+    method: 'PATCH',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(updates),
+  });
+
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.message || `HTTP error! status: ${response.status}`);
+  }
+
+  return response.json();
+};
 
 // Add tags to a media item
 export const addTagsToMediaItem = async (mediaItemId: string, tagIds: string[]): Promise<void> => {

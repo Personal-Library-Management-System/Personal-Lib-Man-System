@@ -21,11 +21,13 @@ import {
   Badge,
   Divider,
   Input,
+  InputGroup,
+  InputLeftElement,
   useToast,
 } from '@chakra-ui/react';
 import { BsGrid3X3Gap, BsList } from 'react-icons/bs';
 import { FaTags, FaList, FaChevronDown } from 'react-icons/fa';
-import { FiPlus, FiEdit, FiCheck, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiCheck, FiX, FiSearch } from 'react-icons/fi';
 import Layout from '../layout';
 import CardView from './card-view';
 import ListView from './list-view';
@@ -51,6 +53,8 @@ interface ResourcePageLayoutProps<T extends Item> {
   emptyStateIcon: string;
   emptyStateText: string;
   onItemClick?: (item: T) => void; // Generic tür kullanımı
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 const ResourcePageLayout = <T extends Item>({
@@ -65,9 +69,13 @@ const ResourcePageLayout = <T extends Item>({
   emptyStateText,
   onItemClick,
   onAddItem,
+  searchQuery: externalSearchQuery,
+  onSearchChange,
 }: ResourcePageLayoutProps<T>) => {
   const [items, setItems] = useState<Item[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
   const [filterState, setFilterState] = useState<FilterState>({
     rating: 0,
     imdbRating: 0,
@@ -518,6 +526,26 @@ const ResourcePageLayout = <T extends Item>({
   const filteredAndSortedItems = useMemo(() => {
     let result = [...items];
 
+    // 0. Search filter - title and author/director search
+    if (searchQuery && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(item => {
+        const titleMatch = item.title.toLowerCase().includes(query);
+        let authorMatch = false;
+        
+        if ('authors' in item && item.authors) {
+          authorMatch = item.authors.some((author: string) => 
+            author.toLowerCase().includes(query)
+          );
+        }
+        if ('director' in item && item.director) {
+          authorMatch = item.director.toLowerCase().includes(query);
+        }
+        
+        return titleMatch || authorMatch;
+      });
+    }
+
     // 1. Status filtresi
     if (filterStatus !== 'all') {
       result = result.filter(item => item.status === filterStatus);
@@ -697,7 +725,7 @@ const ResourcePageLayout = <T extends Item>({
     }
 
     return result;
-  }, [items, filterStatus, filterState, itemType]);
+  }, [items, filterStatus, filterState, itemType, searchQuery]);
 
   const totalPages = Math.ceil(filteredAndSortedItems.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -725,7 +753,29 @@ const ResourcePageLayout = <T extends Item>({
           <Heading size="xl" color={useColorModeValue('blue.600', 'blue.300')}>
             {pageTitle}
           </Heading>
-          <HStack spacing={2}>
+          <HStack spacing={3}>
+            {/* Search Bar */}
+            <InputGroup maxW="250px">
+              <InputLeftElement pointerEvents="none">
+                <Icon as={FiSearch} color="gray.400" />
+              </InputLeftElement>
+              <Input
+                placeholder={`Search ${itemType}s...`}
+                value={searchQuery}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (onSearchChange) {
+                    onSearchChange(value);
+                  } else {
+                    setInternalSearchQuery(value);
+                  }
+                }}
+                bg={cardBg}
+                borderRadius="lg"
+                size="md"
+                _focus={{ borderColor: 'blue.400', boxShadow: '0 0 0 1px #4299E1' }}
+              />
+            </InputGroup>
             <HStack spacing={1} bg={cardBg} p={1} borderRadius="lg" shadow="sm">
               <Tooltip label="Card View">
                 <IconButton
@@ -809,9 +859,12 @@ const ResourcePageLayout = <T extends Item>({
                     </>
                   )}
                   {availableTagsFromApi.map((tag) => (
-                    <MenuItem
+                    <Box
                       key={tag._id}
-                      closeOnSelect={false}
+                      px={3}
+                      py={2}
+                      _hover={{ bg: useColorModeValue('gray.100', 'whiteAlpha.100') }}
+                      cursor="pointer"
                     >
                       {editingTagName === tag.name ? (
                         <HStack spacing={2} width="100%">
@@ -886,7 +939,7 @@ const ResourcePageLayout = <T extends Item>({
                           </HStack>
                         </Flex>
                       )}
-                    </MenuItem>
+                    </Box>
                   ))}
                   <MenuDivider />
                   <Box px={3} py={2}>
