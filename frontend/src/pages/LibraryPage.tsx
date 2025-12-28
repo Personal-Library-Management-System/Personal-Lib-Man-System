@@ -38,7 +38,6 @@ const LibraryPage = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [books, setBooks] = useState<Book[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const toast = useToast();
 
     // Mevcut kitap ID'lerini Map olarak hazırla (Google Books ID -> Backend ID mapping)
     const existingBookIdsMap = useMemo(() => {

@@ -37,7 +37,6 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
-  const toast = useToast();
 
   useEffect(() => {
     setCurrentStatus(book.status);

@@ -38,7 +38,6 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
-  const toast = useToast();
 
   useEffect(() => {
     setCurrentStatus(movie.status);

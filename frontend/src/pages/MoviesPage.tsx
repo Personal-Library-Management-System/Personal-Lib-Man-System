@@ -38,7 +38,6 @@ const MoviesPage = () => {
     const { isOpen, onOpen, onClose } = useDisclosure();
     const [movies, setMovies] = useState<Movie[]>([]);
     const [isLoading, setIsLoading] = useState(true);
-    const toast = useToast();
 
     // Mevcut film ID'lerini Map olarak hazırla (IMDb ID -> Backend ID mapping)
     const existingMovieIdsMap = useMemo(() => {
