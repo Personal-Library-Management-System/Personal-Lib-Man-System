@@ -5,6 +5,7 @@ import { type Movie } from '../types';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
 import MovieModal from '../components/ui/modals/movie-modal';
 import AddMedia, { type SearchState } from '../components/ui/add-media';
+import * as libraryApi from '../services/library.service';
 
 const getStatusBadge = (status: string) => {
     const statusConfig: Record<Movie['status'], { text: string; colorScheme: string }> = {
@@ -31,6 +32,7 @@ const filters = [
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const MoviesPage = () => {
+    const toast = useToast();
     const [isMovieModalOpen, setMovieModalOpen] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();

@@ -5,6 +5,7 @@ import { type Book } from '../types';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
 import BookModal from '../components/ui/modals/book-modal';
 import AddMedia, { type SearchState } from '../components/ui/add-media';
+import * as libraryApi from '../services/library.service';
 
 const getStatusBadge = (status: string) => {
     const statusConfig: Record<Book['status'], { text: string; colorScheme: string }> = {
@@ -31,6 +32,7 @@ const filters = [
 ];
 
 const LibraryPage = () => {
+    const toast = useToast();
     const [isModalOpen, setModalOpen] = useState(false);
     const [selectedBook, setSelectedBook] = useState<Book | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();

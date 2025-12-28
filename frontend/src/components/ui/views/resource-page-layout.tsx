@@ -21,11 +21,13 @@ import {
   Badge,
   Divider,
   Input,
+  InputGroup,
+  InputLeftElement,
   useToast,
 } from '@chakra-ui/react';
 import { BsGrid3X3Gap, BsList } from 'react-icons/bs';
 import { FaTags, FaList, FaChevronDown } from 'react-icons/fa';
-import { FiPlus, FiEdit, FiCheck, FiX } from 'react-icons/fi';
+import { FiPlus, FiEdit, FiCheck, FiX, FiSearch } from 'react-icons/fi';
 import Layout from '../layout';
 import CardView from './card-view';
 import ListView from './list-view';
@@ -33,6 +35,7 @@ import Pagination from './pagination';
 import { Filters, type FilterState, type ListItem } from '../filters';
 import { type Book, type Movie } from '../../../types';
 import * as mediaListApi from '../../../services/mediaList.service';
+import * as tagApi from '../../../services/tag.service';
 
 const ITEMS_PER_PAGE = 12;
 
@@ -50,6 +53,8 @@ interface ResourcePageLayoutProps<T extends Item> {
   emptyStateIcon: string;
   emptyStateText: string;
   onItemClick?: (item: T) => void; // Generic tür kullanımı
+  searchQuery?: string;
+  onSearchChange?: (query: string) => void;
 }
 
 const ResourcePageLayout = <T extends Item>({
@@ -64,9 +69,13 @@ const ResourcePageLayout = <T extends Item>({
   emptyStateText,
   onItemClick,
   onAddItem,
+  searchQuery: externalSearchQuery,
+  onSearchChange,
 }: ResourcePageLayoutProps<T>) => {
   const [items, setItems] = useState<Item[]>([]);
   const [filterStatus, setFilterStatus] = useState<string>('all');
+  const [internalSearchQuery, setInternalSearchQuery] = useState('');
+  const searchQuery = externalSearchQuery !== undefined ? externalSearchQuery : internalSearchQuery;
   const [filterState, setFilterState] = useState<FilterState>({
     rating: 0,
     imdbRating: 0,
@@ -86,6 +95,11 @@ const ResourcePageLayout = <T extends Item>({
   const [editedListName, setEditedListName] = useState('');
   const [availableLists, setAvailableLists] = useState<ListItem[]>([]);
   const [isLoadingLists, setIsLoadingLists] = useState(false);
+  const [editingTagName, setEditingTagName] = useState<string | null>(null);
+  const [editedTagName, setEditedTagName] = useState('');
+  const [newTagName, setNewTagName] = useState('');
+  const [availableTagsFromApi, setAvailableTagsFromApi] = useState<tagApi.Tag[]>([]);
+  const [isLoadingTags, setIsLoadingTags] = useState(false);
 
   const toast = useToast();
 
@@ -136,6 +150,20 @@ const ResourcePageLayout = <T extends Item>({
       setAvailableLists([]);
     } finally {
       setIsLoadingLists(false);
+    }
+  };
+
+  // Fetch available tags from API
+  const fetchTags = async () => {
+    setIsLoadingTags(true);
+    try {
+      const tags = await tagApi.getAllTags();
+      setAvailableTagsFromApi(tags);
+    } catch (error) {
+      console.error('Error fetching tags:', error);
+      setAvailableTagsFromApi([]);
+    } finally {
+      setIsLoadingTags(false);
     }
   };
 
@@ -193,15 +221,23 @@ const ResourcePageLayout = <T extends Item>({
   };
 
   const handleSaveEditList = async () => {
-    const name = editedListName.trim();
-    if (!name || !editingListId) return;
+    const newName = editedListName.trim();
+    const listId = editingListId;
+    const originalList = availableLists.find(list => list.id === listId);
+    const oldName = originalList?.name;
+    
+    if (!newName || !listId || !oldName || newName === oldName) {
+      setEditingListId(null);
+      setEditedListName('');
+      return;
+    }
     
     try {
-      await mediaListApi.updateMediaList(editingListId, { title: name });
+      await mediaListApi.updateMediaList(listId, { title: newName });
       
       toast({
         title: 'List updated',
-        description: 'List name has been updated successfully',
+        description: `List "${oldName}" has been renamed to "${newName}"`,
         status: 'success',
         duration: 3000,
         isClosable: true,
@@ -241,6 +277,187 @@ const ResourcePageLayout = <T extends Item>({
   const handleCancelEditList = () => {
     setEditingListId(null);
     setEditedListName('');
+  };
+
+  // Tag edit handlers
+  const handleStartEditTag = (tagName: string) => {
+    setEditingTagName(tagName);
+    setEditedTagName(tagName);
+  };
+
+  const handleSaveEditTag = async () => {
+    const newName = editedTagName.trim();
+    const oldName = editingTagName;
+    if (!newName || !oldName || newName === oldName) {
+      setEditingTagName(null);
+      setEditedTagName('');
+      return;
+    }
+    
+    try {
+      // Find the tag ID from the available tags
+      const tagToUpdate = availableTagsFromApi.find(tag => tag.name === oldName);
+      if (!tagToUpdate) {
+        throw new Error('Tag not found');
+      }
+
+      // Update tag via API
+      await tagApi.updateTag(tagToUpdate._id, { name: newName });
+      
+      toast({
+        title: 'Tag updated',
+        description: `Tag "${oldName}" has been renamed to "${newName}"`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      setEditingTagName(null);
+      setEditedTagName('');
+      await fetchTags(); // Refresh tags
+    } catch (error) {
+      console.error('Error updating tag:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      
+      setEditingTagName(null);
+      setEditedTagName('');
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to update tags',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else if (errorMessage.includes('409') || errorMessage.includes('already exists')) {
+        toast({
+          title: 'Tag already exists',
+          description: `A tag with the name "${newName}" already exists`,
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error updating tag',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  const handleCancelEditTag = () => {
+    setEditingTagName(null);
+    setEditedTagName('');
+  };
+
+  const handleDeleteTag = async (tagName: string) => {
+    try {
+      // Find the tag ID from the available tags
+      const tagToDelete = availableTagsFromApi.find(tag => tag.name === tagName);
+      if (!tagToDelete) {
+        throw new Error('Tag not found');
+      }
+
+      // Delete tag via API
+      await tagApi.deleteTag(tagToDelete._id);
+      
+      // Remove tag from filterState if it was selected
+      if (filterState.tags?.includes(tagName)) {
+        setFilterState({
+          ...filterState,
+          tags: filterState.tags.filter((t: string) => t !== tagName)
+        });
+      }
+      
+      toast({
+        title: 'Tag deleted',
+        description: `Tag "${tagName}" has been deleted`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      await fetchTags(); // Refresh tags
+    } catch (error) {
+      console.error('Error deleting tag:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to delete tags',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error deleting tag',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
+  };
+
+  // Create new tag handler
+  const handleCreateTag = async () => {
+    const name = newTagName.trim();
+    if (!name) return;
+    
+    try {
+      await tagApi.createTag({ name });
+      
+      toast({
+        title: 'Tag created',
+        description: `"${name}" has been created successfully`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+      
+      setNewTagName('');
+      await fetchTags(); // Refresh the tags
+    } catch (error) {
+      console.error('Error creating tag:', error);
+      const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+      
+      // Check if it's an authentication error
+      if (errorMessage.includes('401') || errorMessage.includes('Unauthorized')) {
+        toast({
+          title: 'Authentication required',
+          description: 'Please log in to create tags',
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else if (errorMessage.includes('409') || errorMessage.includes('already exists')) {
+        toast({
+          title: 'Tag already exists',
+          description: `A tag with the name "${name}" already exists`,
+          status: 'warning',
+          duration: 3000,
+          isClosable: true,
+        });
+      } else {
+        toast({
+          title: 'Error creating tag',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    }
   };
 
   // Delete list handler
@@ -302,11 +519,32 @@ const ResourcePageLayout = <T extends Item>({
 
     loadItems();
     fetchLists(); // Fetch lists when component mounts or itemType changes
+    fetchTags(); // Fetch tags when component mounts
   }, [mockData, itemType]);
 
   // Filtreleme ve sıralama mantığı
   const filteredAndSortedItems = useMemo(() => {
     let result = [...items];
+
+    // 0. Search filter - title and author/director search
+    if (searchQuery && searchQuery.trim()) {
+      const query = searchQuery.toLowerCase().trim();
+      result = result.filter(item => {
+        const titleMatch = item.title.toLowerCase().includes(query);
+        let authorMatch = false;
+        
+        if ('authors' in item && item.authors) {
+          authorMatch = item.authors.some((author: string) => 
+            author.toLowerCase().includes(query)
+          );
+        }
+        if ('director' in item && item.director) {
+          authorMatch = item.director.toLowerCase().includes(query);
+        }
+        
+        return titleMatch || authorMatch;
+      });
+    }
 
     // 1. Status filtresi
     if (filterStatus !== 'all') {
@@ -487,7 +725,7 @@ const ResourcePageLayout = <T extends Item>({
     }
 
     return result;
-  }, [items, filterStatus, filterState, itemType]);
+  }, [items, filterStatus, filterState, itemType, searchQuery]);
 
   const totalPages = Math.ceil(filteredAndSortedItems.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
@@ -515,7 +753,29 @@ const ResourcePageLayout = <T extends Item>({
           <Heading size="xl" color={useColorModeValue('blue.600', 'blue.300')}>
             {pageTitle}
           </Heading>
-          <HStack spacing={2}>
+          <HStack spacing={3}>
+            {/* Search Bar */}
+            <InputGroup maxW="250px">
+              <InputLeftElement pointerEvents="none">
+                <Icon as={FiSearch} color="gray.400" />
+              </InputLeftElement>
+              <Input
+                placeholder={`Search ${itemType}s...`}
+                value={searchQuery}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  if (onSearchChange) {
+                    onSearchChange(value);
+                  } else {
+                    setInternalSearchQuery(value);
+                  }
+                }}
+                bg={cardBg}
+                borderRadius="lg"
+                size="md"
+                _focus={{ borderColor: 'blue.400', boxShadow: '0 0 0 1px #4299E1' }}
+              />
+            </InputGroup>
             <HStack spacing={1} bg={cardBg} p={1} borderRadius="lg" shadow="sm">
               <Tooltip label="Card View">
                 <IconButton
@@ -570,23 +830,22 @@ const ResourcePageLayout = <T extends Item>({
             <Divider orientation="vertical" h="32px" display={{ base: 'none', md: 'block' }} />
 
             {/* Etiketler Dropdown - Çoklu Seçim */}
-            {availableTags.length > 0 && (
-              <Menu closeOnSelect={false}>
-                <MenuButton
-                  as={Button}
-                  size="sm"
-                  variant="outline"
-                  leftIcon={<FaTags />}
-                  rightIcon={<FaChevronDown />}
-                >
-                  Tags
-                  {(filterState.tags?.length || 0) > 0 && (
-                    <Badge ml={2} colorScheme="teal" borderRadius="full">
-                      {filterState.tags?.length}
-                    </Badge>
-                  )}
-                </MenuButton>
-                <MenuList maxH="300px" overflowY="auto">
+            <Menu closeOnSelect={false}>
+              <MenuButton
+                as={Button}
+                size="sm"
+                variant="outline"
+                leftIcon={<FaTags />}
+                rightIcon={<FaChevronDown />}
+              >
+                Tags
+                {(filterState.tags?.length || 0) > 0 && (
+                  <Badge ml={2} colorScheme="teal" borderRadius="full">
+                    {filterState.tags?.length}
+                  </Badge>
+                )}
+              </MenuButton>
+              <MenuList maxH="300px" overflowY="auto">
                   {(filterState.tags?.length || 0) > 0 && (
                     <>
                       <MenuItem
@@ -599,29 +858,115 @@ const ResourcePageLayout = <T extends Item>({
                       <MenuDivider />
                     </>
                   )}
-                  {availableTags.map((tag) => (
-                    <MenuItem
-                      key={tag}
-                      onClick={() => {
-                        const currentTags = filterState.tags || [];
-                        const newTags = currentTags.includes(tag)
-                          ? currentTags.filter((t) => t !== tag)
-                          : [...currentTags, tag];
-                        setFilterState({ ...filterState, tags: newTags });
-                      }}
+                  {availableTagsFromApi.map((tag) => (
+                    <Box
+                      key={tag._id}
+                      px={3}
+                      py={2}
+                      _hover={{ bg: useColorModeValue('gray.100', 'whiteAlpha.100') }}
+                      cursor="pointer"
                     >
-                      <Checkbox
-                        isChecked={filterState.tags?.includes(tag)}
-                        pointerEvents="none"
-                        mr={2}
-                        colorScheme="teal"
-                      />
-                      {tag}
-                    </MenuItem>
+                      {editingTagName === tag.name ? (
+                        <HStack spacing={2} width="100%">
+                          <Input
+                            value={editedTagName}
+                            onChange={(e) => setEditedTagName(e.target.value)}
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter') {
+                                e.preventDefault();
+                                handleSaveEditTag();
+                              } else if (e.key === 'Escape') {
+                                e.preventDefault();
+                                handleCancelEditTag();
+                              }
+                            }}
+                            size="sm"
+                            autoFocus
+                            onClick={(e) => e.stopPropagation()}
+                          />
+                          <IconButton
+                            aria-label="Save"
+                            icon={<Icon as={FiCheck} />}
+                            size="sm"
+                            colorScheme="green"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleSaveEditTag();
+                            }}
+                          />
+                        </HStack>
+                      ) : (
+                        <Flex justify="space-between" align="center" width="100%">
+                          <HStack
+                            flex="1"
+                            onClick={() => {
+                              const currentTags = filterState.tags || [];
+                              const newTags = currentTags.includes(tag.name)
+                                ? currentTags.filter((t) => t !== tag.name)
+                                : [...currentTags, tag.name];
+                              setFilterState({ ...filterState, tags: newTags });
+                            }}
+                          >
+                            <Checkbox
+                              isChecked={filterState.tags?.includes(tag.name)}
+                              pointerEvents="none"
+                              colorScheme="teal"
+                            />
+                            <Text>{tag.name}</Text>
+                          </HStack>
+                          <HStack spacing={1}>
+                            <IconButton
+                              aria-label="Edit tag name"
+                              icon={<Icon as={FiEdit} />}
+                              size="xs"
+                              variant="ghost"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleStartEditTag(tag.name);
+                              }}
+                            />
+                            <IconButton
+                              aria-label="Delete tag"
+                              icon={<Icon as={FiX} />}
+                              size="xs"
+                              variant="ghost"
+                              colorScheme="red"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                handleDeleteTag(tag.name);
+                              }}
+                            />
+                          </HStack>
+                        </Flex>
+                      )}
+                    </Box>
                   ))}
+                  <MenuDivider />
+                  <Box px={3} py={2}>
+                    <HStack spacing={2}>
+                      <Input
+                        value={newTagName}
+                        onChange={(e) => setNewTagName(e.target.value)}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            e.preventDefault();
+                            handleCreateTag();
+                          }
+                        }}
+                        placeholder="New tag name"
+                        size="sm"
+                      />
+                      <IconButton
+                        aria-label="Create tag"
+                        icon={<Icon as={FiPlus} />}
+                        size="sm"
+                        colorScheme="teal"
+                        onClick={handleCreateTag}
+                      />
+                    </HStack>
+                  </Box>
                 </MenuList>
               </Menu>
-            )}
 
             {/* Listeler Dropdown - Tekli Seçim */}
             <Menu>

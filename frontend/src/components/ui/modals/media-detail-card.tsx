@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React from 'react';
 import {
   Box,
   Flex,
@@ -13,19 +13,10 @@ import {
   Icon,
   Divider,
   Button,
-  Tooltip,
-  IconButton,
   FormControl,
   FormLabel,
   Select,
-  Popover,
-  PopoverTrigger,
-  PopoverContent,
-  PopoverArrow,
-  PopoverBody,
-  useDisclosure,
 } from '@chakra-ui/react';
-import { FiPlus } from 'react-icons/fi';
 import { type IconType } from 'react-icons';
 import TagSelector from '../tag-selector';
 import ListSelector from '../list-selector';
@@ -55,21 +46,15 @@ export interface BookDetailCardProps {
   statusOptions: StatusOption[];
   currentPage?: number
   pageCount?: number
-  onEdit?: () => void;
   onRemove?: () => void;
   onStatusChange?: (value: string) => void;
-  onAddTag?: () => void;
-  onAddToList?: () => void;
   tagSelector?: React.ReactNode;
   assignedTags?: string[];
-  // yeni: callback to create a new tag
-  onCreateTag?: (tagName: string) => void;
   // callback when tags change (used by TagSelector)
   onTagsChange?: (tags: string[]) => void;
   // List management
   assignedLists?: string[];
   onListsChange?: (lists: string[]) => void;
-  onCreateList?: (listName: string) => void;
   // Personal note
   personalNote?: string;
   onPersonalNoteChange?: (note: string) => void;
@@ -85,18 +70,13 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   infoBlocks,
   status,
   statusOptions,
-  onEdit,
   onRemove,
   onStatusChange,
-  onAddTag,
-  onAddToList,
   tagSelector,
   assignedTags = [],
   onTagsChange,
-  onCreateTag,
   assignedLists = [],
   onListsChange,
-  onCreateList,
   personalNote = '',
   onPersonalNoteChange,
   itemType,
@@ -207,9 +187,6 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
       >
         {/* Action Buttons */}
         <HStack spacing={3}>
-          <Button colorScheme="blue" onClick={onEdit}>
-            Edit
-          </Button>
           <Button colorScheme="red" variant="outline" onClick={onRemove}>
             Remove
           </Button>
@@ -220,13 +197,11 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
             assignedTags={assignedTags}
             onChange={onTagsChange || (() => {})}
             trigger={tagSelector}
-            onCreateTag={onCreateTag}
           />
 
           <ListSelector
             assignedLists={assignedLists}
             onChange={onListsChange || (() => {})}
-            onCreateList={onCreateList}
             itemType={itemType}
           />
         </HStack>

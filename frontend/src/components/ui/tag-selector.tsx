@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import {
   Popover,
   PopoverTrigger,
@@ -9,17 +9,14 @@ import {
   TagLabel,
   IconButton,
   Icon,
-  Input,
-  HStack,
-  Button,
-  Box,
+  useToast,
 } from '@chakra-ui/react';
 import { FiTag } from 'react-icons/fi';
-import ALL_TAGS_FROM_DATA from '../../mock-data/all-tags.json';
-
-export const ALL_TAGS = ALL_TAGS_FROM_DATA as string[];
+import * as tagApi from '../../services/tag.service';
+import * as mediaItemApi from '../../services/mediaItem.service';
 
 interface TagSelectorProps {
+  mediaItemId?: string; // ID of the media item to assign/unassign tags
   allTags?: string[];
   assignedTags: string[];
   onChange: (updated: string[]) => void;
@@ -27,27 +24,40 @@ interface TagSelectorProps {
   // whether to show tiny summary inside default trigger (default false)
   showSummary?: boolean;
   trigger?: React.ReactNode;
-  // callback when a new tag is created (parent handles persistence)
-  onCreateTag?: (tagName: string) => void;
 }
 
 const localeCompare = (a: string, b: string) => a.localeCompare(b, 'tr');
 
 const TagSelector: React.FC<TagSelectorProps> = ({
+  mediaItemId,
   allTags,
   assignedTags,
   onChange,
   buttonLabel = 'Tag Ekle',
   trigger,
-  onCreateTag,
 }) => {
-  const [newTag, setNewTag] = useState('');
+  const [tagsFromApi, setTagsFromApi] = useState<tagApi.Tag[]>([]);
+  const toast = useToast();
 
-  // Source list: alphabetically sorted once (recomputed only when allTags changes)
+  // Fetch tags from API on mount
+  useEffect(() => {
+    const fetchTags = async () => {
+      try {
+        const tags = await tagApi.getAllTags();
+        setTagsFromApi(tags);
+      } catch (error) {
+        console.error('Error fetching tags:', error);
+        setTagsFromApi([]);
+      }
+    };
+    fetchTags();
+  }, []);
+
+  // Source list: alphabetically sorted once (recomputed only when allTags or tagsFromApi changes)
   const sourceTags = useMemo(() => {
-    const list = allTags ? [...allTags] : [...ALL_TAGS];
+    const list = allTags ? allTags : tagsFromApi.map(tag => tag.name);
     return list.sort(localeCompare);
-  }, [allTags]);
+  }, [allTags, tagsFromApi]);
 
   // Fast lookup for assigned tags
   const assignedSet = useMemo(() => new Set(assignedTags ?? []), [assignedTags]);
@@ -56,27 +66,61 @@ const TagSelector: React.FC<TagSelectorProps> = ({
   // but we DO NOT move them to the top — order remains alphabetical and stable.
   const merged = sourceTags;
 
-  const toggle = (tag: string) => {
-    const isAssigned = assignedSet.has(tag);
+  const toggle = async (tagName: string) => {
+    const isAssigned = assignedSet.has(tagName);
+    
+    // Find the tag ID from the tag name
+    const tagObject = tagsFromApi.find(t => t.name === tagName);
+    if (!tagObject) {
+      console.error('Tag not found:', tagName);
+      return;
+    }
+
+    // If mediaItemId is provided, make API call
+    if (mediaItemId) {
+      try {
+        if (isAssigned) {
+          // Remove tag from media item
+          await mediaItemApi.removeTagFromMediaItem(mediaItemId, tagObject._id);
+          toast({
+            title: 'Tag removed',
+            status: 'success',
+            duration: 2000,
+            isClosable: true,
+          });
+        } else {
+          // Add tag to media item
+          await mediaItemApi.addTagsToMediaItem(mediaItemId, [tagObject._id]);
+          toast({
+            title: 'Tag added',
+            status: 'success',
+            duration: 2000,
+            isClosable: true,
+          });
+        }
+      } catch (error) {
+        console.error('Error toggling tag:', error);
+        const errorMessage = error instanceof Error ? error.message : 'An error occurred';
+        
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+    }
+
+    // Update local state
     let updated: string[];
     if (isAssigned) {
-      updated = assignedTags.filter((t) => t !== tag);
+      updated = assignedTags.filter((t) => t !== tagName);
     } else {
-      updated = [...assignedTags, tag];
+      updated = [...assignedTags, tagName];
     }
     onChange(updated);
-  };
-
-  const handleCreate = () => {
-    const name = newTag.trim();
-    if (!name) return;
-    // notify parent (for now parent will console.log, later backend call)
-    onCreateTag?.(name);
-    // add to assigned tags locally (so newly created tag becomes selected)
-    if (!assignedSet.has(name)) {
-      onChange([...assignedTags, name]);
-    }
-    setNewTag('');
   };
 
   return (
@@ -115,27 +159,6 @@ const TagSelector: React.FC<TagSelectorProps> = ({
                );
              })}
            </Wrap>
-
-           {/* + add tag area */}
-           <Box mt={3} px={1}>
-             <HStack spacing={2}>
-               <Input
-                 value={newTag}
-                 onChange={(e) => setNewTag(e.target.value)}
-                 onKeyDown={(e) => {
-                   if (e.key === 'Enter') {
-                     e.preventDefault();
-                     handleCreate();
-                   }
-                 }}
-                 placeholder="+ add tag"
-                 size="sm"
-               />
-               <Button size="sm" onClick={handleCreate}>
-                 + Add
-               </Button>
-             </HStack>
-           </Box>
          </PopoverBody>
        </PopoverContent>
      </Popover>

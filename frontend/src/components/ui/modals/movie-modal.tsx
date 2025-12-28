@@ -9,6 +9,7 @@ import RottenIcon from '../../icons/rotten-tomatoes.jpeg';
 import MetacriticIcon from '../../icons/metacritic.png';
 import StarRating from '../star-rating';
 import { apiFetch } from '../../../lib/apiFetch';
+import * as mediaItemApi from '../../../services/mediaItem.service';
 
 const movieStatusOptions: StatusOption[] = [
   { label: 'Watched', value: 'watched' },
@@ -23,6 +24,7 @@ interface MovieModalProps {
 }
 
 const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelete }) => {
+  const toast = useToast();
   const [currentStatus, setCurrentStatus] = useState<Movie['status']>(movie.status);
   const initialTags = (movie as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
@@ -32,10 +34,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
   const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
   
   // localStorage key for personal note
-  const noteKey = `movie-note-${movie.id}`;
-  const [personalNote, setPersonalNote] = useState<string>(() => {
-    return localStorage.getItem(noteKey) ?? (movie as any).personalNote ?? '';
-  });
+  const [personalNote, setPersonalNote] = useState<string>((movie as any).personalNote ?? '');
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
@@ -45,9 +44,8 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
     setCurrentStatus(movie.status);
     setCurrentTags((movie as any).tags ?? []);
     setCurrentLists((movie as any).lists ?? []);
-    setPersonalNote(localStorage.getItem(`movie-note-${movie.id}`) ?? (movie as any).personalNote ?? '');
-    const storedRating = localStorage.getItem(`movie-rating-${movie.id}`);
-    if (storedRating) setUserRating(parseFloat(storedRating));
+    setPersonalNote((movie as any).personalNote ?? '');
+    setUserRating((movie as any).rating ?? 0);
   }, [movie]);
 
   const getRatingBySource = (source: string) => {
@@ -58,16 +56,24 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
     return rating?.value || rating?.value;
   };
 
-  // User rating state (stored in localStorage)
-  const [userRating, setUserRating] = useState<number>(() => {
-    const stored = localStorage.getItem(`movie-rating-${movie.id}`);
-    return stored ? parseFloat(stored) : 0;
-  });
+  // User rating state
+  const [userRating, setUserRating] = useState<number>((movie as any).rating ?? 0);
 
-  const handleRatingChange = (newRating: number) => {
+  const handleRatingChange = async (newRating: number) => {
     setUserRating(newRating);
-    localStorage.setItem(`movie-rating-${movie.id}`, newRating.toString());
-    console.log('Updated rating (movie):', newRating, 'movie id:', movie.id);
+    try {
+      await mediaItemApi.updateMediaItem(movie.id, { rating: newRating });
+      console.log('Updated rating (movie):', newRating, 'movie id:', movie.id);
+    } catch (error) {
+      console.error('Error updating rating:', error);
+      toast({
+        title: 'Error updating rating',
+        description: 'Please try again',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleDelete = async () => {
@@ -190,15 +196,47 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
     console.log('Edit movie:', movie.title);
   };
 
+  const handleRemove = () => {
+    console.log('Remove movie:', movie.title);
+  };
+
   const handleTagsChange = (updated: string[]) => {
     setCurrentTags(updated);
     console.log('Updated tags (movie):', updated, 'movie id:', movie.id);
   };
 
-  const handleNoteChange = (note: string) => {
+  const handleNoteChange = async (note: string) => {
     setPersonalNote(note);
-    localStorage.setItem(`movie-note-${movie.id}`, note);
-    console.log('Updated note (movie):', note, 'movie id:', movie.id);
+    try {
+      await mediaItemApi.updateMediaItem(movie.id, { personalNote: note });
+      console.log('Updated note (movie):', note, 'movie id:', movie.id);
+    } catch (error) {
+      console.error('Error updating note:', error);
+      toast({
+        title: 'Error updating note',
+        description: 'Please try again',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  const handleStatusChange = async (value: string) => {
+    setCurrentStatus(value as Movie['status']);
+    try {
+      await mediaItemApi.updateMediaItem(movie.id, { status: value });
+      console.log('Updated status:', value, 'movie id:', movie.id);
+    } catch (error) {
+      console.error('Error updating status:', error);
+      toast({
+        title: 'Error updating status',
+        description: 'Please try again',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   const handleListsChange = (updated: string[]) => {
@@ -219,21 +257,14 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
             addedDate={movie.releaseDate}
             status={currentStatus}
             statusOptions={movieStatusOptions}
-            onStatusChange={(value) => setCurrentStatus(value as Movie['status'])}
-            onEdit={handleEdit}
+            onStatusChange={handleStatusChange}
             onRemove={onDeleteOpen}
             assignedTags={currentTags}
             onTagsChange={handleTagsChange}
-            onCreateTag={(tag) => {
-              console.log(`Tag added for movie ${movie.id}: ${tag}`);
-            }}
             personalNote={personalNote}
             onPersonalNoteChange={handleNoteChange}
             assignedLists={currentLists}
             onListsChange={handleListsChange}
-            onCreateList={(listName) => {
-              console.log(`List created for movie ${movie.id}: ${listName}`);
-            }}
             itemType="movie"
           />
         </Box>
