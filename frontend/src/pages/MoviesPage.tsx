@@ -1,10 +1,10 @@
-import { useState } from 'react';
-import { Badge, useDisclosure } from '@chakra-ui/react';
+import { useState, useEffect } from 'react';
+import { Badge, useDisclosure, useToast } from '@chakra-ui/react';
 import { type Movie } from '../types';
-import mockMoviesData from '../mock-data/movie-data.json';
 import ResourcePageLayout from '../components/ui/views/resource-page-layout';
 import MovieModal from '../components/ui/modals/movie-modal';
 import AddMedia, { type SearchState } from '../components/ui/add-media';
+import * as libraryApi from '../services/library.service';
 
 const getStatusBadge = (status: string) => {
     const statusConfig: Record<Movie['status'], { text: string; colorScheme: string }> = {
@@ -31,9 +31,68 @@ const filters = [
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 
 const MoviesPage = () => {
+    const toast = useToast();
     const [isMovieModalOpen, setMovieModalOpen] = useState(false);
     const [selectedMovie, setSelectedMovie] = useState<Movie | null>(null);
     const { isOpen, onOpen, onClose } = useDisclosure();
+
+    // Backend'den gelen filmler
+    const [movies, setMovies] = useState<Movie[]>([]);
+    const [isLoadingMovies, setIsLoadingMovies] = useState(true);
+
+    // Backend'den filmleri çek
+    useEffect(() => {
+        const fetchMovies = async () => {
+            try {
+                setIsLoadingMovies(true);
+                const library = await libraryApi.exportLibrary();
+                
+                // MediaItems'dan sadece Movie olanları filtrele ve Movie tipine dönüştür
+                const movieItems = library.mediaItems
+                    .filter((item: any) => item.mediaType === 'Movie')
+                    .map((item: any) => ({
+                        id: item._id,
+                        title: item.title,
+                        director: item.author || 'Unknown',
+                        imageUrl: item.coverPhoto || '',
+                        releaseDate: item.publishedDate ? new Date(item.publishedDate).getFullYear().toString() : '',
+                        runtime: item.progress || 0,
+                        genre: item.categories || [],
+                        plot: item.description || '',
+                        imdbRating: item.ratings?.find((r: any) => r.source === 'IMDB' || r.source === 'FakeIMDB')?.value,
+                        ratings: item.ratings || [],
+                        status: mapBackendStatus(item.status),
+                        rating: item.myRating,
+                        personalNote: item.personalNotes,
+                    }));
+                
+                setMovies(movieItems);
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+                toast({
+                    title: 'Error loading movies',
+                    description: 'Could not load your movies. Please try again.',
+                    status: 'error',
+                    duration: 5000,
+                    isClosable: true,
+                });
+            } finally {
+                setIsLoadingMovies(false);
+            }
+        };
+
+        fetchMovies();
+    }, [toast]);
+
+    // Backend status'unu frontend status'una dönüştür
+    const mapBackendStatus = (status: string): Movie['status'] => {
+        const statusMap: Record<string, Movie['status']> = {
+            'COMPLETED': 'watched',
+            'IN_PROGRESS': 'watched',
+            'PLANNED': 'want-to-watch',
+        };
+        return statusMap[status] || 'want-to-watch';
+    };
 
     const handleMovieClick = (movie: Movie) => {
         setSelectedMovie(movie);
@@ -122,7 +181,7 @@ const MoviesPage = () => {
             <ResourcePageLayout
                 pageTitle="🎬 My Movies"
                 activeItem="filmarsivi"
-                mockData={mockMoviesData as Movie[]}
+                mockData={movies}
                 filters={filters}
                 getStatusBadge={getStatusBadge}
                 itemType="movie"
