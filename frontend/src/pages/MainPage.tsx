@@ -10,6 +10,7 @@ import {
   Stack,
   HStack,
   Spinner,
+  Badge,
   IconButton,
   useToast,
   Tooltip
@@ -17,8 +18,9 @@ import {
 import { FaBook, FaList, FaChartBar } from 'react-icons/fa';
 import { FiPlus, FiCheck } from 'react-icons/fi';
 import AiRecommendation from '../components/ui/ai-recommendation';
-import apiFetch from '../lib/apiFetch';
-import type { Movie } from '../types';
+import { getRecommendations } from '../services/recommendation.service';
+import { apiFetch } from '../lib/apiFetch';
+import type { Movie, Book } from '../types';
 import Layout from '../components/ui/layout';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -81,7 +83,8 @@ const MainPage = () => {
   };
   
   const activeLoadingStepsRef = useRef<string[]>([]);
-  const pendingResultsRef = useRef<Array<Movie | Book> | null>(null);
+  // when response arrives before sequence finishes we hold it here until final step shown
+  const pendingResultsRef = useRef<(Movie | Book)[] | null>(null);
   const responseReadyRef = useRef(false);
 
   // Fetch existing library items on mount
@@ -449,6 +452,109 @@ const MainPage = () => {
            (book?.ISBN ? existingItems.has(book.ISBN) : false);
   };
 
+  // // Fetch movie details from OMDB
+  // const fetchMovieDetails = async (title: string, director: string, releaseYear: string): Promise<Movie | null> => {
+  //   try {
+  //     // Search by title first
+  //     const searchResponse = await fetch(
+  //       `${BACKEND_URL}/omdb?s=${encodeURIComponent(title)}&y=${releaseYear}`,
+  //       { credentials: 'include' }
+  //     );
+  //     const searchData = await searchResponse.json();
+
+  //     if (searchData.Response === 'True' && searchData.Search?.length > 0) {
+  //       // Get detailed info for first result
+  //       const imdbID = searchData.Search[0].imdbID;
+  //       const detailResponse = await fetch(
+  //         `${BACKEND_URL}/omdb?i=${imdbID}`,
+  //         { credentials: 'include' }
+  //       );
+  //       const detailData = await detailResponse.json();
+
+  //       if (detailData.Response === 'True') {
+  //         return {
+  //           id: detailData.imdbID,
+  //           imdbID: detailData.imdbID,
+  //           title: detailData.Title,
+  //           director: detailData.Director || director,
+  //           imageUrl: detailData.Poster !== 'N/A' ? detailData.Poster : '',
+  //           releaseDate: detailData.Year || releaseYear,
+  //           runtime: detailData.Runtime ? parseInt(detailData.Runtime) : 0,
+  //           status: 'want-to-watch',
+  //           plot: detailData.Plot || 'No description available',
+  //           genre: detailData.Genre ? detailData.Genre.split(', ') : [],
+  //           imdbRating: detailData.imdbRating || '0',
+  //           imdbVotes: detailData.imdbVotes || '',
+  //           ratings: detailData.Ratings || [],
+  //           ratingCount: detailData.imdbVotes ? parseInt(detailData.imdbVotes.replace(/,/g, '')) : 0,
+  //           language: detailData.Language || '',
+  //           writer: detailData.Writer || '',
+  //           actors: detailData.Actors ? detailData.Actors.split(', ') : [],
+  //           awards: detailData.Awards || '',
+  //         };
+  //       }
+  //     }
+  //     return null;
+  //   } catch (error) {
+  //     console.error('Error fetching movie details:', error);
+  //     return null;
+  //   }
+  // };
+
+  // // Fetch book details from Google Books
+  // const fetchBookDetails = async (title: string, author: string): Promise<Book | null> => {
+  //   try {
+  //     const query = `${title} ${author}`;
+  //     const response = await apiFetch(`/google-books?q=${encodeURIComponent(query)}&maxResults=1`);
+      
+  //     if (!response.ok) {
+  //       throw new Error('Google Books API request failed');
+  //     }
+      
+  //     const data = await response.json();
+  //     const item = data.items?.[0];
+      
+  //     if (item) {
+  //       return {
+  //         id: item.id,
+  //         title: item.volumeInfo.title,
+  //         authors: item.volumeInfo.authors || [author],
+  //         imageLinks: item.volumeInfo.imageLinks,
+  //         publishedDate: item.volumeInfo.publishedDate,
+  //         publisher: item.volumeInfo.publisher,
+  //         pageCount: item.volumeInfo.pageCount,
+  //         averageRating: item.volumeInfo.averageRating,
+  //         ratingsCount: item.volumeInfo.ratingsCount,
+  //         categories: item.volumeInfo.categories,
+  //         description: item.volumeInfo.description,
+  //         language: item.volumeInfo.language,
+  //         ISBN: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
+  //         status: 'want-to-read',
+  //       };
+  //     }
+  //     return null;
+  //   } catch (error) {
+  //     console.error('Error fetching book details:', error);
+  //     return null;
+  //   }
+  // };
+
+  // // Process recommendations by type
+  // const processRecommendations = async (recommendations: any[]): Promise<(Movie | Book)[]> => {
+  //   const promises = recommendations.map(async (rec) => {
+  //     if (rec.type === 'movie') {
+  //       const year = rec.releaseDate?.split('-')[0] || new Date().getFullYear().toString();
+  //       return fetchMovieDetails(rec.title, rec.director, year);
+  //     } else if (rec.type === 'book') {
+  //       return fetchBookDetails(rec.title, rec.writer);
+  //     }
+  //     return null;
+  //   });
+
+  //   const results = await Promise.all(promises);
+  //   return results.filter((item): item is Movie | Book => item !== null);
+  // };
+
   return (
     <Layout activeItem="anasayfa">
       <Box textAlign="center">
@@ -579,54 +685,139 @@ const MainPage = () => {
         </SimpleGrid>
 
         {/* AI Recommendation Component */}
-        <Box mt={8} mb={6} w="full" display="flex" justifyContent="center" flexDirection="column" alignItems="center">
+        <Box mt={12} mb={6} w="full"> {/* Changed mt from 8 to 12 for more space */}
           <AiRecommendation
             onSubmit={async (data) => {
               try {
-                console.log('Sending to backend recommendation API:', data);
-                startLoadingCycle({ 
-                  useHistory: data.useHistory, 
-                  useRatings: data.useRatings, 
-                  useComments: data.useComments 
+                console.log('Sending to backend (request):', data);
+                startLoadingCycle({ useHistory: data.useHistory, useRatings: data.useRatings, useComments: data.useComments });
+
+                const response = await getRecommendations({
+                  useHistory: data.useHistory,
+                  useRatings: data.useRatings,
+                  useComments: data.useComments,
+                  customPrompt: data.customPrompt
                 });
+                
+                console.log('Backend response:', response);
+                
+                // Backend'den results array gelir
+                const results = response.recommendations || [];
+                
+                // Type'a göre ayır
+                const movieRecs = results.filter((rec: any) => rec.type === 'movie');
+                const bookRecs = results.filter((rec: any) => rec.type === 'book');
+                
+                console.log('Movie recommendations:', movieRecs);
+                console.log('Book recommendations:', bookRecs);
 
-                // Reset added items for new search
-                setAddedItems(new Set());
+                // Movie detaylarını OMDB'den çek (LibraryPage ve MoviesPage'deki gibi)
+                const moviePromises = movieRecs.map(async (rec: any) => {
+                  try {
+                    const year = rec.releaseDate?.split('-')[0] || '';
+                    // Search by title
+                    const searchResponse = await fetch(
+                      `${BACKEND_URL}/omdb?s=${encodeURIComponent(rec.title)}${year ? `&y=${year}` : ''}`,
+                      { credentials: 'include' }
+                    );
+                    const searchData = await searchResponse.json();
 
-                // Call backend recommendation endpoint
-                const response = await apiFetch('/recommendations', {
-                  method: 'POST',
-                  headers: {
-                    'Content-Type': 'application/json',
-                  },
-                  body: JSON.stringify({
-                    recommendationOptions: {
-                      useHistory: data.useHistory,
-                      useRatings: data.useRatings,
-                      useComments: data.useComments,
-                      customPrompt: data.customPrompt,
+                    if (searchData.Response === 'True' && searchData.Search?.length > 0) {
+                      const imdbID = searchData.Search[0].imdbID;
+                      // Get detailed info
+                      const detailResponse = await fetch(
+                        `${BACKEND_URL}/omdb?i=${imdbID}`,
+                        { credentials: 'include' }
+                      );
+                      const detailData = await detailResponse.json();
+
+                      if (detailData.Response === 'True') {
+                        return {
+                          id: detailData.imdbID,
+                          imdbID: detailData.imdbID,
+                          title: detailData.Title,
+                          director: detailData.Director || rec.director,
+                          imageUrl: detailData.Poster !== 'N/A' ? detailData.Poster : '',
+                          releaseDate: detailData.Year || rec.releaseDate,
+                          runtime: detailData.Runtime ? parseInt(detailData.Runtime) : 0,
+                          status: 'want-to-watch',
+                          plot: detailData.Plot || 'No description available',
+                          genre: detailData.Genre ? detailData.Genre.split(', ') : [],
+                          imdbRating: detailData.imdbRating || '0',
+                          imdbVotes: detailData.imdbVotes || '',
+                          ratings: detailData.Ratings || [],
+                          ratingCount: detailData.imdbVotes ? parseInt(detailData.imdbVotes.replace(/,/g, '')) : 0,
+                          language: detailData.Language || '',
+                          writer: detailData.Writer || '',
+                          actors: detailData.Actors ? detailData.Actors.split(', ') : [],
+                          awards: detailData.Awards || '',
+                        };
+                      }
                     }
-                  }),
+                    return null;
+                  } catch (error) {
+                    console.error(`Error fetching movie: ${rec.title}`, error);
+                    return null;
+                  }
                 });
 
-                if (!response.ok) {
-                  throw new Error('Recommendation API request failed');
-                }
+                // Book detaylarını Google Books'tan çek (LibraryPage'deki gibi)
+                const bookPromises = bookRecs.map(async (rec: any) => {
+                  try {
+                    const query = `${rec.title} ${rec.writer || ''}`;
+                    const response = await apiFetch(`/google-books?q=${encodeURIComponent(query)}&maxResults=1`);
+                    
+                    if (!response.ok) {
+                      throw new Error('Google Books API request failed');
+                    }
+                    
+                    const data = await response.json();
+                    const item = data.items?.[0];
+                    
+                    if (item) {
+                      return {
+                        id: item.id,
+                        title: item.volumeInfo.title,
+                        authors: item.volumeInfo.authors || [rec.writer],
+                        imageLinks: item.volumeInfo.imageLinks,
+                        publishedDate: item.volumeInfo.publishedDate,
+                        publisher: item.volumeInfo.publisher,
+                        pageCount: item.volumeInfo.pageCount,
+                        averageRating: item.volumeInfo.averageRating,
+                        ratingsCount: item.volumeInfo.ratingsCount,
+                        categories: item.volumeInfo.categories,
+                        description: item.volumeInfo.description,
+                        language: item.volumeInfo.language,
+                        ISBN: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
+                        status: 'want-to-read',
+                      };
+                    }
+                    return null;
+                  } catch (error) {
+                    console.error(`Error fetching book: ${rec.title}`, error);
+                    return null;
+                  }
+                });
 
-                const result = await response.json();
-                console.log('Backend response:', result);
+                // Tüm istekleri paralel çalıştır
+                const [movieResults, bookResults] = await Promise.all([
+                  Promise.all(moviePromises),
+                  Promise.all(bookPromises)
+                ]);
 
-                const recommendations: AIRecommendation[] = result.recommendations || [];
+                // Null olmayan sonuçları filtrele ve birleştir
+                const movies = movieResults.filter((m): m is Movie => m !== null);
+                const books = bookResults.filter((b): b is Book => b !== null);
+                const allResults = [...movies, ...books];
 
-                // Enrich recommendations with external API data
-                const enrichedResults = await enrichRecommendations(recommendations);
+                console.log('Processed results:', allResults);
 
-                pendingResultsRef.current = enrichedResults;
+                pendingResultsRef.current = allResults;
                 responseReadyRef.current = true;
 
                 const lastIndex = activeLoadingStepsRef.current.length - 1;
                 if (!loading || loadingMessageIndex === lastIndex) {
-                  setAiResults(enrichedResults);
+                  setAiResults(allResults);
                   stopLoadingCycle();
                   setTimeout(() => {
                     resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -634,40 +825,42 @@ const MainPage = () => {
                 }
               } catch (err) {
                 stopLoadingCycle();
-                console.error('Recommendation request failed:', err);
-                toast({
-                  title: 'Error',
-                  description: 'Failed to get recommendations. Please try again.',
-                  status: 'error',
-                  duration: 3000,
-                  isClosable: true,
-                });
+                console.error('Backend recommendation call failed:', err);
               }
             }}
           />
-
+          
           {/* Loading UX */}
           {loading && (
-            <Box mt={4} display="flex" alignItems="center" gap={3}>
-              <Spinner thickness="3px" speed="0.8s" size="md" />
-              <Text fontSize="sm" color={subtitleColor}>
-                {activeLoadingStepsRef.current[loadingMessageIndex] ?? MASTER_LOADING_STEPS.step1}
-              </Text>
-            </Box>
+              <Box 
+                  mt={6}
+                  p={4}
+                  bg={cardBg}
+                  borderRadius="lg"
+                  border="1px"
+                  borderColor={cardBorder}
+                  display="flex" 
+                  alignItems="center" 
+                  justifyContent="center"
+                  gap={3}
+              >
+                  <Spinner thickness="3px" speed="0.8s" size="md" color="blue.500" />
+                  <Text fontSize="sm" color={subtitleColor}>
+                      {activeLoadingStepsRef.current[loadingMessageIndex] ?? MASTER_LOADING_STEPS.step1}
+                  </Text>
+              </Box>
           )}
         </Box>
  
-        {/* AI Results Display */}
+        {/* NEW: AI results displayed as detailed list (no CardView) */}
         {aiResults.length > 0 && (
           <Box ref={resultsRef} mt={4} mb={6} textAlign="left">
             <Heading size="md" mb={4} color={textColor}>AI Recommendations</Heading>
             <Stack spacing={4}>
               {aiResults.map((item, i) => {
+                const isMovie = 'director' in item;
                 const isBook = 'authors' in item;
-                const book = isBook ? (item as Book) : null;
-                const movie = !isBook ? (item as Movie) : null;
-                const alreadyAdded = isItemAdded(item);
-
+                
                 return (
                   <Box
                     key={item.id || i}
@@ -676,141 +869,96 @@ const MainPage = () => {
                     borderRadius="md"
                     borderColor={cardBorder}
                     bg={cardBg}
-                    position="relative"
                   >
-                    {/* Add Button - Top Left */}
-                    <Tooltip label={alreadyAdded ? "Already in library" : "Add to library"}>
-                      <IconButton
-                        aria-label={alreadyAdded ? "Already added" : "Add to library"}
-                        icon={alreadyAdded ? <FiCheck /> : <FiPlus />}
-                        size="sm"
-                        position="absolute"
-                        top={2}
-                        left={2}
-                        colorScheme={alreadyAdded ? "green" : "blue"}
-                        isDisabled={alreadyAdded}
-                        onClick={() => {
-                          if (isBook && book) {
-                            handleAddBook(book);
-                          } else if (movie) {
-                            handleAddMovie(movie);
-                          }
-                        }}
-                        zIndex={1}
-                      />
-                    </Tooltip>
-
                     <HStack align="start" spacing={4}>
-                      {isBook ? (
-                        book?.imageLinks?.thumbnail ? (
-                          <Image
-                            src={book.imageLinks.thumbnail}
-                            alt={book.title}
-                            w="80px"
-                            h="120px"
-                            objectFit="cover"
-                            borderRadius="md"
-                            flexShrink={0}
-                          />
-                        ) : (
-                          <Box 
-                            w="80px" 
-                            h="120px" 
-                            bg="gray.100" 
-                            borderRadius="md" 
-                            flexShrink={0}
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            fontSize="3xl"
-                          >
-                            📚
-                          </Box>
-                        )
+                      {/* Image handling for both types */}
+                      {isMovie && (item as Movie).imageUrl ? (
+                        <Image
+                          src={(item as Movie).imageUrl}
+                          alt={item.title}
+                          boxSize="100px"
+                          objectFit="cover"
+                          borderRadius="md"
+                        />
+                      ) : isBook && (item as Book).imageLinks?.thumbnail ? (
+                        <Image
+                          src={(item as Book).imageLinks.thumbnail}
+                          alt={item.title}
+                          boxSize="100px"
+                          objectFit="cover"
+                          borderRadius="md"
+                        />
                       ) : (
-                        movie?.imageUrl ? (
-                          <Image
-                            src={movie.imageUrl}
-                            alt={movie.title}
-                            w="80px"
-                            h="120px"
-                            objectFit="cover"
-                            borderRadius="md"
-                            flexShrink={0}
-                          />
-                        ) : (
-                          <Box 
-                            w="80px" 
-                            h="120px" 
-                            bg="gray.100" 
-                            borderRadius="md" 
-                            flexShrink={0}
-                            display="flex"
-                            alignItems="center"
-                            justifyContent="center"
-                            fontSize="3xl"
-                          >
-                            🎬
-                          </Box>
-                        )
+                        <Box w="100px" h="140px" bg="gray.100" borderRadius="md" />
                       )}
 
                       <Box flex="1">
-                        <HStack mb={1}>
-                          <Heading size="sm" color={textColor}>
-                            {item.title}
-                          </Heading>
-                          <Box
-                            px={2}
-                            py={0.5}
-                            borderRadius="md"
-                            bg={isBook ? 'blue.100' : 'purple.100'}
-                            color={isBook ? 'blue.700' : 'purple.700'}
-                            fontSize="xs"
-                            fontWeight="semibold"
-                          >
-                            {isBook ? 'Book' : 'Movie'}
-                          </Box>
+                        <HStack mb={2}>
+                          <Heading size="sm" color={textColor}>{item.title}</Heading>
+                          <Badge colorScheme={isMovie ? 'purple' : 'green'} fontSize="xs">
+                            {isMovie ? '🎬 Movie' : '📚 Book'}
+                          </Badge>
                         </HStack>
 
-                        {isBook && book ? (
+                        {/* Movie-specific info */}
+                        {isMovie && (
                           <>
                             <Text fontSize="xs" color={subtitleColor} mb={2}>
-                              {book.authors?.join(', ') || '—'} • {book.publishedDate || '—'}
-                              {book.averageRating ? ` • Rating: ${book.averageRating}` : ''}
+                              {Array.isArray((item as Movie).genre) && (item as Movie).genre.length 
+                                ? (item as Movie).genre.join(', ') 
+                                : '—'}{' '}
+                              {(item as Movie).runtime ? `• ${(item as Movie).runtime} min` : ''} 
+                              • IMDb {(item as Movie).imdbRating || '—'}
                             </Text>
+
                             <Text fontSize="sm" mb={2} color={textColor} noOfLines={3}>
-                              {book.description || 'No description.'}
+                              {(item as Movie).plot || 'No description.'}
                             </Text>
-                            {book.categories && book.categories.length > 0 && (
-                              <Text fontSize="xs" color={subtitleColor}>
-                                Categories: {book.categories.join(', ')}
-                              </Text>
-                            )}
-                            {book.pageCount && (
-                              <Text fontSize="xs" color={subtitleColor}>
-                                Pages: {book.pageCount}
-                              </Text>
-                            )}
-                          </>
-                        ) : movie ? (
-                          <>
-                            <Text fontSize="xs" color={subtitleColor} mb={2}>
-                              {movie.genre?.join(', ') || '—'} • {movie.runtime} min • IMDb {movie.imdbRating || '—'}
-                            </Text>
-                            <Text fontSize="sm" mb={2} color={textColor} noOfLines={3}>
-                              {movie.plot || 'No description.'}
-                            </Text>
+
                             <Text fontSize="xs" color={subtitleColor}>
-                              Director: {movie.director || '—'}
+                              Director: <Text as="span" color={textColor}>{(item as Movie).director || '—'}</Text>
                             </Text>
-                            {movie.actors && movie.actors.length > 0 && (
-                              <Text fontSize="xs" color={subtitleColor} noOfLines={1}>
-                                Actors: {movie.actors.join(', ')}
+
+                            {Array.isArray((item as Movie).actors) && (item as Movie).actors.length > 0 && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Actors: <Text as="span" color={textColor}>{(item as Movie).actors.slice(0, 3).join(', ')}</Text>
+                              </Text>
+                            )}
+
+                            {(item as Movie).language && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Language: <Text as="span" color={textColor}>{(item as Movie).language}</Text>
                               </Text>
                             )}
                           </>
-                        ) : null}
+                        )}
+
+                        {/* Book-specific info */}
+                        {isBook && (
+                          <>
+                            <Text fontSize="xs" color={subtitleColor} mb={2}>
+                              {(item as Book).authors?.join(', ') || '—'}
+                              {(item as Book).publisher ? ` • ${(item as Book).publisher}` : ''}
+                              {(item as Book).pageCount ? ` • ${(item as Book).pageCount} pages` : ''}
+                            </Text>
+
+                            <Text fontSize="sm" mb={2} color={textColor} noOfLines={3}>
+                              {(item as Book).description || 'No description.'}
+                            </Text>
+
+                            {(item as Book).categories && (item as Book).categories.length > 0 && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Categories: <Text as="span" color={textColor}>{(item as Book).categories.join(', ')}</Text>
+                              </Text>
+                            )}
+
+                            {(item as Book).averageRating && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Rating: <Text as="span" color={textColor}>{(item as Book).averageRating.toFixed(1)} ⭐</Text>
+                              </Text>
+                            )}
+                          </>
+                        )}
                       </Box>
                     </HStack>
                   </Box>

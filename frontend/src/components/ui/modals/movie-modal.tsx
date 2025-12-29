@@ -37,9 +37,10 @@ interface MovieModalProps {
     onClose: () => void;
     movie: Movie;
     onDelete?: (movieId: string) => void;
+    onDataChange?: () => void; // NEW: callback when data changes
 }
 
-const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelete }) => {
+const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelete, onDataChange }) => {
     const toast = useToast();
     const [currentStatus, setCurrentStatus] = useState<Movie['status']>(movie.status);
     const initialTags = (movie as any).tags ?? [];
@@ -77,6 +78,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
         try {
             await mediaItemApi.updateMediaItem(movie.id, { myRating: newRating });
             console.log('Updated rating (movie):', newRating, 'movie id:', movie.id);
+            onDataChange?.(); // Notify parent of data change
         } catch (error) {
             console.error('Error updating rating:', error);
             toast({
@@ -256,6 +258,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
         try {
             await mediaItemApi.updateMediaItem(movie.id, { personalNotes: note });
             console.log('Updated note (movie):', note, 'movie id:', movie.id);
+            onDataChange?.(); // Notify parent of data change
         } catch (error) {
             console.error('Error updating note:', error);
             toast({
@@ -270,16 +273,16 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
 
     const handleStatusChange = async (value: string) => {
         setCurrentStatus(value as Movie['status']);
-
+        
         const statusMap: Record<string, string> = {
-            watched: 'COMPLETED',
+            'watched': 'COMPLETED',
             'want-to-watch': 'PLANNED',
         };
-        const newStatus = statusMap[value];
 
+        const newStatus = statusMap[value];
         try {
             await mediaItemApi.updateMediaItem(movie.id, { status: newStatus });
-            console.log('Updated status:', value, 'movie id:', movie.id);
+            onDataChange?.(); // Notify parent of data change
         } catch (error) {
             console.error('Error updating status:', error);
             toast({

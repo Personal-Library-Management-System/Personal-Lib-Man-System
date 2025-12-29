@@ -13,23 +13,30 @@ import {
   PopoverBody,
   Text,
   useDisclosure,
+  useToast,
 } from '@chakra-ui/react';
+import * as mediaItemApi from '../../../services/mediaItem.service';
 
 interface ReadingProgressCircleProps {
   currentPage?: number;
   pageCount: number;
   title: string;
+  mediaItemId: string;
   size?: string;
   thickness?: string;
+  onDataChange?: () => void;
 }
 
 const ReadingProgressCircle: React.FC<ReadingProgressCircleProps> = ({
   currentPage,
   pageCount,
   title,
+  mediaItemId,
   size = '70px',
   thickness = '7px',
+  onDataChange,
 }) => {
+  const toast = useToast();
   const initialPage = Number(currentPage ?? 0);
   const totalPages = Number(pageCount ?? 0);
 
@@ -59,7 +66,7 @@ const ReadingProgressCircle: React.FC<ReadingProgressCircleProps> = ({
     }
   }, [isOpen]);
 
-  const commitEdit = () => {
+  const commitEdit = async () => {
     // if input is empty (null) treat as 0, otherwise clamp between 0 and totalPages
     const raw = editPage === null ? 0 : editPage;
     const newPage = raw > totalPages ? totalPages : raw < 0 ? 0 : raw;
@@ -67,7 +74,27 @@ const ReadingProgressCircle: React.FC<ReadingProgressCircleProps> = ({
     setEditPage(newPage);
     onClose();
     console.log(`Updated currentPage for "${title}":`, newPage);
-    // backend persistence to be implemented later
+    
+    try {
+      await mediaItemApi.updateMediaItem(mediaItemId, { progress: newPage });
+      onDataChange?.();
+      toast({
+        title: 'Progress updated',
+        description: `Updated to page ${newPage} of ${totalPages}`,
+        status: 'success',
+        duration: 2000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error updating progress:', error);
+      toast({
+        title: 'Error updating progress',
+        description: 'Please try again',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
 
   return (

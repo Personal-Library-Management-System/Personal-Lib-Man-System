@@ -324,7 +324,11 @@ const MoviesPage = () => {
                     onClose={() => {
                         setMovieModalOpen(false);
                         setSelectedMovie(null);
-                        fetchMovies(); // Refetch to get updated list assignments
+                        // Don't automatically refresh here
+                    }}
+                    onDataChange={() => {
+                        // Refresh only when data actually changes
+                        fetchMovies();
                     }}
                     movie={selectedMovie}
                     onDelete={(movieId) => {

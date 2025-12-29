@@ -85,6 +85,7 @@ const LibraryPage = () => {
                 publisher: book.publisher,
                 pageCount: book.pageCount,
                 averageRating: book.averageRating || (book.ratings?.[0]?.value ? parseFloat(book.ratings[0].value) : undefined),
+                currentPage: book.progress,
                 ratingsCount: book.ratingCount,
                 categories: book.categories || [],
                 description: book.description,
@@ -309,7 +310,11 @@ const LibraryPage = () => {
                     onClose={() => {
                         setModalOpen(false);
                         setSelectedBook(null);
-                        fetchBooks(); // Refetch to get updated list assignments
+                        // Don't automatically refresh here
+                    }}
+                    onDataChange={() => {
+                        // Refresh only when data actually changes
+                        fetchBooks();
                     }}
                     onDelete={(bookId) => {
                         setBooks(prev => prev.filter(b => b.id !== bookId));
