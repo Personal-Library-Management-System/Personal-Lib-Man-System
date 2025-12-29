@@ -27,7 +27,10 @@ interface Book {
   id: string;
   title: string;
   authors: string[];
-  imageLinks?: { thumbnail?: string };
+  imageLinks?: {
+    smallThumbnail?: string;
+    thumbnail?: string;
+  };
   publishedDate?: string;
   publisher?: string;
   pageCount?: number;
@@ -254,7 +257,6 @@ const MainPage = () => {
 
       return {
         id: data.imdbID,
-        imdbID: data.imdbID,
         title: data.Title,
         director: data.Director || 'Unknown',
         imageUrl: data.Poster !== 'N/A' ? data.Poster : '',
@@ -711,7 +713,19 @@ const MainPage = () => {
                             flexShrink={0}
                           />
                         ) : (
-                          <Box w="80px" h="120px" bg="gray.100" borderRadius="md" flexShrink={0} />
+                          <Box 
+                            w="80px" 
+                            h="120px" 
+                            bg="gray.100" 
+                            borderRadius="md" 
+                            flexShrink={0}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            fontSize="3xl"
+                          >
+                            📚
+                          </Box>
                         )
                       ) : (
                         movie?.imageUrl ? (
@@ -725,7 +739,19 @@ const MainPage = () => {
                             flexShrink={0}
                           />
                         ) : (
-                          <Box w="80px" h="120px" bg="gray.100" borderRadius="md" flexShrink={0} />
+                          <Box 
+                            w="80px" 
+                            h="120px" 
+                            bg="gray.100" 
+                            borderRadius="md" 
+                            flexShrink={0}
+                            display="flex"
+                            alignItems="center"
+                            justifyContent="center"
+                            fontSize="3xl"
+                          >
+                            🎬
+                          </Box>
                         )
                       )}
 
