@@ -29,8 +29,9 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
   const initialLists = (book as any).lists ?? [];
   const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
-  
-  const [personalNote, setPersonalNote] = useState<string>((book as any).personalNote ?? '');
+
+  const [userRating, setUserRating] = useState<number>((book as any).myRating ?? 0);
+  const [personalNote, setPersonalNote] = useState<string>((book as any).personalNotes ?? '');
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
@@ -39,17 +40,15 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
     setCurrentStatus(book.status);
     setCurrentTags((book as any).tags ?? []);
     setCurrentLists((book as any).lists ?? []);
-    setPersonalNote((book as any).personalNote ?? '');
-    setUserRating((book as any).rating ?? 0);
+    setPersonalNote((book as any).personalNotes ?? '');
+    setUserRating((book as any).myRating ?? 0);
   }, [book]);
 
-  // User rating state
-  const [userRating, setUserRating] = useState<number>((book as any).rating ?? 0);
 
   const handleRatingChange = async (newRating: number) => {
     setUserRating(newRating);
     try {
-      await mediaItemApi.updateMediaItem(book.id, { rating: newRating });
+      await mediaItemApi.updateMediaItem(book.id, { myRating: newRating });
       console.log('Updated rating (book):', newRating, 'book id:', book.id);
     } catch (error) {
       console.error('Error updating rating:', error);
@@ -125,9 +124,9 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
 
   const myRatingValue = (
     <HStack spacing={2}>
-      <StarRating 
-        rating={userRating} 
-        size="sm" 
+      <StarRating
+        rating={userRating}
+        size="sm"
         editable={true}
         onChange={handleRatingChange}
       />
@@ -159,7 +158,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
   const handleNoteChange = async (note: string) => {
     setPersonalNote(note);
     try {
-      await mediaItemApi.updateMediaItem(book.id, { personalNote: note });
+      await mediaItemApi.updateMediaItem(book.id, { personalNotes: note });
       console.log('Updated note:', note, 'book id:', book.id);
     } catch (error) {
       console.error('Error updating note:', error);

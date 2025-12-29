@@ -193,7 +193,7 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
 
           <Divider orientation="vertical" h="24px" borderColor={borderColor} />
 
-          <TagSelector 
+          <TagSelector
             assignedTags={assignedTags}
             onChange={onTagsChange || (() => {})}
             trigger={tagSelector}

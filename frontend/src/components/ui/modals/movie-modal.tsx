@@ -28,13 +28,13 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
   const [currentStatus, setCurrentStatus] = useState<Movie['status']>(movie.status);
   const initialTags = (movie as any).tags ?? [];
   const [currentTags, setCurrentTags] = useState<string[]>(initialTags);
-  
+
   // List management
   const initialLists = (movie as any).lists ?? [];
   const [currentLists, setCurrentLists] = useState<string[]>(initialLists);
-  
+
   // localStorage key for personal note
-  const [personalNote, setPersonalNote] = useState<string>((movie as any).personalNote ?? '');
+  const [personalNote, setPersonalNote] = useState<string>((movie as any).personalNotes ?? '');
 
   const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
   const cancelRef = React.useRef<HTMLButtonElement>(null);
@@ -43,8 +43,8 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
     setCurrentStatus(movie.status);
     setCurrentTags((movie as any).tags ?? []);
     setCurrentLists((movie as any).lists ?? []);
-    setPersonalNote((movie as any).personalNote ?? '');
-    setUserRating((movie as any).rating ?? 0);
+    setPersonalNote((movie as any).personalNotes ?? '');
+    setUserRating((movie as any).myRating ?? 0);
   }, [movie]);
 
   const getRatingBySource = (source: string) => {
@@ -56,12 +56,12 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
   };
 
   // User rating state
-  const [userRating, setUserRating] = useState<number>((movie as any).rating ?? 0);
+  const [userRating, setUserRating] = useState<number>((movie as any).myRating ?? 0);
 
   const handleRatingChange = async (newRating: number) => {
     setUserRating(newRating);
     try {
-      await mediaItemApi.updateMediaItem(movie.id, { rating: newRating });
+      await mediaItemApi.updateMediaItem(movie.id, { myRating: newRating });
       console.log('Updated rating (movie):', newRating, 'movie id:', movie.id);
     } catch (error) {
       console.error('Error updating rating:', error);
@@ -117,9 +117,9 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
   // My Rating display with interactive stars
   const myRatingValue = (
     <HStack spacing={2}>
-      <StarRating 
-        rating={userRating} 
-        size="sm" 
+      <StarRating
+        rating={userRating}
+        size="sm"
         editable={true}
         onChange={handleRatingChange}
       />
@@ -207,7 +207,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
   const handleNoteChange = async (note: string) => {
     setPersonalNote(note);
     try {
-      await mediaItemApi.updateMediaItem(movie.id, { personalNote: note });
+      await mediaItemApi.updateMediaItem(movie.id, { personalNotes: note });
       console.log('Updated note (movie):', note, 'movie id:', movie.id);
     } catch (error) {
       console.error('Error updating note:', error);

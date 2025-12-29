@@ -48,7 +48,7 @@ const MoviesPage = () => {
                 backendId: movie.id,
                 imdbID: (movie as any).imdbID
             });
-            
+
             // Backend ID'yi sakla
             map.set(movie.id, movie.id);
             // IMDb ID varsa (imdbID field'i)
@@ -73,20 +73,13 @@ const MoviesPage = () => {
                 throw new Error('Failed to fetch movies');
             }
             const data = await response.json();
-            
+
             console.log('Fetched movies:', data);
-            
+
             const moviesArray = Array.isArray(data) ? data : (data.items || data.data || []);
-            
+
             // Backend'den gelen veriyi düzgün formata çevir
             const mappedMovies: Movie[] = moviesArray.map((movie: any) => {
-                console.log('🎬 Backend Movie Data:', {
-                    title: movie.title,
-                    backendId: movie._id || movie.id,
-                    imdbID: movie.imdbID,
-                    hasImdbID: !!movie.imdbID
-                });
-                
                 return {
                     id: movie._id || movie.id,
                     title: movie.title,
@@ -96,18 +89,19 @@ const MoviesPage = () => {
                     runtime: movie.runtime || movie.duration || 0,
                     ratings: movie.ratings || [],
                     ratingCount: movie.ratingCount,
-                    status: movie.status === 'PLANNED' ? 'want-to-watch' : 
+                    status: movie.status === 'PLANNED' ? 'want-to-watch' :
                             movie.status === 'COMPLETED' ? 'watched' : 'want-to-watch',
                     plot: movie.description || 'No description available',
                     genre: movie.categories || movie.genre || [],
                     imdbRating: movie.ratings?.find((r: any) => r.source === 'IMDb' || r.source === 'Internet Movie Database')?.value,
-                    // IMDb ID'sini sakla (backend'den gelen imdbID field'i)
-                    ...(movie.imdbID && { 
+                    myRating: movie.myRating,
+                    personalNotes: movie.personalNotes,
+                    ...(movie.imdbID && {
                         imdbID: movie.imdbID
                     })
                 } as any;
             });
-            
+
             // Duplicate kontrolü
             const uniqueMovies = mappedMovies.reduce((acc: Movie[], current: Movie) => {
                 if (!acc.find(movie => movie.id === current.id)) {
@@ -115,13 +109,13 @@ const MoviesPage = () => {
                 }
                 return acc;
             }, []);
-            
+
             if (mappedMovies.length !== uniqueMovies.length) {
                 console.warn(`Removed ${mappedMovies.length - uniqueMovies.length} duplicate movies`);
             }
-            
+
             console.log('Unique movies with IDs:', uniqueMovies.map(m => ({ id: m.id, title: m.title })));
-            
+
             setMovies(uniqueMovies);
         } catch (error) {
             console.error('Error fetching movies:', error);
@@ -227,12 +221,12 @@ const MoviesPage = () => {
             console.error('Invalid item type for movie addition');
             return;
         }
-        
+
         const movie = item as Movie;
-        
+
         // OMDb'den gelen ratings array'ini backend formatına çevir
         const ratings: { source: string; value: string }[] = [];
-        
+
         // OMDb Ratings array'i varsa (Source, Value formatında)
         if (movie.ratings && Array.isArray(movie.ratings)) {
             movie.ratings.forEach((rating: any) => {
