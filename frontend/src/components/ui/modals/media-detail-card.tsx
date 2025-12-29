@@ -101,21 +101,26 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
       p={{ base: 4, md: 6 }}
     >
       <Flex direction={{ base: 'column', md: 'row' }} gap={{ base: 4, md: 6 }}>
-        <Box flex="0 0 260px" alignSelf="center">
+        <Box 
+          flex={{ base: '0 0 auto', md: '0 0 220px' }} // Reduced from 260px
+          alignSelf={{ base: 'center', md: 'flex-start' }}
+          maxW={{ base: '180px', md: '220px' }}
+        >
           <Box
             borderRadius="xl"
-            border="6px solid"
+            border="4px solid" // Reduced from 6px
             borderColor={borderColor}
             overflow="hidden"
             bg="black"
-            boxShadow="xl"
+            boxShadow="lg" // Reduced from xl
+            aspectRatio="2/3" // NEW: Maintain aspect ratio
           >
             <Image
               src={imageUrl}
               alt={title}
               objectFit="cover"
               w="full"
-              h="min(420px, 70vh)"
+              h="full"
             />
           </Box>
         </Box>

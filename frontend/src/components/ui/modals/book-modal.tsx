@@ -32,9 +32,10 @@ interface BookModalProps {
     onClose: () => void;
     book: Book;
     onDelete?: (bookId: string) => void;
+    onDataChange?: () => void; // NEW: callback when data changes
 }
 
-const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }) => {
+const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete, onDataChange }) => {
     const toast = useToast();
     const [currentStatus, setCurrentStatus] = useState<Book['status']>(book.status);
     const initialTags = (book as any).tags ?? [];
@@ -61,6 +62,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
         try {
             await mediaItemApi.updateMediaItem(book.id, { myRating: newRating });
             console.log('Updated rating (book):', newRating, 'book id:', book.id);
+            onDataChange?.(); // Notify parent of data change
         } catch (error) {
             console.error('Error updating rating:', error);
             toast({
@@ -118,7 +120,9 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
                 <Box display="flex" alignItems="center" justifyContent="center">
                     <ReadingProgressCircle
                         currentPage={book.currentPage}
+                        onDataChange={onDataChange}
                         pageCount={book.pageCount}
+                        mediaItemId={book.id}
                         title={book.title}
                         size="50px"
                         thickness="7px"
@@ -177,6 +181,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
         try {
             await mediaItemApi.updateMediaItem(book.id, { personalNotes: note });
             console.log('Updated note:', note, 'book id:', book.id);
+            onDataChange?.(); // Notify parent of data change
         } catch (error) {
             console.error('Error updating note:', error);
             toast({
@@ -201,6 +206,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
         const newStatus = statusMap[value];
         try {
             await mediaItemApi.updateMediaItem(book.id, { status: newStatus });
+            onDataChange?.(); // Notify parent of data change
         } catch (error) {
             console.error('Error updating status:', error);
             toast({

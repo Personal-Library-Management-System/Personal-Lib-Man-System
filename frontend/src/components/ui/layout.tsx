@@ -150,7 +150,7 @@ const Layout: React.FC<LayoutProps> = ({ children, activeItem = '' }) => {
               color={useColorModeValue('gray.600', 'gray.400')}
               display={{ base: 'none', sm: 'block' }}
             >
-              Kişisel Kütüphane Yönetim Sistemi
+              Personal Library Management System
             </Text>
           </HStack>
           

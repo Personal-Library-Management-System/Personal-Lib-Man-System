@@ -9,25 +9,26 @@ import {
   Image,
   Stack,
   HStack,
-  Spinner
+  Spinner,
+  Badge
 } from '@chakra-ui/react';
 import { FaBook, FaList, FaChartBar } from 'react-icons/fa';
 import AiRecommendation from '../components/ui/ai-recommendation';
-import { generateWithGemini } from '../components/ui/helpers/gemini';
-import type { Movie } from '../types';
+import { getRecommendations } from '../services/recommendation.service';
+import { apiFetch } from '../lib/apiFetch';
+import type { Movie, Book } from '../types';
 import Layout from '../components/ui/layout';
 
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api/v1';
+
 const MainPage = () => {
-  // Temporary debug - remove after testing
-  console.log('ENV CHECK:', import.meta.env.VITE_GEMINI_API_KEY ? 'API key loaded ✓' : 'API key missing ✗');
-  
   const cardBg = useColorModeValue('white', 'gray.700');
   const cardBorder = useColorModeValue('gray.200', 'gray.600');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtitleColor = useColorModeValue('gray.600', 'gray.300');
 
-  // NEW: store AI results and show up to 5 media-item cards
-  const [aiResults, setAiResults] = useState<any[]>([]);
+  // Store AI results (both books and movies)
+  const [aiResults, setAiResults] = useState<(Movie | Book)[]>([]);
   // Ref to scroll to results section smoothly
   const resultsRef = useRef<HTMLDivElement>(null);
 
@@ -48,7 +49,7 @@ const MainPage = () => {
   // active sequence for the current request (depends on flags)
   const activeLoadingStepsRef = useRef<string[]>([]);
   // when response arrives before sequence finishes we hold it here until final step shown
-  const pendingResultsRef = useRef<Movie[] | null>(null);
+  const pendingResultsRef = useRef<(Movie | Book)[] | null>(null);
   const responseReadyRef = useRef(false);
 
   const startLoadingCycle = (opts?: { useHistory?: boolean; useRatings?: boolean; useComments?: boolean }) => {
@@ -127,43 +128,6 @@ const MainPage = () => {
     };
   }, []);
 
-  // Map Gemini result objects to our Movie type expected by CardView
-  const mapAiToMovies = (results: any[]): Movie[] => {
-    return results.slice(0, 5).map((r, idx) => {
-      const title =
-        // prefer explicit title if provided
-        r.title ||
-        // fall back to first sentence of plot
-        (typeof r.plot === 'string' ? r.plot.split('. ')[0] : undefined) ||
-        `Recommendation ${idx + 1}`;
-
-      // generate a stable-ish id
-      const id =
-        r.imdbID || r.id || `${title.replace(/\s+/g, '-').toLowerCase()}-${r.releaseDate || idx}`;
-
-      const movie: Movie = {
-        id: String(id),
-        title,
-        director: r.director || '',
-        imageUrl: r.imageUrl || '',
-        releaseDate: r.releaseDate || '',
-        runtime: typeof r.runtime === 'number' ? r.runtime : 0,
-        imdbRating: r.imdbRating || '',
-        imdbVotes: r.imdbVotes,
-        genre: Array.isArray(r.genre) ? r.genre : [],
-        plot: r.plot || '',
-        language: r.language || '',
-        writer: r.writer || '',
-        actors: Array.isArray(r.actors) ? r.actors : [],
-        awards: r.awards || '',
-        ratings: Array.isArray(r.ratings) ? r.ratings : [],
-        status: 'want-to-watch', // default - user can change later
-      };
-
-      return movie;
-    });
-  };
-
   const parseAiResponse = (text: string) => {
     try {
       const json = JSON.parse(text);
@@ -183,6 +147,109 @@ const MainPage = () => {
       }
     }
     return [];
+  };
+
+  // Fetch movie details from OMDB
+  const fetchMovieDetails = async (title: string, director: string, releaseYear: string): Promise<Movie | null> => {
+    try {
+      // Search by title first
+      const searchResponse = await fetch(
+        `${BACKEND_URL}/omdb?s=${encodeURIComponent(title)}&y=${releaseYear}`,
+        { credentials: 'include' }
+      );
+      const searchData = await searchResponse.json();
+
+      if (searchData.Response === 'True' && searchData.Search?.length > 0) {
+        // Get detailed info for first result
+        const imdbID = searchData.Search[0].imdbID;
+        const detailResponse = await fetch(
+          `${BACKEND_URL}/omdb?i=${imdbID}`,
+          { credentials: 'include' }
+        );
+        const detailData = await detailResponse.json();
+
+        if (detailData.Response === 'True') {
+          return {
+            id: detailData.imdbID,
+            imdbID: detailData.imdbID,
+            title: detailData.Title,
+            director: detailData.Director || director,
+            imageUrl: detailData.Poster !== 'N/A' ? detailData.Poster : '',
+            releaseDate: detailData.Year || releaseYear,
+            runtime: detailData.Runtime ? parseInt(detailData.Runtime) : 0,
+            status: 'want-to-watch',
+            plot: detailData.Plot || 'No description available',
+            genre: detailData.Genre ? detailData.Genre.split(', ') : [],
+            imdbRating: detailData.imdbRating || '0',
+            imdbVotes: detailData.imdbVotes || '',
+            ratings: detailData.Ratings || [],
+            ratingCount: detailData.imdbVotes ? parseInt(detailData.imdbVotes.replace(/,/g, '')) : 0,
+            language: detailData.Language || '',
+            writer: detailData.Writer || '',
+            actors: detailData.Actors ? detailData.Actors.split(', ') : [],
+            awards: detailData.Awards || '',
+          };
+        }
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching movie details:', error);
+      return null;
+    }
+  };
+
+  // Fetch book details from Google Books
+  const fetchBookDetails = async (title: string, author: string): Promise<Book | null> => {
+    try {
+      const query = `${title} ${author}`;
+      const response = await apiFetch(`/google-books?q=${encodeURIComponent(query)}&maxResults=1`);
+      
+      if (!response.ok) {
+        throw new Error('Google Books API request failed');
+      }
+      
+      const data = await response.json();
+      const item = data.items?.[0];
+      
+      if (item) {
+        return {
+          id: item.id,
+          title: item.volumeInfo.title,
+          authors: item.volumeInfo.authors || [author],
+          imageLinks: item.volumeInfo.imageLinks,
+          publishedDate: item.volumeInfo.publishedDate,
+          publisher: item.volumeInfo.publisher,
+          pageCount: item.volumeInfo.pageCount,
+          averageRating: item.volumeInfo.averageRating,
+          ratingsCount: item.volumeInfo.ratingsCount,
+          categories: item.volumeInfo.categories,
+          description: item.volumeInfo.description,
+          language: item.volumeInfo.language,
+          ISBN: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
+          status: 'want-to-read',
+        };
+      }
+      return null;
+    } catch (error) {
+      console.error('Error fetching book details:', error);
+      return null;
+    }
+  };
+
+  // Process recommendations by type
+  const processRecommendations = async (recommendations: any[]): Promise<(Movie | Book)[]> => {
+    const promises = recommendations.map(async (rec) => {
+      if (rec.type === 'movie') {
+        const year = rec.releaseDate?.split('-')[0] || new Date().getFullYear().toString();
+        return fetchMovieDetails(rec.title, rec.director, year);
+      } else if (rec.type === 'book') {
+        return fetchBookDetails(rec.title, rec.writer);
+      }
+      return null;
+    });
+
+    const results = await Promise.all(promises);
+    return results.filter((item): item is Movie | Book => item !== null);
   };
 
   return (
@@ -315,128 +382,285 @@ const MainPage = () => {
         </SimpleGrid>
 
         {/* AI Recommendation Component */}
-        <Box mt={8} mb={6} w="full" display="flex" justifyContent="center" flexDirection="column" alignItems="center">
+        <Box mt={12} mb={6} w="full"> {/* Changed mt from 8 to 12 for more space */}
           <AiRecommendation
             onSubmit={async (data) => {
               try {
-                console.log('Sending to Gemini (request):', data);
-                // start loading UI with flags so 2/3 are included only when requested
+                console.log('Sending to backend (request):', data);
                 startLoadingCycle({ useHistory: data.useHistory, useRatings: data.useRatings, useComments: data.useComments });
 
-                const text = await generateWithGemini(data.customPrompt);
-                console.log('Gemini response (raw):', text);
-                const parsed = parseAiResponse(text);
-                const movies = mapAiToMovies(parsed);
+                const response = await getRecommendations({
+                  useHistory: data.useHistory,
+                  useRatings: data.useRatings,
+                  useComments: data.useComments,
+                  customPrompt: data.customPrompt
+                });
+                
+                console.log('Backend response:', response);
+                
+                // Backend'den results array gelir
+                const results = response.recommendations || [];
+                
+                // Type'a göre ayır
+                const movieRecs = results.filter((rec: any) => rec.type === 'movie');
+                const bookRecs = results.filter((rec: any) => rec.type === 'book');
+                
+                console.log('Movie recommendations:', movieRecs);
+                console.log('Book recommendations:', bookRecs);
 
-               // store results; if we've already reached final loading step, show immediately,
-               // otherwise wait until final step is displayed (prevents abrupt UI jump)
-               pendingResultsRef.current = movies;
-               responseReadyRef.current = true;
+                // Movie detaylarını OMDB'den çek (LibraryPage ve MoviesPage'deki gibi)
+                const moviePromises = movieRecs.map(async (rec: any) => {
+                  try {
+                    const year = rec.releaseDate?.split('-')[0] || '';
+                    // Search by title
+                    const searchResponse = await fetch(
+                      `${BACKEND_URL}/omdb?s=${encodeURIComponent(rec.title)}${year ? `&y=${year}` : ''}`,
+                      { credentials: 'include' }
+                    );
+                    const searchData = await searchResponse.json();
 
-               const lastIndex = activeLoadingStepsRef.current.length - 1;
-               if (!loading || loadingMessageIndex === lastIndex) {
-                 // no loader running or already at final step -> display immediately
-                 setAiResults(movies);
-                 // stop loading cycle (cleans refs & interval)
-                 stopLoadingCycle();
-                 // smooth scroll to results
-                 setTimeout(() => {
-                   resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
-                 }, 100);
-               }
-                // otherwise we will finalize when the cycle reaches the final step
+                    if (searchData.Response === 'True' && searchData.Search?.length > 0) {
+                      const imdbID = searchData.Search[0].imdbID;
+                      // Get detailed info
+                      const detailResponse = await fetch(
+                        `${BACKEND_URL}/omdb?i=${imdbID}`,
+                        { credentials: 'include' }
+                      );
+                      const detailData = await detailResponse.json();
+
+                      if (detailData.Response === 'True') {
+                        return {
+                          id: detailData.imdbID,
+                          imdbID: detailData.imdbID,
+                          title: detailData.Title,
+                          director: detailData.Director || rec.director,
+                          imageUrl: detailData.Poster !== 'N/A' ? detailData.Poster : '',
+                          releaseDate: detailData.Year || rec.releaseDate,
+                          runtime: detailData.Runtime ? parseInt(detailData.Runtime) : 0,
+                          status: 'want-to-watch',
+                          plot: detailData.Plot || 'No description available',
+                          genre: detailData.Genre ? detailData.Genre.split(', ') : [],
+                          imdbRating: detailData.imdbRating || '0',
+                          imdbVotes: detailData.imdbVotes || '',
+                          ratings: detailData.Ratings || [],
+                          ratingCount: detailData.imdbVotes ? parseInt(detailData.imdbVotes.replace(/,/g, '')) : 0,
+                          language: detailData.Language || '',
+                          writer: detailData.Writer || '',
+                          actors: detailData.Actors ? detailData.Actors.split(', ') : [],
+                          awards: detailData.Awards || '',
+                        };
+                      }
+                    }
+                    return null;
+                  } catch (error) {
+                    console.error(`Error fetching movie: ${rec.title}`, error);
+                    return null;
+                  }
+                });
+
+                // Book detaylarını Google Books'tan çek (LibraryPage'deki gibi)
+                const bookPromises = bookRecs.map(async (rec: any) => {
+                  try {
+                    const query = `${rec.title} ${rec.writer || ''}`;
+                    const response = await apiFetch(`/google-books?q=${encodeURIComponent(query)}&maxResults=1`);
+                    
+                    if (!response.ok) {
+                      throw new Error('Google Books API request failed');
+                    }
+                    
+                    const data = await response.json();
+                    const item = data.items?.[0];
+                    
+                    if (item) {
+                      return {
+                        id: item.id,
+                        title: item.volumeInfo.title,
+                        authors: item.volumeInfo.authors || [rec.writer],
+                        imageLinks: item.volumeInfo.imageLinks,
+                        publishedDate: item.volumeInfo.publishedDate,
+                        publisher: item.volumeInfo.publisher,
+                        pageCount: item.volumeInfo.pageCount,
+                        averageRating: item.volumeInfo.averageRating,
+                        ratingsCount: item.volumeInfo.ratingsCount,
+                        categories: item.volumeInfo.categories,
+                        description: item.volumeInfo.description,
+                        language: item.volumeInfo.language,
+                        ISBN: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
+                        status: 'want-to-read',
+                      };
+                    }
+                    return null;
+                  } catch (error) {
+                    console.error(`Error fetching book: ${rec.title}`, error);
+                    return null;
+                  }
+                });
+
+                // Tüm istekleri paralel çalıştır
+                const [movieResults, bookResults] = await Promise.all([
+                  Promise.all(moviePromises),
+                  Promise.all(bookPromises)
+                ]);
+
+                // Null olmayan sonuçları filtrele ve birleştir
+                const movies = movieResults.filter((m): m is Movie => m !== null);
+                const books = bookResults.filter((b): b is Book => b !== null);
+                const allResults = [...movies, ...books];
+
+                console.log('Processed results:', allResults);
+
+                pendingResultsRef.current = allResults;
+                responseReadyRef.current = true;
+
+                const lastIndex = activeLoadingStepsRef.current.length - 1;
+                if (!loading || loadingMessageIndex === lastIndex) {
+                  setAiResults(allResults);
+                  stopLoadingCycle();
+                  setTimeout(() => {
+                    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                  }, 100);
+                }
               } catch (err) {
-                // ensure loader stops on error
                 stopLoadingCycle();
-                console.error('Gemini call failed:', err);
+                console.error('Backend recommendation call failed:', err);
               }
             }}
           />
-
-          {/* Loading UX: spinner + rotating messages */}
+          
+          {/* Loading UX */}
           {loading && (
-            <Box mt={4} display="flex" alignItems="center" gap={3}>
-              <Spinner thickness="3px" speed="0.8s" size="md" />
-              <Text fontSize="sm" color={subtitleColor}>
-                {activeLoadingStepsRef.current[loadingMessageIndex] ?? MASTER_LOADING_STEPS.step1}
-              </Text>
-            </Box>
+              <Box 
+                  mt={6}
+                  p={4}
+                  bg={cardBg}
+                  borderRadius="lg"
+                  border="1px"
+                  borderColor={cardBorder}
+                  display="flex" 
+                  alignItems="center" 
+                  justifyContent="center"
+                  gap={3}
+              >
+                  <Spinner thickness="3px" speed="0.8s" size="md" color="blue.500" />
+                  <Text fontSize="sm" color={subtitleColor}>
+                      {activeLoadingStepsRef.current[loadingMessageIndex] ?? MASTER_LOADING_STEPS.step1}
+                  </Text>
+              </Box>
           )}
         </Box>
  
-        {/* NEW: AI results displayed as detailed list (no CardView) */}
+        {/* AI results displayed as detailed list */}
         {aiResults.length > 0 && (
           <Box ref={resultsRef} mt={4} mb={6} textAlign="left">
             <Heading size="md" mb={4} color={textColor}>AI Recommendations</Heading>
             <Stack spacing={4}>
-              {aiResults.map((m, i) => (
-                <Box
-                  key={m.id || i}
-                  p={4}
-                  borderWidth="1px"
-                  borderRadius="md"
-                  borderColor={cardBorder}
-                  bg={cardBg}
-                >
-                  <HStack align="start" spacing={4}>
-                    {m.imageUrl ? (
-                      <Image
-                        src={m.imageUrl}
-                        alt={m.title}
-                        boxSize="100px"
-                        objectFit="cover"
-                        borderRadius="md"
-                      />
-                    ) : (
-                      <Box w="100px" h="140px" bg="gray.100" borderRadius="md" />
-                    )}
+              {aiResults.map((item, i) => {
+                const isMovie = 'director' in item;
+                const isBook = 'authors' in item;
+                
+                return (
+                  <Box
+                    key={item.id || i}
+                    p={4}
+                    borderWidth="1px"
+                    borderRadius="md"
+                    borderColor={cardBorder}
+                    bg={cardBg}
+                  >
+                    <HStack align="start" spacing={4}>
+                      {/* Image handling for both types */}
+                      {isMovie && (item as Movie).imageUrl ? (
+                        <Image
+                          src={(item as Movie).imageUrl}
+                          alt={item.title}
+                          boxSize="100px"
+                          objectFit="cover"
+                          borderRadius="md"
+                        />
+                      ) : isBook && (item as Book).imageLinks?.thumbnail ? (
+                        <Image
+                          src={(item as Book).imageLinks.thumbnail}
+                          alt={item.title}
+                          boxSize="100px"
+                          objectFit="cover"
+                          borderRadius="md"
+                        />
+                      ) : (
+                        <Box w="100px" h="140px" bg="gray.100" borderRadius="md" />
+                      )}
 
-                    <Box flex="1">
-                      <Heading size="sm" mb={1} color={textColor}>
-                        {m.title}
-                      </Heading>
+                      <Box flex="1">
+                        <HStack mb={2}>
+                          <Heading size="sm" color={textColor}>{item.title}</Heading>
+                          <Badge colorScheme={isMovie ? 'purple' : 'green'} fontSize="xs">
+                            {isMovie ? '🎬 Movie' : '📚 Book'}
+                          </Badge>
+                        </HStack>
 
-                      <Text fontSize="xs" color={subtitleColor} mb={2}>
-                        {Array.isArray(m.genre) && m.genre.length ? m.genre.join(', ') : '—'}{' '}
-                        {m.runtime ? `• ${m.runtime} min` : ''} • IMDb {m.imdbRating || '—'}
-                      </Text>
-
-                      <Text fontSize="sm" mb={2} color={textColor}>
-                        {m.plot || 'No description.'}
-                      </Text>
-
-                      <Text fontSize="xs" color={subtitleColor}>
-                        Director: <Text as="span" color={textColor}>{m.director || '—'}</Text>
-                      </Text>
-
-                      <Text fontSize="xs" color={subtitleColor}>
-                        Actors: <Text as="span" color={textColor}>{Array.isArray(m.actors) && m.actors.length ? m.actors.join(', ') : '—'}</Text>
-                      </Text>
-
-                      <Text fontSize="xs" color={subtitleColor}>
-                        Language: <Text as="span" color={textColor}>{m.language || '—'}</Text>
-                      </Text>
-
-                      <Text fontSize="xs" color={subtitleColor}>
-                        Awards: <Text as="span" color={textColor}>{m.awards || '—'}</Text>
-                      </Text>
-
-                      <Box mt={2}>
-                        <Text fontSize="xs" color={subtitleColor} mb={1}>Ratings:</Text>
-                        {Array.isArray(m.ratings) && m.ratings.length ? (
-                          m.ratings.map((r: any, idx: number) => (
-                            <Text key={idx} fontSize="xs" color={textColor}>
-                              {r.Source || '—'}: {r.Value || '—'}
+                        {/* Movie-specific info */}
+                        {isMovie && (
+                          <>
+                            <Text fontSize="xs" color={subtitleColor} mb={2}>
+                              {Array.isArray((item as Movie).genre) && (item as Movie).genre.length 
+                                ? (item as Movie).genre.join(', ') 
+                                : '—'}{' '}
+                              {(item as Movie).runtime ? `• ${(item as Movie).runtime} min` : ''} 
+                              • IMDb {(item as Movie).imdbRating || '—'}
                             </Text>
-                          ))
-                        ) : (
-                          <Text fontSize="xs" color={textColor}>—</Text>
+
+                            <Text fontSize="sm" mb={2} color={textColor} noOfLines={3}>
+                              {(item as Movie).plot || 'No description.'}
+                            </Text>
+
+                            <Text fontSize="xs" color={subtitleColor}>
+                              Director: <Text as="span" color={textColor}>{(item as Movie).director || '—'}</Text>
+                            </Text>
+
+                            {Array.isArray((item as Movie).actors) && (item as Movie).actors.length > 0 && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Actors: <Text as="span" color={textColor}>{(item as Movie).actors.slice(0, 3).join(', ')}</Text>
+                              </Text>
+                            )}
+
+                            {(item as Movie).language && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Language: <Text as="span" color={textColor}>{(item as Movie).language}</Text>
+                              </Text>
+                            )}
+                          </>
+                        )}
+
+                        {/* Book-specific info */}
+                        {isBook && (
+                          <>
+                            <Text fontSize="xs" color={subtitleColor} mb={2}>
+                              {(item as Book).authors?.join(', ') || '—'}
+                              {(item as Book).publisher ? ` • ${(item as Book).publisher}` : ''}
+                              {(item as Book).pageCount ? ` • ${(item as Book).pageCount} pages` : ''}
+                            </Text>
+
+                            <Text fontSize="sm" mb={2} color={textColor} noOfLines={3}>
+                              {(item as Book).description || 'No description.'}
+                            </Text>
+
+                            {(item as Book).categories && (item as Book).categories.length > 0 && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Categories: <Text as="span" color={textColor}>{(item as Book).categories.join(', ')}</Text>
+                              </Text>
+                            )}
+
+                            {(item as Book).averageRating && (
+                              <Text fontSize="xs" color={subtitleColor}>
+                                Rating: <Text as="span" color={textColor}>{(item as Book).averageRating.toFixed(1)} ⭐</Text>
+                              </Text>
+                            )}
+                          </>
                         )}
                       </Box>
-                    </Box>
-                  </HStack>
-                </Box>
-              ))}
+                    </HStack>
+                  </Box>
+                );
+              })}
             </Stack>
           </Box>
         )}

@@ -69,20 +69,14 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
       bg={bgColor}
       borderWidth="1px"
       borderColor={borderColor}
-      borderRadius="lg"
+      borderRadius="xl" // Changed from lg to xl
       p={6}
-      boxShadow="sm"
-      bgGradient={gradientBg}
-      position="relative"
-      overflow="hidden"
-      _before={{
-        content: '""',
-        position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        height: '3px',
-        bgGradient: 'linear(to-r, blue.400, purple.500)',
+      boxShadow="md" // Changed from sm to md
+      transition="all 0.3s"
+      _hover={{
+        transform: 'translateY(-4px)',
+        boxShadow: 'xl',
+        borderColor: useColorModeValue('blue.300', 'blue.600'),
       }}
     >
       <VStack spacing={6} align="stretch">
@@ -92,25 +86,25 @@ const AiRecommendation: React.FC<AiRecommendationProps> = ({ onSubmit }) => {
             <Flex
               align="center"
               justify="center"
-              w={12}
-              h={12}
-              borderRadius="md"
+              w={16} // Changed from 12 to 16 (matches MainPage cards)
+              h={16} // Changed from 12 to 16
+              borderRadius="xl" // Changed from md to xl
               bg={accentColor}
               color="white"
               boxShadow="md"
             >
-              <Icon as={FiZap} boxSize={6} />
+              <Icon as={FiZap} boxSize={7} /> {/* Changed from 6 to 7 */}
             </Flex>
             <Box>
-              <Heading size="lg" bgGradient="linear(to-r, blue.500, purple.600)" bgClip="text">
-                AI Recommendation System
+              <Heading size="md" color={useColorModeValue('gray.800', 'white')}> {/* Removed gradient */}
+                AI Recommendations
               </Heading>
               <Text fontSize="sm" color={subtleColor} mt={1}>
-                Personalized suggestions powered by AI
+                Get personalized suggestions
               </Text>
             </Box>
           </HStack>
-          <Badge colorScheme="purple" fontSize="sm" px={3} py={1} borderRadius="full">
+          <Badge colorScheme="purple" fontSize="xs" px={2} py={1} borderRadius="md">
             Beta
           </Badge>
         </Flex>
