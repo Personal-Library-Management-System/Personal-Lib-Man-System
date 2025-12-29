@@ -452,108 +452,108 @@ const MainPage = () => {
            (book?.ISBN ? existingItems.has(book.ISBN) : false);
   };
 
-  // Fetch movie details from OMDB
-  const fetchMovieDetails = async (title: string, director: string, releaseYear: string): Promise<Movie | null> => {
-    try {
-      // Search by title first
-      const searchResponse = await fetch(
-        `${BACKEND_URL}/omdb?s=${encodeURIComponent(title)}&y=${releaseYear}`,
-        { credentials: 'include' }
-      );
-      const searchData = await searchResponse.json();
+  // // Fetch movie details from OMDB
+  // const fetchMovieDetails = async (title: string, director: string, releaseYear: string): Promise<Movie | null> => {
+  //   try {
+  //     // Search by title first
+  //     const searchResponse = await fetch(
+  //       `${BACKEND_URL}/omdb?s=${encodeURIComponent(title)}&y=${releaseYear}`,
+  //       { credentials: 'include' }
+  //     );
+  //     const searchData = await searchResponse.json();
 
-      if (searchData.Response === 'True' && searchData.Search?.length > 0) {
-        // Get detailed info for first result
-        const imdbID = searchData.Search[0].imdbID;
-        const detailResponse = await fetch(
-          `${BACKEND_URL}/omdb?i=${imdbID}`,
-          { credentials: 'include' }
-        );
-        const detailData = await detailResponse.json();
+  //     if (searchData.Response === 'True' && searchData.Search?.length > 0) {
+  //       // Get detailed info for first result
+  //       const imdbID = searchData.Search[0].imdbID;
+  //       const detailResponse = await fetch(
+  //         `${BACKEND_URL}/omdb?i=${imdbID}`,
+  //         { credentials: 'include' }
+  //       );
+  //       const detailData = await detailResponse.json();
 
-        if (detailData.Response === 'True') {
-          return {
-            id: detailData.imdbID,
-            imdbID: detailData.imdbID,
-            title: detailData.Title,
-            director: detailData.Director || director,
-            imageUrl: detailData.Poster !== 'N/A' ? detailData.Poster : '',
-            releaseDate: detailData.Year || releaseYear,
-            runtime: detailData.Runtime ? parseInt(detailData.Runtime) : 0,
-            status: 'want-to-watch',
-            plot: detailData.Plot || 'No description available',
-            genre: detailData.Genre ? detailData.Genre.split(', ') : [],
-            imdbRating: detailData.imdbRating || '0',
-            imdbVotes: detailData.imdbVotes || '',
-            ratings: detailData.Ratings || [],
-            ratingCount: detailData.imdbVotes ? parseInt(detailData.imdbVotes.replace(/,/g, '')) : 0,
-            language: detailData.Language || '',
-            writer: detailData.Writer || '',
-            actors: detailData.Actors ? detailData.Actors.split(', ') : [],
-            awards: detailData.Awards || '',
-          };
-        }
-      }
-      return null;
-    } catch (error) {
-      console.error('Error fetching movie details:', error);
-      return null;
-    }
-  };
+  //       if (detailData.Response === 'True') {
+  //         return {
+  //           id: detailData.imdbID,
+  //           imdbID: detailData.imdbID,
+  //           title: detailData.Title,
+  //           director: detailData.Director || director,
+  //           imageUrl: detailData.Poster !== 'N/A' ? detailData.Poster : '',
+  //           releaseDate: detailData.Year || releaseYear,
+  //           runtime: detailData.Runtime ? parseInt(detailData.Runtime) : 0,
+  //           status: 'want-to-watch',
+  //           plot: detailData.Plot || 'No description available',
+  //           genre: detailData.Genre ? detailData.Genre.split(', ') : [],
+  //           imdbRating: detailData.imdbRating || '0',
+  //           imdbVotes: detailData.imdbVotes || '',
+  //           ratings: detailData.Ratings || [],
+  //           ratingCount: detailData.imdbVotes ? parseInt(detailData.imdbVotes.replace(/,/g, '')) : 0,
+  //           language: detailData.Language || '',
+  //           writer: detailData.Writer || '',
+  //           actors: detailData.Actors ? detailData.Actors.split(', ') : [],
+  //           awards: detailData.Awards || '',
+  //         };
+  //       }
+  //     }
+  //     return null;
+  //   } catch (error) {
+  //     console.error('Error fetching movie details:', error);
+  //     return null;
+  //   }
+  // };
 
-  // Fetch book details from Google Books
-  const fetchBookDetails = async (title: string, author: string): Promise<Book | null> => {
-    try {
-      const query = `${title} ${author}`;
-      const response = await apiFetch(`/google-books?q=${encodeURIComponent(query)}&maxResults=1`);
+  // // Fetch book details from Google Books
+  // const fetchBookDetails = async (title: string, author: string): Promise<Book | null> => {
+  //   try {
+  //     const query = `${title} ${author}`;
+  //     const response = await apiFetch(`/google-books?q=${encodeURIComponent(query)}&maxResults=1`);
       
-      if (!response.ok) {
-        throw new Error('Google Books API request failed');
-      }
+  //     if (!response.ok) {
+  //       throw new Error('Google Books API request failed');
+  //     }
       
-      const data = await response.json();
-      const item = data.items?.[0];
+  //     const data = await response.json();
+  //     const item = data.items?.[0];
       
-      if (item) {
-        return {
-          id: item.id,
-          title: item.volumeInfo.title,
-          authors: item.volumeInfo.authors || [author],
-          imageLinks: item.volumeInfo.imageLinks,
-          publishedDate: item.volumeInfo.publishedDate,
-          publisher: item.volumeInfo.publisher,
-          pageCount: item.volumeInfo.pageCount,
-          averageRating: item.volumeInfo.averageRating,
-          ratingsCount: item.volumeInfo.ratingsCount,
-          categories: item.volumeInfo.categories,
-          description: item.volumeInfo.description,
-          language: item.volumeInfo.language,
-          ISBN: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
-          status: 'want-to-read',
-        };
-      }
-      return null;
-    } catch (error) {
-      console.error('Error fetching book details:', error);
-      return null;
-    }
-  };
+  //     if (item) {
+  //       return {
+  //         id: item.id,
+  //         title: item.volumeInfo.title,
+  //         authors: item.volumeInfo.authors || [author],
+  //         imageLinks: item.volumeInfo.imageLinks,
+  //         publishedDate: item.volumeInfo.publishedDate,
+  //         publisher: item.volumeInfo.publisher,
+  //         pageCount: item.volumeInfo.pageCount,
+  //         averageRating: item.volumeInfo.averageRating,
+  //         ratingsCount: item.volumeInfo.ratingsCount,
+  //         categories: item.volumeInfo.categories,
+  //         description: item.volumeInfo.description,
+  //         language: item.volumeInfo.language,
+  //         ISBN: item.volumeInfo.industryIdentifiers?.[0]?.identifier,
+  //         status: 'want-to-read',
+  //       };
+  //     }
+  //     return null;
+  //   } catch (error) {
+  //     console.error('Error fetching book details:', error);
+  //     return null;
+  //   }
+  // };
 
-  // Process recommendations by type
-  const processRecommendations = async (recommendations: any[]): Promise<(Movie | Book)[]> => {
-    const promises = recommendations.map(async (rec) => {
-      if (rec.type === 'movie') {
-        const year = rec.releaseDate?.split('-')[0] || new Date().getFullYear().toString();
-        return fetchMovieDetails(rec.title, rec.director, year);
-      } else if (rec.type === 'book') {
-        return fetchBookDetails(rec.title, rec.writer);
-      }
-      return null;
-    });
+  // // Process recommendations by type
+  // const processRecommendations = async (recommendations: any[]): Promise<(Movie | Book)[]> => {
+  //   const promises = recommendations.map(async (rec) => {
+  //     if (rec.type === 'movie') {
+  //       const year = rec.releaseDate?.split('-')[0] || new Date().getFullYear().toString();
+  //       return fetchMovieDetails(rec.title, rec.director, year);
+  //     } else if (rec.type === 'book') {
+  //       return fetchBookDetails(rec.title, rec.writer);
+  //     }
+  //     return null;
+  //   });
 
-    const results = await Promise.all(promises);
-    return results.filter((item): item is Movie | Book => item !== null);
-  };
+  //   const results = await Promise.all(promises);
+  //   return results.filter((item): item is Movie | Book => item !== null);
+  // };
 
   return (
     <Layout activeItem="anasayfa">
