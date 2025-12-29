@@ -20,6 +20,8 @@ export interface Book {
   status: 'read' | 'reading' | 'want-to-read';
   ratings?: Rating[]; // Backend'den gelen ratings
   ratingCount?: number | null;
+  myRating?: number;
+  personalNotes?: string;
 }
 
 export interface Rating {
@@ -45,6 +47,8 @@ export interface Movie {
   ratings?: Rating[]; // Backend'den gelen ratings
   ratingCount?: number | null; // IMDb vote count
   status: 'watched' | 'want-to-watch';
+  myRating?: number;
+  personalNotes?: string;
 }
 
 export interface User {
