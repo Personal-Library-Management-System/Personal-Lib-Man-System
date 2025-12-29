@@ -49,7 +49,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
   const handleRatingChange = async (newRating: number) => {
     setUserRating(newRating);
     try {
-      await mediaItemApi.updateMediaItem(book.id, { rating: newRating });
+      await mediaItemApi.updateMediaItem(book.id, { myRating: newRating }); // rating -> myRating
       console.log('Updated rating (book):', newRating, 'book id:', book.id);
     } catch (error) {
       console.error('Error updating rating:', error);
@@ -159,7 +159,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
   const handleNoteChange = async (note: string) => {
     setPersonalNote(note);
     try {
-      await mediaItemApi.updateMediaItem(book.id, { personalNote: note });
+      await mediaItemApi.updateMediaItem(book.id, { personalNotes: note }); // personalNote -> personalNotes
       console.log('Updated note:', note, 'book id:', book.id);
     } catch (error) {
       console.error('Error updating note:', error);
