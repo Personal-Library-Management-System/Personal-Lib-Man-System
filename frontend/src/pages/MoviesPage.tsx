@@ -96,6 +96,10 @@ const MoviesPage = () => {
                     imdbRating: movie.ratings?.find((r: any) => r.source === 'IMDb' || r.source === 'Internet Movie Database')?.value,
                     myRating: movie.myRating,
                     personalNotes: movie.personalNotes,
+                    lists: movie.lists || [],
+                    tags: Array.isArray(movie.tags)
+                        ? movie.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name)
+                        : [],
                     ...(movie.imdbID && {
                         imdbID: movie.imdbID
                     })
@@ -320,6 +324,7 @@ const MoviesPage = () => {
                     onClose={() => {
                         setMovieModalOpen(false);
                         setSelectedMovie(null);
+                        fetchMovies(); // Refetch to get updated list assignments
                     }}
                     movie={selectedMovie}
                     onDelete={(movieId) => {

@@ -15,8 +15,8 @@ export const getUserStatistics = async (googleId: string): Promise<UserStatistic
 
     const allItems = user.mediaItems as unknown as MediaItemDoc[];
 
-    const books = allItems.filter(item => item.mediaType === 'Book');
-    const movies = allItems.filter(item => item.mediaType === 'Movie');
+    const books = allItems.filter(item => item.mediaType === 'Book' && item.status === 'COMPLETED');
+    const movies = allItems.filter(item => item.mediaType === 'Movie' && item.status === 'COMPLETED');
 
     const totalReadPages = books.reduce((sum, book: any) => sum + (book.pageCount || 0), 0);
     const totalWatchedMinutes = movies.reduce((sum, movie: any) => sum + (movie.runtime || 0), 0);

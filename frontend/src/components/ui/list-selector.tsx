@@ -11,6 +11,7 @@ import {
   Icon,
   Spinner,
   Text,
+  useToast,
 } from '@chakra-ui/react';
 import { FiPlus } from 'react-icons/fi';
 import { FaList, FaHeart, FaCalendarAlt, FaStar, FaRocket, FaBook, FaUsers } from 'react-icons/fa';
@@ -76,6 +77,7 @@ const ListSelector: React.FC<ListSelectorProps> = ({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isUpdating, setIsUpdating] = useState(false);
+  const toast = useToast();
 
   useEffect(() => {
     // Only fetch if no lists provided via props
@@ -125,19 +127,43 @@ const ListSelector: React.FC<ListSelectorProps> = ({
       setError(null);
       try {
         const isAssigned = assignedSet.has(listId);
+        const listName = sourceLists.find(l => l.id === listId)?.name || 'list';
+        
         if (isAssigned) {
           // Remove item from list
           await removeMediaItemsFromList(listId, [mediaItemId]);
           const updated = assignedLists.filter((id) => id !== listId);
           onChange(updated);
+          toast({
+            title: 'Removed from list',
+            description: `Removed from "${listName}"`,
+            status: 'success',
+            duration: 2000,
+            isClosable: true,
+          });
         } else {
           // Add item to list
           await addMediaItemsToList(listId, [mediaItemId]);
           const updated = [...assignedLists, listId];
           onChange(updated);
+          toast({
+            title: 'Added to list',
+            description: `Added to "${listName}"`,
+            status: 'success',
+            duration: 2000,
+            isClosable: true,
+          });
         }
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to update list');
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update list';
+        setError(errorMessage);
+        toast({
+          title: 'Error',
+          description: errorMessage,
+          status: 'error',
+          duration: 3000,
+          isClosable: true,
+        });
       } finally {
         setIsUpdating(false);
       }

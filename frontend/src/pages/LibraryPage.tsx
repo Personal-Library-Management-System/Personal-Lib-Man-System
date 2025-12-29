@@ -95,6 +95,10 @@ const LibraryPage = () => {
                         book.status === 'COMPLETED' ? 'read' : 'want-to-read',
                 personalNotes: book.personalNotes,
                 myRating: book.myRating,
+                lists: book.lists || [],
+                tags: Array.isArray(book.tags) 
+                    ? book.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name)
+                    : [],
                 // Google Books ID'sini sakla (eğer varsa)
                 ...(book.externalId && { externalId: book.externalId })
             } as any));
@@ -305,6 +309,7 @@ const LibraryPage = () => {
                     onClose={() => {
                         setModalOpen(false);
                         setSelectedBook(null);
+                        fetchBooks(); // Refetch to get updated list assignments
                     }}
                     onDelete={(bookId) => {
                         setBooks(prev => prev.filter(b => b.id !== bookId));

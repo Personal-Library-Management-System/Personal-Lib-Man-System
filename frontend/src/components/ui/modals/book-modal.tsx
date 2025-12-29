@@ -243,6 +243,7 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete }
                     assignedLists={currentLists}
                     onListsChange={handleListsChange}
                     itemType="book"
+                    mediaItemId={book.id}
                 />
             </Modal>
 
