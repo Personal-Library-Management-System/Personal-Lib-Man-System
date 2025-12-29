@@ -1,12 +1,13 @@
 const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api/v1';
 
-// Update a media item (rating, status, personalNote, etc.)
+// Update a media item (rating, status, personalNotes, etc.)
 export const updateMediaItem = async (
   mediaItemId: string,
   updates: {
     myRating?: number;
+    myRating?: number;
     status?: string;
-    personalNotes?: string;
+    personalNotes?: string; // Changed from personalNote to personalNotes
     [key: string]: any;
   }
 ): Promise<any> => {

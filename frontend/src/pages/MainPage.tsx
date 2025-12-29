@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, useMemo } from 'react';
 import {
   Box,
   Heading,
@@ -10,34 +10,70 @@ import {
   Stack,
   HStack,
   Spinner,
-  Badge
+  Badge,
+  IconButton,
+  useToast,
+  Tooltip
 } from '@chakra-ui/react';
 import { FaBook, FaList, FaChartBar } from 'react-icons/fa';
+import { FiPlus, FiCheck } from 'react-icons/fi';
 import AiRecommendation from '../components/ui/ai-recommendation';
 import { getRecommendations } from '../services/recommendation.service';
 import { apiFetch } from '../lib/apiFetch';
 import type { Movie, Book } from '../types';
 import Layout from '../components/ui/layout';
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/api/v1';
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+
+interface Book {
+  id: string;
+  title: string;
+  authors: string[];
+  imageLinks?: {
+    smallThumbnail?: string;
+    thumbnail?: string;
+  };
+  publishedDate?: string;
+  publisher?: string;
+  pageCount?: number;
+  averageRating?: number;
+  ratingsCount?: number;
+  categories?: string[];
+  description?: string;
+  language?: string;
+  ISBN?: string;
+  status?: string;
+}
+
+interface AIRecommendation {
+  type: 'movie' | 'book';
+  title: string;
+  director?: string;
+  writer?: string;
+  releaseDate?: string;
+  releasedDate?: string;
+}
 
 const MainPage = () => {
+  const toast = useToast();
   const cardBg = useColorModeValue('white', 'gray.700');
   const cardBorder = useColorModeValue('gray.200', 'gray.600');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtitleColor = useColorModeValue('gray.600', 'gray.300');
 
-  // Store AI results (both books and movies)
-  const [aiResults, setAiResults] = useState<(Movie | Book)[]>([]);
-  // Ref to scroll to results section smoothly
+  // Store enriched results (books and movies with full details)
+  const [aiResults, setAiResults] = useState<Array<Movie | Book>>([]);
   const resultsRef = useRef<HTMLDivElement>(null);
 
-  // Loading UX states for AI request
+  // Track existing library items to prevent duplicates
+  const [existingItems, setExistingItems] = useState<Set<string>>(new Set());
+  const [addedItems, setAddedItems] = useState<Set<string>>(new Set());
+
+  // Loading UX states
   const [loading, setLoading] = useState(false);
   const [loadingMessageIndex, setLoadingMessageIndex] = useState(0);
   const loadingIntervalRef = useRef<number | null>(null);
 
-  // master loading step templates
   const MASTER_LOADING_STEPS = {
     step1: 'Decoding your cultural footprint...',
     step2: 'Calibrating taste profile based on your ratings...',
@@ -46,20 +82,57 @@ const MainPage = () => {
     step5: 'Finalizing your collection...'
   };
   
-  // active sequence for the current request (depends on flags)
   const activeLoadingStepsRef = useRef<string[]>([]);
   // when response arrives before sequence finishes we hold it here until final step shown
   const pendingResultsRef = useRef<(Movie | Book)[] | null>(null);
   const responseReadyRef = useRef(false);
 
+  // Fetch existing library items on mount
+  useEffect(() => {
+    const fetchExistingItems = async () => {
+      try {
+        const [booksRes, moviesRes] = await Promise.all([
+          apiFetch('/mediaItems/type/Book'),
+          apiFetch('/mediaItems/type/Movie')
+        ]);
+
+        const bookIds = new Set<string>();
+        const movieIds = new Set<string>();
+
+        if (booksRes.ok) {
+          const books = await booksRes.json();
+          const booksArray = Array.isArray(books) ? books : (books.items || books.data || []);
+          booksArray.forEach((book: any) => {
+            if (book.externalId) bookIds.add(book.externalId); // Google Books ID
+            if (book.ISBN) bookIds.add(book.ISBN);
+            if (book._id) bookIds.add(book._id);
+          });
+        }
+
+        if (moviesRes.ok) {
+          const movies = await moviesRes.json();
+          const moviesArray = Array.isArray(movies) ? movies : (movies.items || movies.data || []);
+          moviesArray.forEach((movie: any) => {
+            if (movie.imdbID) movieIds.add(movie.imdbID);
+            if (movie._id) movieIds.add(movie._id);
+          });
+        }
+
+        setExistingItems(new Set([...bookIds, ...movieIds]));
+      } catch (error) {
+        console.error('Error fetching existing items:', error);
+      }
+    };
+
+    fetchExistingItems();
+  }, []);
+
   const startLoadingCycle = (opts?: { useHistory?: boolean; useRatings?: boolean; useComments?: boolean }) => {
-    // build sequence: always start with step1, optionally include 2 & 3, then 4, then final step5
     const steps: string[] = [];
     steps.push(MASTER_LOADING_STEPS.step1);
     if (opts?.useRatings) steps.push(MASTER_LOADING_STEPS.step2);
     if (opts?.useComments) steps.push(MASTER_LOADING_STEPS.step3);
     steps.push(MASTER_LOADING_STEPS.step4);
-    // finalizing is the last step — when reached we stop advancing and wait for the response
     steps.push(MASTER_LOADING_STEPS.step5);
 
     activeLoadingStepsRef.current = steps;
@@ -71,30 +144,24 @@ const MainPage = () => {
       (!opts?.useComments ? 1 : 0);
     const interval = 2000 + (skippedSteps * 600);
 
-    // clear any previous interval
     if (loadingIntervalRef.current) {
       window.clearInterval(loadingIntervalRef.current);
       loadingIntervalRef.current = null;
     }
 
-    // advance through steps but stop advancing when last index reached (wait for response)
     loadingIntervalRef.current = window.setInterval(() => {
       setLoadingMessageIndex((prev) => {
         const next = prev + 1;
         if (next >= activeLoadingStepsRef.current.length - 1) {
-          // reached final step index -> stop advancing, keep showing final message
           if (loadingIntervalRef.current) {
             window.clearInterval(loadingIntervalRef.current);
             loadingIntervalRef.current = null;
           }
-          // if the response already arrived while we were cycling, finalize now
           if (responseReadyRef.current && pendingResultsRef.current) {
-            // show results and stop loading
             setAiResults(pendingResultsRef.current);
             pendingResultsRef.current = null;
             responseReadyRef.current = false;
             setLoading(false);
-            // smooth scroll to results
             setTimeout(() => {
               resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
             }, 100);
@@ -103,7 +170,7 @@ const MainPage = () => {
         }
         return next;
       });
-    }, interval); // dynamic interval based on skipped steps
+    }, interval);
   };
 
   const stopLoadingCycle = () => {
@@ -114,12 +181,10 @@ const MainPage = () => {
     activeLoadingStepsRef.current = [];
     setLoading(false);
     setLoadingMessageIndex(0);
-    // clear pending if any (used when explicitly cancelling)
     pendingResultsRef.current = null;
     responseReadyRef.current = false;
   };
 
-  // cleanup on unmount
   useEffect(() => {
     return () => {
       if (loadingIntervalRef.current) {
@@ -128,25 +193,263 @@ const MainPage = () => {
     };
   }, []);
 
-  const parseAiResponse = (text: string) => {
+  // Fetch book details from Google Books
+  const fetchBookDetails = async (title: string, writer: string): Promise<Book | null> => {
     try {
-      const json = JSON.parse(text);
-      if (Array.isArray(json.results)) {
-        return json.results.slice(0, 5);
+      const query = `${title} ${writer}`.trim();
+      const response = await apiFetch(`/google-books?q=${encodeURIComponent(query)}&maxResults=1`);
+      
+      if (!response.ok) {
+        console.error('Google Books API request failed for:', title);
+        return null;
       }
-      // fallback if top-level array was returned
-      if (Array.isArray(json)) return json.slice(0, 5);
-    } catch (e) {
-      // try to extract JSON substring (robustness)
-      const m = text.match(/\{[\s\S]*\}/);
-      if (m) {
-        try {
-          const json = JSON.parse(m[0]);
-          if (Array.isArray(json.results)) return json.results.slice(0, 5);
-        } catch (_) {}
-      }
+
+      const data = await response.json();
+      const items = data.items || [];
+      
+      if (items.length === 0) return null;
+
+      const item = items[0];
+      const volumeInfo = item.volumeInfo;
+
+      return {
+        id: item.id,
+        title: volumeInfo.title,
+        authors: volumeInfo.authors || [writer],
+        imageLinks: volumeInfo.imageLinks,
+        publishedDate: volumeInfo.publishedDate,
+        publisher: volumeInfo.publisher,
+        pageCount: volumeInfo.pageCount,
+        averageRating: volumeInfo.averageRating,
+        ratingsCount: volumeInfo.ratingsCount,
+        categories: volumeInfo.categories,
+        description: volumeInfo.description,
+        language: volumeInfo.language,
+        ISBN: volumeInfo.industryIdentifiers?.[0]?.identifier,
+        status: 'want-to-read',
+      };
+    } catch (error) {
+      console.error('Error fetching book details:', title, error);
+      return null;
     }
-    return [];
+  };
+
+  // Fetch movie details from OMDB
+  const fetchMovieDetails = async (title: string, releaseYear?: string): Promise<Movie | null> => {
+    try {
+      let apiUrl = `${BACKEND_URL}/omdb?t=${encodeURIComponent(title)}`;
+      if (releaseYear) {
+        apiUrl += `&y=${releaseYear}`;
+      }
+
+      const response = await fetch(apiUrl, {
+        credentials: 'include',
+      });
+
+      if (!response.ok) {
+        console.error('OMDB API request failed for:', title);
+        return null;
+      }
+
+      const data = await response.json();
+      
+      if (data.Response === 'False') {
+        console.error('OMDB returned error for:', title, data.Error);
+        return null;
+      }
+
+      return {
+        id: data.imdbID,
+        title: data.Title,
+        director: data.Director || 'Unknown',
+        imageUrl: data.Poster !== 'N/A' ? data.Poster : '',
+        releaseDate: data.Year,
+        runtime: data.Runtime ? parseInt(data.Runtime) : 0,
+        status: 'want-to-watch' as const,
+        plot: data.Plot || 'No description available',
+        genre: data.Genre ? data.Genre.split(', ') : [],
+        imdbRating: data.imdbRating || '0',
+        imdbVotes: data.imdbVotes || '',
+        ratings: data.Ratings || [],
+        ratingCount: data.imdbVotes ? parseInt(data.imdbVotes.replace(/,/g, '')) : 0,
+        language: data.Language || '',
+        writer: data.Writer || '',
+        actors: data.Actors ? data.Actors.split(', ') : [],
+        awards: data.Awards || '',
+      };
+    } catch (error) {
+      console.error('Error fetching movie details:', title, error);
+      return null;
+    }
+  };
+
+  // Enrich AI recommendations with details from external APIs
+  const enrichRecommendations = async (recommendations: AIRecommendation[]): Promise<Array<Movie | Book>> => {
+    const enrichedResults = await Promise.all(
+      recommendations.map(async (rec) => {
+        if (rec.type === 'book') {
+          const releaseYear = rec.releasedDate ? rec.releasedDate.split('-')[0] : '';
+          return await fetchBookDetails(rec.title, rec.writer || '');
+        } else if (rec.type === 'movie') {
+          const releaseYear = rec.releaseDate ? rec.releaseDate.split('-')[0] : '';
+          return await fetchMovieDetails(rec.title, releaseYear);
+        }
+        return null;
+      })
+    );
+
+    return enrichedResults.filter((result): result is Movie | Book => result !== null);
+  };
+
+  // Add book to library
+  const handleAddBook = async (book: Book) => {
+    try {
+      const ratings: { source: string; value: string }[] = [];
+      if (book.averageRating != null && book.averageRating > 0) {
+        ratings.push({
+          source: "Google Books",
+          value: book.averageRating.toString()
+        });
+      }
+
+      const payload = {
+        mediaType: "Book",
+        title: book.title,
+        publishedDate: book.publishedDate || new Date().toISOString().split('T')[0],
+        ratings: ratings,
+        ratingCount: book.ratingsCount || 0,
+        categories: book.categories || [],
+        description: book.description || "",
+        coverPhoto: book.imageLinks?.thumbnail || book.imageLinks?.smallThumbnail || "",
+        language: book.language || "en",
+        author: book.authors?.join(', ') || "Unknown",
+        tags: [],
+        status: "PLANNED",
+        myRating: 0,
+        progress: 0,
+        personalNotes: "",
+        ISBN: book.ISBN || "",
+        pageCount: book.pageCount || 1,
+        publisher: book.publisher || "",
+        externalId: book.id
+      };
+
+      const response = await apiFetch('/mediaItems', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add book');
+      }
+
+      // Mark as added
+      setAddedItems(prev => new Set(prev).add(book.id));
+      
+      toast({
+        title: 'Book added',
+        description: `"${book.title}" has been added to your library.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error adding book:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to add book',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Add movie to library
+  const handleAddMovie = async (movie: Movie) => {
+    try {
+      const ratings: { source: string; value: string }[] = [];
+      
+      if (movie.ratings && Array.isArray(movie.ratings)) {
+        movie.ratings.forEach((rating: any) => {
+          if (rating.Source && rating.Value) {
+            ratings.push({
+              source: rating.Source,
+              value: rating.Value
+            });
+          }
+        });
+      }
+
+      const payload = {
+        mediaType: "Movie",
+        title: movie.title,
+        director: movie.director,
+        publishedDate: movie.releaseDate || new Date().toISOString().split('T')[0],
+        releaseDate: movie.releaseDate,
+        ratings: ratings,
+        ratingCount: movie.ratingCount || 0,
+        categories: movie.genre || [],
+        description: movie.plot || "",
+        coverPhoto: movie.imageUrl || "",
+        language: "en",
+        tags: [],
+        status: "PLANNED",
+        myRating: 0,
+        progress: 0,
+        personalNotes: "",
+        runtime: movie.runtime || 0,
+        imdbID: movie.id
+      };
+
+      const response = await apiFetch('/mediaItems', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || 'Failed to add movie');
+      }
+
+      // Mark as added
+      setAddedItems(prev => new Set(prev).add(movie.id));
+      
+      toast({
+        title: 'Movie added',
+        description: `"${movie.title}" has been added to your library.`,
+        status: 'success',
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.error('Error adding movie:', error);
+      toast({
+        title: 'Error',
+        description: error instanceof Error ? error.message : 'Failed to add movie',
+        status: 'error',
+        duration: 3000,
+        isClosable: true,
+      });
+    }
+  };
+
+  // Check if item is already in library or was added
+  const isItemAdded = (item: Movie | Book): boolean => {
+    const itemId = item.id;
+    const isBook = 'authors' in item;
+    const book = isBook ? (item as Book) : null;
+    
+    return addedItems.has(itemId) || 
+           existingItems.has(itemId) ||
+           (book?.ISBN ? existingItems.has(book.ISBN) : false);
   };
 
   // Fetch movie details from OMDB
@@ -549,7 +852,7 @@ const MainPage = () => {
           )}
         </Box>
  
-        {/* AI results displayed as detailed list */}
+        {/* NEW: AI results displayed as detailed list (no CardView) */}
         {aiResults.length > 0 && (
           <Box ref={resultsRef} mt={4} mb={6} textAlign="left">
             <Heading size="md" mb={4} color={textColor}>AI Recommendations</Heading>

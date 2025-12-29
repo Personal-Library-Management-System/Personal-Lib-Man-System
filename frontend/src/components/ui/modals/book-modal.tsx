@@ -49,13 +49,13 @@ const BookModal: React.FC<BookModalProps> = ({ isOpen, onClose, book, onDelete, 
     const { isOpen: isDeleteOpen, onOpen: onDeleteOpen, onClose: onDeleteClose } = useDisclosure();
     const cancelRef = React.useRef<HTMLButtonElement>(null);
 
-    useEffect(() => {
-        setCurrentStatus(book.status);
-        setCurrentTags((book as any).tags ?? []);
-        setCurrentLists((book as any).lists ?? []);
-        setPersonalNote((book as any).personalNotes ?? '');
-        setUserRating((book as any).myRating ?? 0);
-    }, [book]);
+  useEffect(() => {
+    setCurrentStatus(book.status);
+    setCurrentTags((book as any).tags ?? []);
+    setCurrentLists((book as any).lists ?? []);
+    setPersonalNote((book as any).personalNote ?? '');
+    setUserRating((book as any).rating ?? 0);
+  }, [book]);
 
     const handleRatingChange = async (newRating: number) => {
         setUserRating(newRating);
