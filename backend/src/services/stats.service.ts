@@ -18,7 +18,14 @@ export const getUserStatistics = async (googleId: string): Promise<UserStatistic
     const books = allItems.filter(item => item.mediaType === 'Book' && item.status === 'COMPLETED');
     const movies = allItems.filter(item => item.mediaType === 'Movie' && item.status === 'COMPLETED');
 
-    const totalReadPages = books.reduce((sum, book: any) => sum + (book.pageCount || 0), 0);
+    // Calculate total read pages: full pageCount for COMPLETED books + progress for IN_PROGRESS books
+    const completedBooks = allItems.filter(item => item.mediaType === 'Book' && item.status === 'COMPLETED');
+    const inProgressBooks = allItems.filter(item => item.mediaType === 'Book' && item.status === 'IN_PROGRESS');
+    
+    const pagesFromCompleted = completedBooks.reduce((sum, book: any) => sum + (book.pageCount || 0), 0);
+    const pagesFromInProgress = inProgressBooks.reduce((sum, book: any) => sum + (book.progress || 0), 0);
+    const totalReadPages = pagesFromCompleted + pagesFromInProgress;
+    
     const totalWatchedMinutes = movies.reduce((sum, movie: any) => sum + (movie.runtime || 0), 0);
 
     const topAuthorsRaw = getTopFrequentItems(books, 'author');
