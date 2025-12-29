@@ -1,15 +1,6 @@
 import { GoogleGenerativeAI } from "@google/generative-ai";
 
 // API Anahtarını çevre değişkenlerinden al
-const API_KEY = import.meta.env.VITE_GEMINI_API_KEY as string;
-
-if (!API_KEY) {
-  throw new Error(
-    'GEMINI_API_KEY is not set in environment. Add VITE_GEMINI_API_KEY to frontend/.env and restart dev server.'
-  );
-}
-
-const genAI = new GoogleGenerativeAI(API_KEY);
 
 export const generateWithGemini = async (userPrompt: string) => {
   try {
