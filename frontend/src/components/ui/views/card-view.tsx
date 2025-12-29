@@ -30,7 +30,7 @@ const CardSkeleton = ({ type }: { type: 'book' | 'movie' }) => {
   const imageHeight = type === 'book' ? '360px' : '400px';
 
   return (
-    <Card 
+    <Card
       bg={cardBg}
       overflow="hidden"
       h="auto"
@@ -64,7 +64,7 @@ const CardView: React.FC<CardViewProps> = ({
   const cardBg = useColorModeValue('white', 'gray.800');
   const textColor = useColorModeValue('gray.800', 'white');
   const subtextColor = useColorModeValue('gray.600', 'gray.400');
-  
+
   const imageHeight = type === 'book' ? '360px' : '400px';
   const fallbackIcon = type === 'book' ? '📚' : '🎬';
 
@@ -75,18 +75,18 @@ const CardView: React.FC<CardViewProps> = ({
             <CardSkeleton key={index} type={type} />
           ))
         : items.map(item => {
-            const imageUrl = type === 'book' 
-              ? (item as Book).imageLinks?.thumbnail || '' 
+            const imageUrl = type === 'book'
+              ? (item as Book).imageLinks?.thumbnail || ''
               : (item as Movie).imageUrl;
-            
-            const subtitle = type === 'book' 
+
+            const subtitle = type === 'book'
               ? (item as Book).authors?.join(', ') || 'Unknown author'
               : (item as Movie).director;
-            
+
             const rating = type === 'book'
               ? (item as Book).averageRating || 0
-              : (item as Movie).ratings?.at(0)?.Value || 0;
-            
+              : (item as Movie).ratings?.at(0)?.value || 0;
+
             const additionalInfo = type === 'book'
               ? `${(item as Book).pageCount || 0}p`
               : `${(item as Movie).runtime}min`;
@@ -117,12 +117,12 @@ const CardView: React.FC<CardViewProps> = ({
                       objectFit="cover"
                       objectPosition="center top"
                       fallback={
-                        <Box 
-                          w="full" 
-                          h={imageHeight} 
-                          bg="gray.200" 
-                          display="flex" 
-                          alignItems="center" 
+                        <Box
+                          w="full"
+                          h={imageHeight}
+                          bg="gray.200"
+                          display="flex"
+                          alignItems="center"
                           justifyContent="center"
                         >
                           <Text color="gray.500" fontSize="xl">{fallbackIcon}</Text>

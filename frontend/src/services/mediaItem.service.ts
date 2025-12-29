@@ -4,9 +4,9 @@ const API_BASE_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:5000/
 export const updateMediaItem = async (
   mediaItemId: string,
   updates: {
-    rating?: number;
+    myRating?: number;
     status?: string;
-    personalNote?: string;
+    personalNotes?: string;
     [key: string]: any;
   }
 ): Promise<any> => {

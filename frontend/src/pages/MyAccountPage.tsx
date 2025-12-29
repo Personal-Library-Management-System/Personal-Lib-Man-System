@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   Box,
   Container,
@@ -17,17 +17,31 @@ import {
   AlertTitle,
   AlertDescription,
   useColorModeValue,
+  Button,
+  Icon,
+  useToast,
+  Input,
+  Progress,
 } from '@chakra-ui/react';
-import { FaEnvelope, FaCalendarAlt, FaCheckCircle } from 'react-icons/fa';
+import { FaEnvelope, FaCalendarAlt, FaCheckCircle, FaDownload, FaUpload, FaFileExport } from 'react-icons/fa';
 import { useNavigate } from 'react-router-dom';
 import Layout from '../components/ui/layout';
 import type { User } from '../types';
+import * as libraryApi from '../services/library.service';
 
 const MyAccountPage: React.FC = () => {
   const navigate = useNavigate();
+  const toast = useToast();
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Import/Export states
+  const [isExporting, setIsExporting] = useState(false);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importProgress, setImportProgress] = useState<string | null>(null);
 
   // Color mode values
   const cardBg = useColorModeValue('white', 'gray.700');
@@ -81,6 +95,81 @@ const MyAccountPage: React.FC = () => {
       month: 'long',
       day: 'numeric',
     });
+  };
+
+  // Export library handler
+  const handleExport = async () => {
+    try {
+      setIsExporting(true);
+      await libraryApi.downloadLibraryAsJson();
+      toast({
+        title: 'Export Successful',
+        description: 'Your library data has been downloaded as a JSON file.',
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+    } catch (err) {
+      console.error('Export error:', err);
+      toast({
+        title: 'Export Failed',
+        description: err instanceof Error ? err.message : 'Failed to export library data',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  // Trigger file input click
+  const handleImportClick = () => {
+    fileInputRef.current?.click();
+  };
+
+  // Handle file selection for import
+  const handleFileSelect = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    try {
+      setIsImporting(true);
+      setImportProgress('Reading file...');
+
+      // Parse the file
+      const importData = await libraryApi.parseImportFile(file);
+      
+      setImportProgress(`Importing ${importData.mediaItems.length} items and ${importData.lists.length} lists...`);
+
+      // Send to backend
+      await libraryApi.importLibrary(importData);
+
+      toast({
+        title: 'Import Successful',
+        description: `Successfully imported ${importData.mediaItems.length} media items and ${importData.lists.length} lists.`,
+        status: 'success',
+        duration: 5000,
+        isClosable: true,
+      });
+
+      // Reset file input
+      if (fileInputRef.current) {
+        fileInputRef.current.value = '';
+      }
+    } catch (err) {
+      console.error('Import error:', err);
+      toast({
+        title: 'Import Failed',
+        description: err instanceof Error ? err.message : 'Failed to import library data',
+        status: 'error',
+        duration: 5000,
+        isClosable: true,
+      });
+    } finally {
+      setIsImporting(false);
+      setImportProgress(null);
+    }
   };
 
   return (
@@ -250,6 +339,82 @@ const MyAccountPage: React.FC = () => {
                       <Badge colorScheme="blue">OAuth 2.0</Badge>
                       <Badge colorScheme="green">Google Authenticated</Badge>
                     </HStack>
+                  </VStack>
+                </CardBody>
+              </Card>
+
+              {/* Data Import/Export Card */}
+              <Card bg={cardBg} borderColor={borderColor} borderWidth="1px">
+                <CardBody>
+                  <VStack spacing={5} align="stretch">
+                    <HStack spacing={3}>
+                      <Icon as={FaFileExport} boxSize={5} color="blue.500" />
+                      <Heading size="sm" color={valueColor}>
+                        Data Import / Export
+                      </Heading>
+                    </HStack>
+                    
+                    <Text color={labelColor} fontSize="sm">
+                      Export your library data to a JSON file for backup or transfer to another account.
+                      Import data from a previously exported file to restore or merge your library.
+                    </Text>
+
+                    {/* Hidden file input for import */}
+                    <Input
+                      ref={fileInputRef}
+                      type="file"
+                      accept=".json"
+                      onChange={handleFileSelect}
+                      display="none"
+                    />
+
+                    {/* Import Progress */}
+                    {isImporting && importProgress && (
+                      <Box>
+                        <Text fontSize="sm" color={labelColor} mb={2}>
+                          {importProgress}
+                        </Text>
+                        <Progress size="sm" isIndeterminate colorScheme="blue" borderRadius="md" />
+                      </Box>
+                    )}
+
+                    <HStack spacing={4} flexWrap="wrap">
+                      {/* Export Button */}
+                      <Button
+                        leftIcon={<Icon as={FaDownload} />}
+                        colorScheme="blue"
+                        variant="solid"
+                        onClick={handleExport}
+                        isLoading={isExporting}
+                        loadingText="Exporting..."
+                        size="md"
+                      >
+                        Export Library
+                      </Button>
+
+                      {/* Import Button */}
+                      <Button
+                        leftIcon={<Icon as={FaUpload} />}
+                        colorScheme="green"
+                        variant="outline"
+                        onClick={handleImportClick}
+                        isLoading={isImporting}
+                        loadingText="Importing..."
+                        size="md"
+                      >
+                        Import Library
+                      </Button>
+                    </HStack>
+
+                    <Alert status="info" borderRadius="md" fontSize="sm">
+                      <AlertIcon />
+                      <Box>
+                        <Text fontWeight="medium">Note:</Text>
+                        <Text>
+                          Importing will merge data with your existing library. Items with the same title will be updated.
+                        </Text>
+                      </Box>
+                    </Alert>
                   </VStack>
                 </CardBody>
               </Card>

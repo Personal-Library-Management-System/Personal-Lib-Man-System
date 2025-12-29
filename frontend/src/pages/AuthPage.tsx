@@ -2,15 +2,16 @@ import bookIcon from '../components/icons/image.png';
 import { GoogleLogin } from '@react-oauth/google';
 import { jwtDecode } from 'jwt-decode';
 import { useNavigate } from 'react-router-dom';
+import { setAccessToken } from '@/lib/apiFetch';
 
 const AuthPage = () => {
     const navigate = useNavigate();
-    const BACKEND_AUTH_URL = import.meta.env.VITE_BACKEND_URL + '/auth';
+    const BACKEND_AUTH_URL = import.meta.env.VITE_BACKEND_URL;
 
     const handleLoginSuccess = async (credentialResponse: any) => {
         const idToken = credentialResponse.credential;
         console.log(jwtDecode(idToken));
-        const res = await fetch(`${BACKEND_AUTH_URL}/google`, {
+        const res = await fetch(`${BACKEND_AUTH_URL}/auth/google`, {
             method: 'POST',
             credentials: 'include',
             headers: {
@@ -22,6 +23,7 @@ const AuthPage = () => {
         console.log(data);
 
         if (res.ok) {
+            if (data?.accessToken) setAccessToken(data.accessToken);
             navigate('/main');
         }
     };
