@@ -14,7 +14,7 @@ import {
 } from '@chakra-ui/react';
 import { FiPlus } from 'react-icons/fi';
 import { FaList, FaHeart, FaCalendarAlt, FaStar, FaRocket, FaBook, FaUsers } from 'react-icons/fa';
-import { getAllMediaLists, type MediaListResponse } from '../../services/mediaList.service';
+import { getAllMediaLists, addMediaItemsToList, removeMediaItemsFromList, type MediaListResponse } from '../../services/mediaList.service';
 
 export interface ListItem {
   id: string;
@@ -34,6 +34,7 @@ interface ListSelectorProps {
   buttonLabel?: string;
   trigger?: React.ReactNode;
   itemType?: 'book' | 'movie'; // Filter lists by media type
+  mediaItemId?: string; // The ID of the media item to add/remove from lists
 }
 
 const localeCompare = (a: string, b: string) => a.localeCompare(b, 'tr');
@@ -69,10 +70,12 @@ const ListSelector: React.FC<ListSelectorProps> = ({
   buttonLabel = 'Add to List',
   trigger,
   itemType,
+  mediaItemId,
 }) => {
   const [fetchedLists, setFetchedLists] = useState<ListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isUpdating, setIsUpdating] = useState(false);
 
   useEffect(() => {
     // Only fetch if no lists provided via props
@@ -115,15 +118,40 @@ const ListSelector: React.FC<ListSelectorProps> = ({
   // Fast lookup for assigned lists
   const assignedSet = useMemo(() => new Set(assignedLists ?? []), [assignedLists]);
 
-  const toggle = (listId: string) => {
-    const isAssigned = assignedSet.has(listId);
-    let updated: string[];
-    if (isAssigned) {
-      updated = assignedLists.filter((id) => id !== listId);
+  const toggle = async (listId: string) => {
+    // If mediaItemId is provided, call the API; otherwise just update local state
+    if (mediaItemId) {
+      setIsUpdating(true);
+      setError(null);
+      try {
+        const isAssigned = assignedSet.has(listId);
+        if (isAssigned) {
+          // Remove item from list
+          await removeMediaItemsFromList(listId, [mediaItemId]);
+          const updated = assignedLists.filter((id) => id !== listId);
+          onChange(updated);
+        } else {
+          // Add item to list
+          await addMediaItemsToList(listId, [mediaItemId]);
+          const updated = [...assignedLists, listId];
+          onChange(updated);
+        }
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Failed to update list');
+      } finally {
+        setIsUpdating(false);
+      }
     } else {
-      updated = [...assignedLists, listId];
+      // Local-only mode (no API call)
+      const isAssigned = assignedSet.has(listId);
+      let updated: string[];
+      if (isAssigned) {
+        updated = assignedLists.filter((id) => id !== listId);
+      } else {
+        updated = [...assignedLists, listId];
+      }
+      onChange(updated);
     }
-    onChange(updated);
   };
 
   return (
@@ -166,6 +194,7 @@ const ListSelector: React.FC<ListSelectorProps> = ({
                     cursor="pointer"
                     onClick={() => toggle(list.id)}
                     _hover={{ opacity: active ? 0.9 : 0.7 }}
+                    pointerEvents={isUpdating ? 'none' : 'auto'}
                   >
                     <Icon as={IconComponent} mr={1} boxSize={3} />
                     <TagLabel>{list.name}</TagLabel>
