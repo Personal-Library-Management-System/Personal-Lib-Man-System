@@ -318,6 +318,7 @@ const MovieModal: React.FC<MovieModalProps> = ({ isOpen, onClose, movie, onDelet
                         onPersonalNoteChange={handleNoteChange}
                         assignedLists={currentLists}
                         onListsChange={handleListsChange}
+                        mediaItemId={movie.id}
                         itemType="movie"
                     />
                 </Box>
