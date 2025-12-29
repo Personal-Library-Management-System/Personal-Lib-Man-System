@@ -70,11 +70,11 @@ const LibraryPage = () => {
                 throw new Error('Failed to fetch books');
             }
             const data = await response.json();
-            
+
             console.log('Fetched data:', data);
-            
+
             const booksArray = Array.isArray(data) ? data : (data.items || data.data || []);
-            
+
             // Backend'den gelen veriyi düzgün formata çevir
             const mappedBooks: Book[] = booksArray.map((book: any) => ({
                 id: book._id || book.id, // MongoDB _id kullanıyorsa
@@ -90,13 +90,19 @@ const LibraryPage = () => {
                 description: book.description,
                 language: book.language,
                 ISBN: book.ISBN,
-                status: book.status === 'PLANNED' ? 'want-to-read' : 
-                        book.status === 'IN_PROGRESS' ? 'reading' : 
+                status: book.status === 'PLANNED' ? 'want-to-read' :
+                        book.status === 'IN_PROGRESS' ? 'reading' :
                         book.status === 'COMPLETED' ? 'read' : 'want-to-read',
+                personalNotes: book.personalNotes,
+                myRating: book.myRating,
+                lists: book.lists || [],
+                tags: Array.isArray(book.tags) 
+                    ? book.tags.map((tag: any) => typeof tag === 'string' ? tag : tag.name)
+                    : [],
                 // Google Books ID'sini sakla (eğer varsa)
                 ...(book.externalId && { externalId: book.externalId })
             } as any));
-            
+
             // Duplicate kontrolü
             const uniqueBooks = mappedBooks.reduce((acc: Book[], current: Book) => {
                 if (!acc.find(book => book.id === current.id)) {
@@ -104,13 +110,13 @@ const LibraryPage = () => {
                 }
                 return acc;
             }, []);
-            
+
             if (mappedBooks.length !== uniqueBooks.length) {
                 console.warn(`Removed ${mappedBooks.length - uniqueBooks.length} duplicate books`);
             }
-            
+
             console.log('Unique books with IDs:', uniqueBooks.map(b => ({ id: b.id, title: b.title })));
-            
+
             setBooks(uniqueBooks);
         } catch (error) {
             console.error('Error fetching books:', error);
@@ -191,9 +197,9 @@ const LibraryPage = () => {
             console.error('Invalid item type for book addition');
             return;
         }
-        
+
         const book = item as Book;
-        
+
         // Ratings array oluştur - Google Books'tan gelen averageRating'i kullan
         const ratings: { source: string; value: string }[] = [];
         if (book.averageRating != null && book.averageRating > 0) {
@@ -245,7 +251,7 @@ const LibraryPage = () => {
     const handleRemoveBook = async (googleBooksId: string) => {
         // Google Books ID'den backend ID'yi bul
         const backendId = existingBookIdsMap.get(googleBooksId);
-        
+
         if (!backendId) {
             console.error('Backend ID not found for Google Books ID:', googleBooksId);
             throw new Error('Book not found in library');
@@ -303,6 +309,7 @@ const LibraryPage = () => {
                     onClose={() => {
                         setModalOpen(false);
                         setSelectedBook(null);
+                        fetchBooks(); // Refetch to get updated list assignments
                     }}
                     onDelete={(bookId) => {
                         setBooks(prev => prev.filter(b => b.id !== bookId));

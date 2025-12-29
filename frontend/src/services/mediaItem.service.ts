@@ -5,6 +5,7 @@ export const updateMediaItem = async (
   mediaItemId: string,
   updates: {
     myRating?: number;
+    myRating?: number;
     status?: string;
     personalNotes?: string; // Changed from personalNote to personalNotes
     [key: string]: any;

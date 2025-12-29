@@ -32,6 +32,7 @@ const PersonalNote: React.FC<PersonalNoteProps> = ({
   const quoteColor = useColorModeValue('gray.600', 'gray.400');
 
   useEffect(() => {
+    console.log(note);
     setDraft(note);
   }, [note]);
 

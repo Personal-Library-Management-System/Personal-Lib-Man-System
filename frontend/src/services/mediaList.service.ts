@@ -119,3 +119,43 @@ export const getMediaListById = async (listId: string): Promise<MediaListRespons
   const data = await response.json();
   return data.list;
 };
+
+// Add media items to a media list
+export const addMediaItemsToList = async (listId: string, itemIds: string[]): Promise<MediaListResponse> => {
+  const response = await fetch(`${API_BASE_URL}/mediaLists/${listId}/items`, {
+    method: 'POST',
+    credentials: 'include', // Use cookies for authentication
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ items: itemIds }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to add items to media list');
+  }
+
+  const data = await response.json();
+  return data.list;
+};
+
+// Remove media items from a media list
+export const removeMediaItemsFromList = async (listId: string, itemIds: string[]): Promise<MediaListResponse> => {
+  const response = await fetch(`${API_BASE_URL}/mediaLists/${listId}/items`, {
+    method: 'DELETE',
+    credentials: 'include', // Use cookies for authentication
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ items: itemIds }),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.error || 'Failed to remove items from media list');
+  }
+
+  const data = await response.json();
+  return data.list;
+};

@@ -60,6 +60,8 @@ export interface BookDetailCardProps {
   onPersonalNoteChange?: (note: string) => void;
   // Item type for filtering lists
   itemType?: 'book' | 'movie';
+  // Media item ID for API calls
+  mediaItemId?: string;
 }
 
 const MediaDetailCard: React.FC<BookDetailCardProps> = ({
@@ -80,6 +82,7 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
   personalNote = '',
   onPersonalNoteChange,
   itemType,
+  mediaItemId,
 }) => {
   const borderColor = useColorModeValue('gray.200', 'gray.700');
   const blockBg = useColorModeValue('gray.50', 'whiteAlpha.100');
@@ -193,16 +196,18 @@ const MediaDetailCard: React.FC<BookDetailCardProps> = ({
 
           <Divider orientation="vertical" h="24px" borderColor={borderColor} />
 
-          <TagSelector 
+          <TagSelector
             assignedTags={assignedTags}
             onChange={onTagsChange || (() => {})}
             trigger={tagSelector}
+            mediaItemId={mediaItemId}
           />
 
           <ListSelector
             assignedLists={assignedLists}
             onChange={onListsChange || (() => {})}
             itemType={itemType}
+            mediaItemId={mediaItemId}
           />
         </HStack>
 

@@ -649,17 +649,14 @@ const ResourcePageLayout = <T extends Item>({
 
     // 8. List filtresi
     if (filterState.lists && filterState.lists.length > 0) {
-      const selectedListItems = new Set<string>();
-      
-      availableLists
-        .filter((list) => filterState.lists!.includes(list.id))
-        .forEach((list) => {
-          list.items.forEach((listItem) => {
-            selectedListItems.add(listItem.id);
-          });
-        });
-
-      result = result.filter(item => selectedListItems.has(item.id));
+      result = result.filter(item => {
+        // Check if the item has a lists field and if any of the selected lists are in it
+        if ('lists' in item && (item as any).lists) {
+          const itemLists = (item as any).lists as string[];
+          return filterState.lists!.some((listId: string) => itemLists.includes(listId));
+        }
+        return false;
+      });
     }
 
     // 9. Sıralama
